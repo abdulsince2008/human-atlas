@@ -1,0 +1,799 @@
+## Build a Complete, Interactive 3D Human Anatomy Learning Platform
+You are acting as a senior full-stack engineer, 3D graphics engineer, UI/UX designer, anatomy education platform architect, and technical project manager.
+Your task is to take this project from its existing codebase to a polished, functional, production-ready educational web application called **ANATOMY 360**.
+This is not a landing-page-only project, a static 3D model viewer, or a simple UI prototype.
+I want a complete interactive human anatomy learning platform built around a real, detailed, selectable, rotatable, zoomable 3D human anatomical model.
+You must inspect the existing repository, understand its architecture, reuse suitable existing work, and implement the actual application. Do not simply explain how I could build it.
+***
+# 1. PRODUCT VISION
+**Product name:** Anatomy 360
+**Product type:** Interactive 3D human anatomy education platform.
+**Primary audience:**
+- FSc pre-medical students
+- MDCAT preparation students
+- MBBS students
+- Nursing students
+- Biology students
+- General learners interested in human anatomy
+**Initial target market:** Pakistan and international English-speaking students.
+**Primary objective:**
+Create an interactive digital human anatomy atlas that allows students to explore the human body in 3D, select individual anatomical structures, understand their functions, explore anatomical systems, search for structures, and learn through organized educational content.
+The long-term vision is a complete human anatomy learning environment.
+The first release must establish a strong, working foundation that can be expanded without rebuilding the entire application.
+***
+# 2. IMPORTANT: EXISTING REPOSITORIES AND 3D ASSETS
+Do not generate the human body and thousands of anatomical structures from scratch if usable, properly licensed assets already exist.
+Inspect these resources:
+### Primary repository — Human Atlas
+https://github.com/ashemag/human-atlas
+This is the primary starting point.
+Investigate its:
+- React architecture
+- Three.js implementation
+- Existing 3D anatomical meshes
+- Anatomical systems
+- Structure selection functionality
+- Search functionality
+- Camera controls
+- Model loading and asset organization
+- Existing educational information
+- Build and deployment configuration
+Preserve and improve its useful existing functionality.
+Do not unnecessarily replace working 3D rendering or anatomical model assets.
+### Additional anatomical dataset — BodyParts3D
+https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html
+Official licence: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html
+Investigate whether this dataset can provide additional anatomical structures, labels, relationships, or improvements.
+The dataset is licensed under CC BY 4.0. Preserve the required attribution wherever its assets are used:
+"BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International."
+Do not download or integrate unnecessarily large raw datasets if the existing Human Atlas assets already provide the required functionality.
+### Additional reference — Z-Anatomy
+https://github.com/Z-Anatomy/Models
+Investigate its available models and individual asset licences.
+Only integrate assets if their specific licences permit the intended use, including potential commercial use. Do not use non-commercial assets in the product.
+### 3D engine — Three.js
+https://github.com/mrdoob/three.js
+Use the existing rendering engine if it is already working correctly. Improve it where necessary.
+You may investigate additional open-source repositories, libraries, anatomical datasets, educational resources, and reusable components if they materially improve the product.
+However:
+- Inspect licences before incorporating external code or assets.
+- Prefer MIT, Apache 2.0, CC0, and other commercially compatible resources.
+- Respect attribution requirements.
+- Do not copy assets with unclear licences.
+- Do not introduce paid APIs, paid model services, or subscription dependencies.
+- Do not use copyrighted anatomical assets without permission.
+- Keep a clear attribution and licence documentation file.
+**Critical rule:** Anatomical accuracy and working functionality are more important than the number of features or visual effects.
+Never invent anatomical structures and present them as medically accurate.
+***
+# 3. THE CORE 3D HUMAN ANATOMY EXPERIENCE
+This is the most important part of the entire product.
+The main application must feature a large, interactive, detailed 3D human anatomical model.
+The user must be able to:
+### 3.1 Rotate
+- Rotate the human body horizontally.
+- Rotate vertically where technically appropriate.
+- Inspect the front, back, left, right, and other angles.
+- Use mouse drag on desktop.
+- Use touch gestures on mobile.
+- Maintain smooth camera movement.
+### 3.2 Zoom
+- Zoom in and out smoothly.
+- Inspect small anatomical structures.
+- Zoom towards the selected structure where practical.
+- Support mouse-wheel zoom.
+- Support mobile pinch-to-zoom.
+### 3.3 Pan
+- Move the camera around the model.
+- Reposition the model within the viewing area.
+- Provide an easy way to reset the camera.
+### 3.4 Select anatomical structures
+Users should be able to click or tap an anatomical structure.
+When selected:
+- Visually highlight the selected structure.
+- Display its correct anatomical name.
+- Display relevant educational information.
+- Show its anatomical system.
+- Provide access to more detailed information.
+- Keep the selected structure visually distinguishable from surrounding structures.
+Selection must work with the actual 3D geometry, not just decorative buttons.
+### 3.5 Isolate structures
+Where supported by the underlying model:
+- Isolate an individual structure.
+- Hide surrounding structures.
+- Restore the complete body.
+- Highlight a selected structure.
+- Make surrounding structures transparent.
+- Control the visibility of anatomical systems.
+### 3.6 Anatomical model controls
+Include:
+- Reset camera
+- Front view
+- Back view
+- Left view
+- Right view
+- Zoom in
+- Zoom out
+- Show/hide structures
+- Isolate selection
+- Restore full model
+- Fullscreen viewer
+Make these controls intuitive and accessible.
+### 3.7 Anatomical model quality
+Use the highest-quality usable existing anatomical meshes available in the inspected repositories.
+Do not replace detailed models with:
+- Flat illustrations
+- Static pictures
+- Cartoon human figures
+- Generic geometric shapes
+- Unrelated 3D objects
+The 3D human anatomy model must be the central feature of the application.
+***
+# 4. COMPLETE HUMAN ANATOMY ORGANIZATION
+Build an organized anatomy navigation system.
+The application should support the following major anatomical systems where the available licensed assets and verified anatomical data permit:
+1. Skeletal system
+2. Muscular system
+3. Nervous system
+4. Cardiovascular system
+5. Respiratory system
+6. Digestive system
+7. Urinary system
+8. Reproductive system
+9. Endocrine system
+10. Lymphatic system
+11. Integumentary system
+12. Sensory organs
+Each system should have its own navigation entry.
+When a user selects a system:
+- Display its name and description.
+- Show the corresponding structures in the 3D model.
+- Allow the user to show or hide that system.
+- Provide a list of its available anatomical structures.
+- Allow selection of individual structures.
+If the primary repository does not contain a particular system or structure, do not pretend that it does.
+Clearly distinguish between:
+- Fully available structures
+- Partially available structures
+- Structures planned for future expansion
+The interface should be prepared for additional anatomical models and datasets in future versions.
+***
+# 5. ANATOMICAL STRUCTURE INFORMATION
+Every selectable anatomical structure should have a dedicated educational information panel.
+Where verified information is available, show:
+- Anatomical name
+- Common name
+- Anatomical system
+- Location in the human body
+- Main function
+- Important characteristics
+- Related anatomical structures
+- Relevant anatomical terminology
+For example, selecting the heart should provide a useful educational explanation of its location, structure, and function.
+Selecting a bone should provide its correct name, location, classification where verified, and relevant functions.
+Selecting a muscle should provide its name, location, and primary action where verified.
+Information must be understandable for students.
+Use clear, simple English.
+Do not fabricate facts to fill empty information fields.
+If information is missing, display a clear unavailable-information state rather than inventing it.
+***
+# 6. SEARCH FUNCTIONALITY
+Implement a functional anatomical search system.
+Users should be able to search by:
+- Anatomical name
+- Common name
+- Structure name
+- Anatomical system
+- Available synonyms
+Search should:
+- Provide relevant suggestions.
+- Work while typing.
+- Show matching results.
+- Allow selection of a result.
+- Navigate to or highlight the corresponding 3D structure when available.
+If a structure exists in the searchable database but is not available in the current 3D model, clearly indicate that.
+Search must be connected to the actual anatomical dataset.
+Do not create a decorative search bar that does nothing.
+***
+# 7. EDUCATIONAL LEARNING EXPERIENCE
+The application must feel like an educational product, not just a 3D viewer.
+Build an organized learning section.
+Include:
+### Anatomy learning categories
+- Learn by anatomical system
+- Learn by individual structure
+- Explore the human body
+- Anatomy terminology
+### Learning content
+Create a structure that supports:
+- Lessons
+- Topics
+- Chapters
+- Explanations
+- Key facts
+- Related structures
+Organize the learning content so that additional educational material can be added later.
+Where the source data does not provide reliable educational content, use clearly identified placeholders instead of fabricated medical information.
+### Interactive learning
+Prepare the application architecture for:
+- Multiple-choice quizzes
+- Structure identification exercises
+- Anatomical system quizzes
+- Revision questions
+- Progress tracking
+Implement at least a basic functional quiz experience if it can be built without compromising the core 3D viewer.
+Quiz questions must be based on verified content.
+Do not create fake progress or pretend that learning data is being saved when it is not.
+***
+# 8. UI/UX DESIGN REQUIREMENTS
+The application must look like a professional modern educational technology product.
+Design direction:
+- Premium
+- Clean
+- Modern
+- Minimal
+- Scientific
+- Professional
+- Student-friendly
+Avoid:
+- Cheap-looking templates
+- Excessive gradients
+- Unnecessary animations
+- Cluttered panels
+- Tiny text
+- Overloaded navigation
+- Generic AI-generated dashboard layouts
+Use a consistent design system.
+### Suggested application structure
+**Main navigation:**
+- Home
+- 3D Anatomy
+- Systems
+- Learn
+- Search
+- Quizzes
+- About
+### Main anatomy screen
+The 3D viewer should receive the majority of the available screen space.
+Suggested desktop layout:
+- Left sidebar: anatomical systems and navigation.
+- Center: large interactive 3D human model.
+- Right panel: selected structure information.
+- Top area: search, viewer controls, and navigation.
+Suggested mobile layout:
+- Large 3D viewer.
+- Compact top navigation.
+- Accessible system selector.
+- Bottom sheet or expandable information panel.
+- Touch-friendly controls.
+- No horizontal overflow.
+Do not force the desktop three-column layout onto small screens.
+The interface must adapt intelligently.
+***
+# 9. MOBILE-FIRST AND RESPONSIVE REQUIREMENTS
+A major requirement is that this project must work properly on mobile phones.
+The owner will initially manage and test the project using a mobile device.
+Therefore:
+- Make the application fully responsive.
+- Support Android mobile browsers.
+- Support touch interactions.
+- Support pinch-to-zoom.
+- Support touch rotation.
+- Ensure buttons are easy to tap.
+- Keep the 3D model usable on smaller screens.
+- Optimize loading and rendering.
+- Avoid unnecessarily large assets.
+- Avoid desktop-only controls.
+- Ensure menus and information panels work on mobile.
+Also support tablets and desktop browsers.
+Do not sacrifice the desktop experience to achieve mobile responsiveness.
+***
+# 10. PERFORMANCE AND TECHNICAL ARCHITECTURE
+The 3D model may contain thousands of meshes, so performance matters.
+Implement sensible optimizations:
+- Lazy-load assets where possible.
+- Load only the necessary data initially.
+- Avoid unnecessary re-rendering.
+- Dispose of unused Three.js resources.
+- Optimize rendering and geometry where safe.
+- Use appropriate texture and asset compression.
+- Provide loading indicators.
+- Provide error handling for failed model loads.
+- Prevent the application from freezing on mobile.
+- Keep the initial page lightweight.
+- Use code splitting where appropriate.
+Do not remove anatomical detail simply to improve performance.
+Maintain a balance between visual quality and accessibility.
+### Technology
+Prefer the existing project's stack.
+If the existing application uses React and Three.js, continue using them unless there is a compelling technical reason not to.
+Use:
+ 
+- React
+- TypeScript where practical
+- Three.js
+- Existing compatible 3D controls
+- Modern CSS
+- Reusable components
+- Structured anatomical data
+
+ 
+Avoid introducing unnecessary frameworks or complex infrastructure.
+ 
+### Backend
+ 
+The first release should be as inexpensive and simple to host as possible.
+ 
+Prefer a static frontend with locally available data and assets wherever feasible.
+ 
+Do not require:
+ 
+- Paid databases
+- Paid authentication services
+- Paid APIs
+- Paid AI APIs
+- Paid subscriptions
+- External services that make the application unusable without a subscription
+
+ 
+If a feature requires a backend, explain why and use a free-compatible architecture.
+ 
+Do not add authentication just for decoration.
+ 
+***
+ 
+# 11. LANGUAGE AND FUTURE LOCALIZATION
+ 
+The initial interface should be in English.
+ 
+However, design the content architecture so that Urdu can be added later.
+ 
+Prepare for:
+ 
+- English anatomical names
+- Urdu explanations
+- English explanations
+- Translated educational content
+
+ 
+Do not translate anatomical terminology inaccurately.
+ 
+Keep anatomical identifiers separate from their displayed language labels so localization can be added without breaking the 3D model.
+ 
+***
+ 
+# 12. ACCESSIBILITY AND USABILITY
+ 
+Include:
+ 
+- Readable typography
+- Appropriate contrast
+- Keyboard navigation where practical
+- Clear selection states
+- Helpful tooltips
+- Accessible button labels
+- Loading and error messages
+- Empty search states
+- Clear navigation
+- Consistent controls
+
+ 
+The application should be usable by students who have never used a 3D anatomy viewer before.
+ 
+***
+ 
+# 13. LICENSING AND COMMERCIAL READINESS
+ 
+This project may eventually become a commercial educational product.
+ 
+Therefore, licensing is a critical requirement.
+ 
+Before integrating any external repository, model, image, or dataset:
+ 
+1. Inspect its licence.
+2. Determine whether commercial use is permitted.
+3. Determine whether modification is permitted.
+4. Determine whether attribution is required.
+5. Preserve the required copyright notices.
+6. Document the origin of every significant external asset.
+
+ 
+Create a file named:
+ 
+THIRD\_PARTY\_LICENSES.md
+ 
+Include:
+ 
+- Repository or asset name
+- Source URL
+- Licence
+- Attribution requirements
+- Where it is used in the application
+
+ 
+Do not assume that a repository's software licence automatically covers its 3D models or other assets.
+ 
+Do not include assets with unclear or incompatible commercial licences.
+ 
+***
+ 
+# 14. APPLICATION PAGES
+ 
+Build the actual functional pages, not just a home screen.
+ 
+### A. Home page
+ 
+Include:
+ 
+- Anatomy 360 branding
+- Clear introduction
+- Main call to action to explore 3D anatomy
+- Anatomical systems overview
+- Learning features
+- A professional visual presentation
+
+ 
+### B. 3D Anatomy Explorer
+ 
+This is the primary product.
+ 
+Include the actual interactive 3D model, navigation, structure selection, search, camera controls, and educational information panels.
+ 
+### C. Systems page
+ 
+Show available anatomical systems.
+ 
+Each system should open a dedicated view or filtered exploration experience.
+ 
+### D. Learn page
+ 
+Provide structured learning categories and available lessons.
+ 
+### E. Quiz page
+ 
+Provide functional quizzes using verified educational information.
+ 
+### F. About page
+ 
+Explain the educational purpose of Anatomy 360 and provide appropriate project and data attribution.
+ 
+All navigation must work.
+ 
+Do not create links that lead nowhere.
+ 
+If a page is not yet implemented, do not present it as a fully working feature.
+ 
+***
+ 
+# 15. PROJECT COMPLETION AND QUALITY ASSURANCE
+ 
+Do not stop after generating a beautiful interface.
+ 
+The final application must actually work.
+ 
+You must:
+ 
+1. Inspect the existing repository.
+2. Understand the existing architecture.
+3. Identify working features.
+4. Identify broken or missing features.
+5. Create an implementation plan.
+6. Implement the complete application.
+7. Test all major interactions.
+8. Fix build errors.
+9. Fix runtime errors.
+10. Verify the 3D model loads.
+11. Verify rotation, zoom, pan, and selection.
+12. Verify anatomical system filtering.
+13. Verify search.
+14. Verify information panels.
+15. Verify mobile layout.
+16. Verify navigation.
+17. Verify that all required assets are included or loaded correctly.
+18. Verify the production build.
+
+ 
+Do not claim something is working unless you have actually tested it.
+ 
+If a feature cannot be completed because a dataset or asset is unavailable, document the limitation clearly.
+ 
+### Required final checks
+ 
+- Application starts successfully.
+- Production build succeeds.
+- 3D model loads.
+- 3D model rotates.
+- 3D model zooms.
+- 3D model pans.
+- Anatomical structures can be selected.
+- Selection highlights the correct available mesh.
+- Available systems can be explored.
+- Search returns relevant results.
+- Educational information panels work.
+- Mobile controls work.
+- Navigation works.
+- No major console errors.
+- No broken imports.
+- No missing critical assets.
+
+ 
+***
+ 
+# 16. DEPLOYMENT AND PROJECT EXPORT
+ 
+The application will eventually be deployed using Cloudflare Pages.
+ 
+Prepare the project accordingly.
+ 
+Requirements:
+ 
+- Keep the project compatible with Cloudflare Pages.
+- Ensure the production build generates the correct output directory.
+- Avoid unnecessary server-side requirements.
+- Keep environment variables and secrets out of the repository.
+- Include clear setup instructions.
+- Include build instructions.
+- Include deployment instructions.
+
+ 
+Create or update:
+ 
+README.md
+ 
+It must explain:
+ 
+- What the project is
+- Technology stack
+- Installation
+- Development
+- Production build
+- Asset organization
+- Anatomical data sources
+- Licence and attribution information
+- Cloudflare Pages deployment
+
+ 
+The project must remain downloadable and editable.
+ 
+If available, sync the completed project to GitHub and/or provide a complete ZIP export.
+ 
+Do not leave critical assets outside the exported project unless their download and setup are clearly documented.
+ 
+***
+ 
+# 17. VERY IMPORTANT: CONTINUATION AFTER AI USAGE LIMITS
+ 
+This project may require multiple AI Studio sessions because of usage limits.
+ 
+You MUST design your workflow so that work can continue after a usage limit or session interruption.
+ 
+Do not assume that you will retain all conversation context after a reset.
+ 
+Create these project documentation files:
+ 
+1. PROJECT\_STATUS.md
+2. IMPLEMENTATION\_ROADMAP.md
+3. COMPLETED\_FEATURES.md
+4. REMAINING\_TASKS.md
+5. TECHNICAL\_NOTES.md
+6. THIRD\_PARTY\_LICENSES.md
+
+ 
+Keep them updated as the project develops.
+ 
+### PROJECT\_STATUS.md
+ 
+Record:
+ 
+- Current project stage
+- Current implementation status
+- Working features
+- Incomplete features
+- Current build status
+- Important technical decisions
+
+ 
+### IMPLEMENTATION\_ROADMAP.md
+ 
+Record all project phases and their order.
+ 
+### COMPLETED\_FEATURES.md
+ 
+Record only features that have actually been implemented and tested.
+ 
+### REMAINING\_TASKS.md
+ 
+Record every unfinished task in priority order.
+ 
+### TECHNICAL\_NOTES.md
+ 
+Record:
+ 
+- Repository architecture
+- Important files
+- Component structure
+- 3D model loading process
+- Data structure
+- Asset locations
+- Build commands
+- Known issues
+- Decisions that must not be reversed without a good reason
+
+ 
+### CONTINUATION RULE — MANDATORY
+ 
+If I reach an AI usage limit, stop working safely.
+ 
+Before stopping:
+ 
+- Save all completed code.
+- Save all project documentation.
+- Update PROJECT\_STATUS.md.
+- Update REMAINING\_TASKS.md.
+- Record exactly what you were working on.
+- Record the next precise implementation steps.
+- Ensure no important progress exists only in the conversation.
+
+ 
+When I return after the limit resets and say:
+ 
+**"CONTINUE THE ANATOMY 360 PROJECT"**
+ 
+or simply:
+ 
+**"CONTINUE"**
+ 
+You must:
+ 
+1. Read PROJECT\_STATUS.md.
+2. Read IMPLEMENTATION\_ROADMAP.md.
+3. Read COMPLETED\_FEATURES.md.
+4. Read REMAINING\_TASKS.md.
+5. Read TECHNICAL\_NOTES.md.
+6. Inspect the current codebase.
+7. Verify which changes have already been completed.
+8. Identify the exact next unfinished task.
+9. Continue from that point.
+10. Do not restart the project.
+11. Do not regenerate working components unnecessarily.
+12. Do not discard existing code.
+13. Do not repeat completed work.
+14. Continue updating project documentation.
+
+ 
+The project is not complete merely because one AI session ends.
+ 
+Continue until all achievable requirements have been implemented, tested, and documented.
+ 
+If a reset has occurred, treat the saved project files and repository as the source of truth, not assumptions about the previous conversation.
+ 
+***
+ 
+# 18. DEVELOPMENT PRIORITIES
+ 
+Work in the following order.
+ 
+### PHASE 1 — FOUNDATION
+ 
+- Inspect the existing Human Atlas repository.
+- Understand the 3D rendering architecture.
+- Verify the model assets and licences.
+- Run the existing project.
+- Preserve existing working functionality.
+- Establish the Anatomy 360 branding and design system.
+- Create project documentation.
+
+ 
+### PHASE 2 — CORE 3D EXPERIENCE
+ 
+- Improve the 3D viewer.
+- Implement or improve rotation.
+- Implement or improve zoom.
+- Implement or improve pan.
+- Add camera reset and preset views.
+- Improve structure selection and highlighting.
+- Improve isolation and visibility controls.
+- Ensure touch support.
+
+ 
+### PHASE 3 — ANATOMICAL NAVIGATION
+ 
+- Organize anatomical systems.
+- Implement system navigation.
+- Connect available systems to actual model structures.
+- Implement structure lists.
+- Improve anatomical search.
+
+ 
+### PHASE 4 — EDUCATIONAL LAYER
+ 
+- Implement structure information panels.
+- Organize verified anatomical information.
+- Build learning categories.
+- Implement available lessons.
+- Add a functional basic quiz experience.
+
+ 
+### PHASE 5 — MOBILE AND PERFORMANCE
+ 
+- Optimize mobile layout.
+- Improve loading performance.
+- Optimize 3D rendering.
+- Test touch interactions.
+- Fix responsiveness problems.
+
+ 
+### PHASE 6 — FINALIZATION
+ 
+- Test all major features.
+- Fix errors.
+- Complete documentation.
+- Verify licences and attribution.
+- Verify production build.
+- Prepare GitHub synchronization and ZIP export.
+- Prepare Cloudflare Pages deployment.
+
+ 
+You may adjust the order when technically necessary, but do not abandon a phase without documenting why.
+ 
+***
+ 
+# 19. RULES FOR YOUR WORK
+ 
+These rules are mandatory.
+ 
+**Rule 1:** Do not give me a tutorial instead of building the application.
+ 
+**Rule 2:** Do not generate only a landing page or dashboard.
+ 
+**Rule 3:** Do not replace the actual anatomical model with static images.
+ 
+**Rule 4:** Do not fabricate anatomical geometry or claim that unavailable structures exist.
+ 
+**Rule 5:** Do not remove existing working functionality without a strong technical reason.
+ 
+**Rule 6:** Do not use paid APIs or paid subscriptions.
+ 
+**Rule 7:** Do not introduce unnecessary backend infrastructure.
+ 
+**Rule 8:** Do not use external assets without checking their licences.
+ 
+**Rule 9:** Do not leave nonfunctional buttons, fake search, or decorative controls.
+ 
+**Rule 10:** Prioritize the working 3D anatomy experience over cosmetic features.
+ 
+**Rule 11:** Build mobile responsiveness from the beginning, not as an afterthought.
+ 
+**Rule 12:** Save progress in the project itself so another session can continue.
+ 
+**Rule 13:** Never claim the project is complete until the required tests have been performed.
+ 
+**Rule 14:** If a requirement is technically impossible with the available assets or environment, explain the exact limitation and implement the best valid alternative.
+ 
+**Rule 15:** Do not stop at planning. Execute the implementation.
+ 
+***
+ 
+# 20. YOUR FIRST ACTION
+ 
+Start by inspecting the existing imported repository.
+ 
+Do not immediately replace the project with a new template.
+ 
+First report briefly:
+ 
+1. What the existing project already contains.
+2. Which 3D anatomy assets are available.
+3. Which features already work.
+4. Which important features are missing.
+5. Which external repositories or datasets are worth integrating.
+6. Any licensing or technical blockers.
+
+ 
+Then begin implementation immediately.
+ 
+Do not wait for me to approve every small development decision.
+Make sensible engineering decisions independently, while preserving the product vision and requirements in this prompt.
+**FINAL OBJECTIVE:**
+Deliver a polished, responsive, interactive, educational 3D human anatomy platform called **ANATOMY 360**, built on real anatomical assets, with rotatable and zoomable 3D exploration, selectable structures, anatomical systems, search, educational information, and a foundation for future expansion.
+The result must be a real working application that can be exported, maintained, and deployed through Cloudflare Pages — not merely a visual demonstration.

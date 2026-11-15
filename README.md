@@ -1,64 +1,78 @@
-# Human Atlas
+# Anatomy 360
 
-An interactive 3D anatomy explorer built with React, Three.js, and shadcn/ui. Take the BodyParts3D adult male reference apart into **2,234 individually selectable meshes**, explore **15 anatomical systems**, and search **3,432 named concepts**.
+**Anatomy 360** is an interactive 3D human anatomy learning platform built for FSc pre-medical, MDCAT, MBBS, nursing, biology, and general learners. Powered by React, TypeScript, Three.js, and the **BodyParts3D 4.0** adult male reference dataset, it lets students explore **2,234 individually selectable 3D meshes** across **12 canonical body systems** and **3,432 named FMA concepts** alongside structured lessons, guided anatomical pathways, terminology, and verified revision quizzes.
 
-**[Explore the live demo](https://human-atlas-seven.vercel.app)**
+## Key Features
 
-## Explore
+- **Interactive 3D Anatomy Explorer (`#/explorer`):**
+  - Smooth mouse and touch **Orbit**, **Pan** (with dedicated Orbit/Pan toggle for single-finger/trackpad use), **Zoom** (wheel, pinch-to-zoom, and Zoom In/Out buttons), and **Fullscreen** viewer.
+  - Anatomical preset views: **¾**, **Front**, **Back**, **Left**, and **Right** (verified against model coordinates), plus **Auto-Rotate** and **Reset Camera**.
+  - Direct 3D structure picking via raycasting + tap-vs-drag/pinch disambiguation (`PointerTap`).
+  - **Focus in 3D**, **Transparent Surroundings** (ghost mode keeping selected structures opaque and highlighted inside translucent surrounding anatomy), **Isolate Structure**, and **Explode Anatomy** (`0–100%` non-overlapping inventory packing).
+  - Collapsible **Hide Controls / Show Controls** (`H`) drawer for unobstructed 3D inspection.
+- **12 Canonical Anatomical Systems (`#/systems`):** Skeletal, Muscular, Nervous, Cardiovascular, Respiratory, Digestive, Urinary, Reproductive (Male reference only), Endocrine, Lymphatic, Integumentary, and Sensory Organs — with transparent coverage indicators (`Available in 3D`, `Partial 3D Coverage`, `Male Reference Only`, and `Planned`).
+- **Unified Search (`#/search` or `/`):** Searches across 3,432 FMA concepts, 2,234 mesh names, common names/synonyms (e.g., *windpipe*, *collarbone*, *shinbone*), system names, and clearly labeled planned expansion structures.
+- **Structured Learning (`#/learn`):** Learn by Anatomical System, Learn by Individual Structure, Guided 3D Pathways (step-by-step tours), and Anatomy Terminology (planes, directional terms, roots).
+- **Verified Revision Quizzes (`#/quiz`):** Multiple-choice questions with instant explanations, 1-click "Inspect in 3D" links, and local browser progress (`localStorage`).
+- **Localization-Ready Schema:** Canonical FMA and BodyParts3D IDs are decoupled from `LocalizedText` (`en`, prepared `ur` slots) for future Urdu translation without breaking 3D geometry bindings.
 
-- Orbit, zoom, and select structures directly on the body.
-- Toggle individual systems or use skeleton and organ presets.
-- Move from assembled anatomy to a spaced inventory of every visible piece.
-- Search anatomical names and source identifiers.
-- Isolate a selected structure and read its details.
-- Use compact controls and detail panels on mobile.
+## Technology Stack
 
-## Run locally
+- **Frontend:** React 19, TypeScript 5.9, Vite 8
+- **3D Engine:** Three.js (`OrbitControls`, `RoomEnvironment`, merged-geometry GPU `DataTexture` shader architecture)
+- **Styling & UI Primitives:** Tailwind CSS v4, Lucide React, Base UI / shadcn components
+- **Backend / APIs:** None — 100% static frontend with local datasets (no paid APIs or subscriptions required)
 
-Requires Node.js 22.13 or newer. No API keys or accounts are needed.
+## Installation & Development
+
+Requires **Node.js 22.13+** and **npm**.
 
 ```sh
-npm ci
+npm install
 npm run dev
 ```
 
-Open http://localhost:3016. To build the static site, run `npm run build`; the output is in `dist/`.
+Open `http://localhost:3000`.
 
-## Validate
+## Validation & Production Build
 
 ```sh
-npm run check
-node scripts/validate-atlas.mjs
-node scripts/validate-interactions.mjs
-npm run build
+npm run check                        # TypeScript type-checking (tsc --noEmit)
+npm run lint                         # Static lint check (oxlint)
+node scripts/validate-atlas.mjs      # Verifies 2,234 meshes, 3,432 concepts, and 15 binary chunks
+node scripts/validate-interactions.mjs # Verifies explosion packing, tap/drag, and search contracts
+npm run build                        # Builds static production output to dist/
 ```
 
-Validation covers mesh buffers, names and concept membership, nonoverlapping exploded layouts at desktop and mobile aspect ratios, search and inspection contracts, and tap-versus-drag handling. Browser interaction checks have exercised selection, system controls, search, isolation, rotation, and 390×844, 320×568, and 844×390 layouts. Phone controls stay clear of the exploded inventory, and isolated structures fit the space above or beside the detail panel. Physical-device performance and real multitouch hardware have not been tested.
+## Asset Organization
 
-## Anatomy data
+- `public/models/atlas.json` — Manifest describing 2,234 `Part` meshes, 3,432 `Concept` groupings, bounding boxes, and chunk byte offsets.
+- `public/models/body-0.bin` .. `body-14.bin` (and `.bin.gz`) — Pre-optimized binary geometry buffers (2,288,268 triangles; ~33 MB compressed, lazy-loaded when opening the 3D Explorer).
+- `app/anatomy-systems.ts` — Canonical 12-system mapping and honest coverage metadata.
+- `app/anatomy-knowledge.ts` — Verified educational explanations, synonyms, terminology, and planned-structure notes.
+- `app/learning-data.ts` — Structured chapters, topics, guided 3D pathways, and anatomical terminology.
+- `app/quiz-data.ts` — Verified MCQ bank linked to real 3D concepts.
 
-The current viewer uses **BodyParts3D 4.0**, an adult male reference anatomy, licensed **CC BY 4.0**. It does not represent every human structure or variation. Individual source meshes are distinct from named concepts, which may group multiple meshes. Descriptions distinguish general system context from individual organ explanations.
+## Cloudflare Pages Deployment
 
-Geometry is simplified for browser performance while retaining every source mesh. The packaged model contains 2,288,268 triangles and downloads approximately 33 MB of compressed geometry. Full credits, source links, and adaptation details are in [ATTRIBUTION.md](public/ATTRIBUTION.md).
+Anatomy 360 builds to a purely static directory (`dist/`) with hash-based client routing (`#/...`), requiring zero server-side runtime or rewrite rules:
 
-This is an educational explorer, not a diagnostic or surgical tool.
+1. Push this repository to GitHub.
+2. In the **Cloudflare Dashboard**, go to **Workers & Pages -> Create -> Pages -> Connect to Git**.
+3. Configure the build settings:
+   - **Framework preset:** `Vite` (or `None`)
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+   - **Environment variables:** `NODE_VERSION = 22` (no secrets or API keys required)
+4. Deploy. All binary geometry files under `public/models/` are copied directly into `dist/models/`.
 
-## How it works
+## Anatomical Data Sources & Licenses
 
-Geometry is merged into batches. Per-structure GPU textures control translation, visibility, and selection, while component geometry supports accurate picking. Exploded layouts pack only the visible pieces. Rendering updates when the scene changes; orbit controls remain responsive without thousands of separate draw calls.
+- **BodyParts3D 4.0:** BodyParts3D, © The Database Center for Life Science licensed under **CC Attribution 4.0 International (CC BY 4.0)**.
+  - Dataset: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html
+  - License: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html
+  - Publication: Mitsuhashi et al. (2009), *Nucleic Acids Research*, https://doi.org/10.1093/nar/gkn613
+- **Application Base Code:** Adapted from [Human Atlas](https://github.com/ashemag/human-atlas) under the **MIT License** (`LICENSE`).
+- Full third-party license details and commercial-readiness notes are documented in [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md) and [`public/ATTRIBUTION.md`](public/ATTRIBUTION.md).
 
-The optional WebMCP tools expose anatomy search and inspection in compatible browsers. The visible interface works without them.
-
-## Rebuilding geometry
-
-The repository includes browser-ready geometry. Rebuilding it is optional: obtain the official BodyParts3D OBJ archive and English metadata tables, prepare the joined concepts and display-system mappings, run `scripts/convert-anatomy.py`, then `node scripts/optimize-anatomy.mjs` and `node scripts/compress-models.mjs`. Simplification uses a 0.2% relative error limit per structure.
-
-## Deploy
-
-Import this repository into Vercel as a Vite project. The included `vercel.json` configures `npm ci`, `npm run build`, and the `dist` output directory. It can also be served by a static host.
-
-## License
-
-Original application code is released under the [MIT License](LICENSE). **The anatomy data has its own CC BY 4.0 license**; preserve the attribution when redistributing it. Third-party dependencies retain their respective licenses.
-
-Issues and pull requests are welcome. Please include reproduction steps and browser/device details for interaction problems.
+> **Educational Disclaimer:** Anatomy 360 is an educational anatomical reference and is not a clinical, diagnostic, or surgical tool.
