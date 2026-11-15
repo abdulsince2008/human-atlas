@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Compass, Layers, Type } from 'lucide-react';
+import type { Atlas } from '../anatomy';
 import { CURATED_KNOWLEDGE } from '../anatomy-knowledge';
 import { CANONICAL_SYSTEMS } from '../anatomy-systems';
+import SystemLearnWorkspace from '../components/SystemLearnWorkspace';
 import {
-  ANATOMY_LESSONS,
   GUIDED_PATHWAYS,
   LEARNING_CATEGORIES,
   TERMINOLOGY_ENTRIES,
@@ -11,23 +12,17 @@ import {
 } from '../learning-data';
 
 interface Props {
+  atlas: Atlas | null;
+  atlasError?: string;
   onInspectConcept: (conceptId: string) => void;
 }
 
-export default function LearnPage({ onInspectConcept }: Props) {
+export default function LearnPage({ atlas, atlasError, onInspectConcept }: Props) {
   const [category, setCategory] = useState<LearningCategoryId>('by-system');
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [termFilter, setTermFilter] = useState<string>('all');
   const [activePathwayId, setActivePathwayId] = useState<string>(GUIDED_PATHWAYS[0].id);
   const [pathwayStep, setPathwayStep] = useState<number>(0);
-
-  const filteredLessons = useMemo(
-    () =>
-      systemFilter === 'all'
-        ? ANATOMY_LESSONS
-        : ANATOMY_LESSONS.filter((l) => l.systemId === systemFilter),
-    [systemFilter],
-  );
 
   const filteredStructures = useMemo(
     () =>
@@ -58,13 +53,13 @@ export default function LearnPage({ onInspectConcept }: Props) {
   };
 
   return (
-    <div className="a360-page">
+    <div className="a360-page a360-learn-page">
       <header className="a360-page-header">
         <p className="a360-kicker">Structured Curriculum</p>
         <h1>Learn Human Anatomy</h1>
         <p className="a360-lead">
-          Study verified concepts organized for FSc, MDCAT, MBBS, and nursing courses. Every topic
-          connects directly to real 3D structures in the Anatomy 360 viewer.
+          Study verified concepts organized for Foundational, FSc / MDCAT, and MBBS / Nursing
+          courses—synchronized directly with real 3D structures in Anatomy 360.
         </p>
       </header>
 
@@ -84,7 +79,15 @@ export default function LearnPage({ onInspectConcept }: Props) {
         ))}
       </div>
 
-      {(category === 'by-system' || category === 'by-structure') && (
+      {category === 'by-system' && (
+        <SystemLearnWorkspace
+          atlas={atlas}
+          atlasError={atlasError}
+          onInspectConcept={onInspectConcept}
+        />
+      )}
+
+      {category === 'by-structure' && (
         <div className="a360-filter-row" aria-label="Filter by system">
           <button
             type="button"
@@ -93,11 +96,7 @@ export default function LearnPage({ onInspectConcept }: Props) {
           >
             All Systems
           </button>
-          {CANONICAL_SYSTEMS.filter((s) =>
-            ['cardiovascular', 'respiratory', 'skeletal', 'muscular', 'nervous', 'digestive', 'urinary', 'endocrine', 'lymphatic', 'sensory', 'reproductive'].includes(
-              s.id,
-            ),
-          ).map((s) => (
+          {CANONICAL_SYSTEMS.map((s) => (
             <button
               key={s.id}
               type="button"
@@ -107,64 +106,6 @@ export default function LearnPage({ onInspectConcept }: Props) {
               {s.name.en.replace(' System', '')}
             </button>
           ))}
-        </div>
-      )}
-
-      {category === 'by-system' && (
-        <div className="a360-lessons-stack">
-          {filteredLessons.length === 0 ? (
-            <div className="a360-empty-box">
-              <p>
-                Structured lessons for this system are queued for expansion. Use the Systems
-                directory or 3D Explorer to inspect its modeled meshes directly.
-              </p>
-            </div>
-          ) : (
-            filteredLessons.map((lesson) => {
-              const sys = CANONICAL_SYSTEMS.find((s) => s.id === lesson.systemId);
-              return (
-                <article key={lesson.id} className="a360-lesson-card">
-                  <div className="a360-lesson-head">
-                    <p className="a360-kicker">
-                      {lesson.chapter} · {sys?.name.en} · {lesson.level}
-                    </p>
-                    <h2>{lesson.title.en}</h2>
-                    <p className="a360-muted">{lesson.summary.en}</p>
-                  </div>
-
-                  <div className="a360-topics-grid">
-                    {lesson.topics.map((topic) => (
-                      <section key={topic.id} className="a360-topic-box">
-                        <h3>{topic.title.en}</h3>
-                        <p>{topic.explanation.en}</p>
-                        <ul className="a360-fact-list">
-                          {topic.keyFacts.map((fact) => (
-                            <li key={fact}>{fact}</li>
-                          ))}
-                        </ul>
-                        <div className="a360-topic-links">
-                          {topic.conceptIds.map((cid) => {
-                            const known = CURATED_KNOWLEDGE.find((k) => k.conceptId === cid);
-                            return (
-                              <button
-                                key={cid}
-                                type="button"
-                                className="a360-inspect-link"
-                                onClick={() => onInspectConcept(cid)}
-                              >
-                                Inspect {known?.anatomicalName ?? cid} in 3D
-                                <ArrowRight size={13} />
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                </article>
-              );
-            })
-          )}
         </div>
       )}
 

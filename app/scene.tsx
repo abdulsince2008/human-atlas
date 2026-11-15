@@ -374,17 +374,21 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     };
 
     const fit = (view: string, extent = 0, immediate = false) => {
+      const embedded = Boolean(latest.current.embedded);
       const mobile = el.clientWidth < 768;
-      const normalDistance = mobile
-        ? Math.max(
-            4.5,
-            (1.8 * el.clientHeight) / Math.max(160, el.clientHeight - 350) / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2))),
-          )
-        : 4;
-      const reservedHeight = mobile ? 350 : 270;
+      const normalDistance = embedded
+        ? 3.85
+        : mobile
+          ? Math.max(
+              4.5,
+              (1.8 * el.clientHeight) / Math.max(160, el.clientHeight - 350) / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2))),
+            )
+          : 4;
+      const reservedHeight = embedded ? 72 : mobile ? 350 : 270;
+      const sideReserve = embedded ? 40 : mobile ? 40 : 340;
       const availableAspect = Math.max(
         0.35,
-        (el.clientWidth - (mobile ? 40 : 340)) / Math.max(160, el.clientHeight - reservedHeight),
+        (el.clientWidth - sideReserve) / Math.max(160, el.clientHeight - reservedHeight),
       );
       const atlasDistance =
         (Math.max(packingHeight, packingWidth / availableAspect) / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)))) *
@@ -395,8 +399,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       if (extent > 0.8) view = 'front';
       viewDirection(view, _vecA);
       camTargetGoal.set(
-        extent > 0.1 && el.clientWidth > 767 ? -packingWidth * 0.12 : 0,
-        extent > 0.1 || mobile ? 0.85 : 0.68,
+        !embedded && extent > 0.1 && el.clientWidth > 767 ? -packingWidth * 0.12 : 0,
+        embedded ? 0.84 : extent > 0.1 || mobile ? 0.85 : 0.68,
         0,
       );
       camPosGoal.copy(camTargetGoal).addScaledVector(_vecA, distance);
@@ -412,7 +416,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       dirty = true;
     };
 
-    const focusOnSelection = (selectedIds: string[], inspectorOpen?: boolean) => {
+    const focusOnSelection = (selectedIds: string[], inspectorOpen?: boolean, embedded?: boolean) => {
       if (!selectedIds.length) return;
       _boxTmp.makeEmpty();
       const selSet = new Set(selectedIds);
@@ -432,8 +436,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       const landscape = w > h && h <= 600;
       let left = 20;
       let right = w - 20;
-      let top = mobile ? 150 : 100;
-      let bottom = h - 160;
+      let top = embedded ? 52 : mobile ? 150 : 100;
+      let bottom = embedded ? Math.max(top + 100, h - 36) : h - 160;
       if (inspectorOpen) {
         if (landscape) {
           right = w - 340;
@@ -489,7 +493,11 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       camera.aspect = el.clientWidth / el.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(el.clientWidth, el.clientHeight);
-      fit(latest.current.view, amount, true);
+      if (latest.current.embedded && latest.current.selected.length > 0 && latest.current.focusRequest && !latest.current.isolate) {
+        focusOnSelection(latest.current.selected, latest.current.inspectorOpen, true);
+      } else {
+        fit(latest.current.view, amount, true);
+      }
     };
     const observer = new ResizeObserver(resize);
     observer.observe(el);
@@ -710,13 +718,13 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
 
       if (s.focusRequest && s.focusRequest !== lastFocusId && s.selected.length > 0 && !s.isolate) {
         lastFocusId = s.focusRequest;
-        focusOnSelection(s.selected, s.inspectorOpen);
+        focusOnSelection(s.selected, s.inspectorOpen, s.embedded);
       }
 
-      const isolateKey = s.isolate ? s.selected.join(',') + ':' + s.reset + ':' + s.inspectorOpen + ':' + camera.aspect : '';
+      const isolateKey = s.isolate ? s.selected.join(',') + ':' + s.reset + ':' + s.inspectorOpen + ':' + Boolean(s.embedded) + ':' + camera.aspect : '';
       if (isolateKey !== lastIsolate || (s.isolate && moving)) {
         if (s.isolate) {
-          focusOnSelection(s.selected, s.inspectorOpen);
+          focusOnSelection(s.selected, s.inspectorOpen, s.embedded);
         } else if (lastIsolate) {
           camera.clearViewOffset();
           fit(s.view, amount);

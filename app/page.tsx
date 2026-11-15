@@ -150,7 +150,13 @@ export default function Home() {
           />
         )}
 
-        {route === 'learn' && <LearnPage onInspectConcept={inspectConceptIn3D} />}
+        {route === 'learn' && (
+          <LearnPage
+            atlas={atlas}
+            atlasError={atlasError}
+            onInspectConcept={inspectConceptIn3D}
+          />
+        )}
 
         {route === 'search' && (
           <SearchPage

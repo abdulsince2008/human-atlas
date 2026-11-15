@@ -76,6 +76,7 @@ export type InteractionMode = 'orbit' | 'pan';
 
 export interface SceneState {
   inspectorOpen?: boolean;
+  embedded?: boolean;
   explode: number;
   visible: SystemId[];
   selected: string[];
