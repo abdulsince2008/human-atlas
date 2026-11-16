@@ -1,132 +1,91 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Bookmark, BookOpen, GitBranch, Search } from 'lucide-react';
 import type { Atlas } from '../anatomy';
-import { CURATED_KNOWLEDGE, type StructureKnowledge } from '../anatomy-knowledge';
-import { CANONICAL_SYSTEMS, canonicalSystemForMeshSystem } from '../anatomy-systems';
+import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import StructureReferenceCard from '../components/StructureReferenceCard';
+import { useStudy } from '../components/StudyContext';
+import {
+  getCoverageBadgeLabel,
+  getStructureRecordV2,
+  type StructureCategory,
+} from '../knowledge-graph';
+import {
+  resolveRelatedNames,
+  SEARCH_SUGGESTIONS,
+  searchAnatomyCatalog,
+  type SearchResultItem,
+} from '../search-engine';
 
 interface Props {
   atlas: Atlas | null;
   onInspectConcept: (conceptId: string) => void;
   onInspectPart: (partId: string) => void;
+  onOpenRelationships: (conceptId: string) => void;
+  onOpenLearnSystem: (systemId: CanonicalSystemId, topicId?: string) => void;
+  onOpenFlashcards: (systemId: CanonicalSystemId) => void;
+  onOpenPracticalLab: () => void;
 }
 
-interface SearchHit {
-  key: string;
-  title: string;
-  subtitle: string;
-  systemLabel: string;
-  inModel: boolean;
-  piecesCount: number;
-  conceptId?: string;
-  partId?: string;
-  knowledge?: StructureKnowledge;
-}
+const CATEGORIES: { id: StructureCategory | 'all'; label: string }[] = [
+  { id: 'all', label: 'All Categories' },
+  { id: 'organ', label: 'Organs' },
+  { id: 'bone', label: 'Bones' },
+  { id: 'muscle', label: 'Muscles' },
+  { id: 'artery', label: 'Arteries' },
+  { id: 'vein', label: 'Veins' },
+  { id: 'nerve', label: 'Nerves' },
+  { id: 'gland', label: 'Glands' },
+  { id: 'sensory', label: 'Sensory' },
+  { id: 'lymphatic', label: 'Lymphatic' },
+];
 
-export default function SearchPage({ atlas, onInspectConcept, onInspectPart }: Props) {
+export default function SearchPage({
+  atlas,
+  onInspectConcept,
+  onInspectPart,
+  onOpenRelationships,
+  onOpenLearnSystem,
+  onOpenFlashcards,
+  onOpenPracticalLab,
+}: Props) {
   const [query, setQuery] = useState('');
-  const [selectedPlanned, setSelectedPlanned] = useState<StructureKnowledge | null>(null);
+  const [systemFilter, setSystemFilter] = useState<CanonicalSystemId | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<StructureCategory | 'all'>('all');
+  const [modelOnly, setModelOnly] = useState(false);
+  const [focusedHit, setFocusedHit] = useState<SearchResultItem | null>(null);
 
-  const hits = useMemo<SearchHit[]>(() => {
-    const term = query.toLowerCase().trim();
-    const list: SearchHit[] = [];
-    const seenConcepts = new Set<string>();
+  const { state, addRecentSearch, isBookmarked, toggleBookmark } = useStudy();
 
-    // 1. Match curated knowledge (including synonyms, common names, and planned entries)
-    for (const k of CURATED_KNOWLEDGE) {
-      const sys = CANONICAL_SYSTEMS.find((s) => s.id === k.canonicalSystem);
-      const haystack = [
-        k.anatomicalName,
-        k.commonName,
-        k.conceptId,
-        sys?.name.en ?? '',
-        ...k.synonyms,
-      ]
-        .join(' ')
-        .toLowerCase();
+  const discovery = useMemo(
+    () =>
+      searchAnatomyCatalog(query, atlas, {
+        system: systemFilter,
+        category: categoryFilter,
+        modelOnly,
+        limit: 75,
+      }),
+    [query, atlas, systemFilter, categoryFilter, modelOnly],
+  );
 
-      if (!term || haystack.includes(term)) {
-        const concept = atlas?.concepts.find((c) => c.id === k.conceptId);
-        seenConcepts.add(k.conceptId);
-        list.push({
-          key: `curated-${k.conceptId}`,
-          title: k.anatomicalName,
-          subtitle:
-            k.commonName !== k.anatomicalName
-              ? `${k.commonName} · ${k.conceptId}`
-              : k.conceptId,
-          systemLabel: sys?.name.en ?? 'Anatomy',
-          inModel: k.inModel && Boolean(concept),
-          piecesCount: concept?.elements.length ?? 0,
-          conceptId: k.conceptId,
-          knowledge: k,
-        });
-      }
-    }
+  const focusedRecordV2 = useMemo(() => {
+    if (!focusedHit?.conceptId) return null;
+    return getStructureRecordV2(focusedHit.conceptId, atlas, focusedHit.anatomicalName);
+  }, [focusedHit, atlas]);
 
-    if (!atlas) return list;
-
-    // 2. Match remaining 3,432 concepts in atlas.json (requires non-empty query or keeps top suggestions)
-    if (term) {
-      const partsMap = new Map(atlas.parts.map((p) => [p.id, p]));
-      const conceptMatches = atlas.concepts
-        .filter((c) => {
-          if (seenConcepts.has(c.id)) return false;
-          const firstPart = partsMap.get(c.elements[0]);
-          const canonical = firstPart ? canonicalSystemForMeshSystem(firstPart.system) : null;
-          return (
-            c.name.toLowerCase().includes(term) ||
-            c.id.toLowerCase().includes(term) ||
-            (canonical?.name.en.toLowerCase().includes(term) ?? false)
-          );
-        })
-        .sort((a, b) => a.name.length - b.name.length)
-        .slice(0, 60);
-
-      for (const c of conceptMatches) {
-        seenConcepts.add(c.id);
-        const firstPart = partsMap.get(c.elements[0]);
-        const canonical = firstPart ? canonicalSystemForMeshSystem(firstPart.system) : null;
-        list.push({
-          key: `concept-${c.id}`,
-          title: c.name,
-          subtitle: c.id,
-          systemLabel: canonical?.name.en ?? 'Anatomy',
-          inModel: true,
-          piecesCount: c.elements.length,
-          conceptId: c.id,
-        });
-      }
-
-      // 3. Match individual part names if distinct
-      const partMatches = atlas.parts
-        .filter((p) => p.name.toLowerCase().includes(term) && !seenConcepts.has(p.conceptId))
-        .slice(0, 25);
-
-      for (const p of partMatches) {
-        const canonical = canonicalSystemForMeshSystem(p.system);
-        list.push({
-          key: `part-${p.id}`,
-          title: p.name,
-          subtitle: `${p.id} · ${p.conceptId}`,
-          systemLabel: canonical.name.en,
-          inModel: true,
-          piecesCount: 1,
-          partId: p.id,
-        });
-      }
-    }
-
-    return list;
-  }, [atlas, query]);
+  const applyQuery = (q: string) => {
+    setQuery(q);
+    setFocusedHit(null);
+    if (q.trim().length >= 2) addRecentSearch(q.trim());
+  };
 
   return (
-    <div className="a360-page a360-narrow">
+    <div className="a360-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Anatomical Directory</p>
-        <h1>Search Structures, Systems & Synonyms</h1>
+        <p className="a360-kicker">Anatomical Discovery Engine</p>
+        <h1>Search Structures, Latin Terms, Synonyms & Systems</h1>
         <p className="a360-lead">
-          Search across 3,432 FMA concepts, 2,234 3D meshes, common names (such as breastbone,
-          collarbone, windpipe), and planned expansion structures.
+          Indexes all 3,432 FMA concepts, 2,234 3D meshes, Latin nomenclature, common names
+          (collarbone, windpipe, shinbone), anatomical regions, definitions, and typo-tolerant queries.
         </p>
       </header>
 
@@ -138,71 +97,241 @@ export default function SearchPage({ atlas, onInspectConcept, onInspectPart }: P
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            setSelectedPlanned(null);
+            setFocusedHit(null);
           }}
-          placeholder="Search heart, femur, windpipe, thyroid, pituitary, FMA7088…"
+          onBlur={() => {
+            if (query.trim().length >= 2) addRecentSearch(query.trim());
+          }}
+          placeholder="Search heart, cor, cerebrum, windpipe, biceps, FMA7088, thorax…"
           aria-label="Search anatomical catalog"
         />
       </div>
 
-      {selectedPlanned && (
-        <article className="a360-planned-detail" aria-live="polite">
-          <p className="a360-kicker">Not Yet Modeled in Current 3D Release</p>
-          <h2>{selectedPlanned.anatomicalName}</h2>
-          <p>{selectedPlanned.location.en}</p>
-          <p>{selectedPlanned.mainFunction.en}</p>
-          <ul className="a360-fact-list">
-            {selectedPlanned.characteristics.map((c) => (
-              <li key={c}>{c}</li>
+      {/* Filters */}
+      <div className="a360-quiz-filters" style={{ marginTop: '12px' }}>
+        <label className="a360-select-field">
+          <span>System Filter</span>
+          <select
+            value={systemFilter}
+            onChange={(e) => setSystemFilter(e.target.value as CanonicalSystemId | 'all')}
+          >
+            <option value="all">All 12 Systems</option>
+            {CANONICAL_SYSTEMS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name.en}
+              </option>
             ))}
-          </ul>
-        </article>
+          </select>
+        </label>
+
+        <label className="a360-select-field">
+          <span>Category</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value as StructureCategory | 'all')}
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="a360-filter-toggle-wrap">
+          <button
+            type="button"
+            className={`a360-filter-btn ${modelOnly ? 'active' : ''}`}
+            onClick={() => setModelOnly((v) => !v)}
+          >
+            3D Modeled Only
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Searches & Suggestions */}
+      <div className="a360-search-chips-bar">
+        {state.recentSearches.length > 0 && (
+          <div className="a360-search-chip-group">
+            <span className="a360-stat-label">Recent:</span>
+            {state.recentSearches.slice(0, 6).map((rs) => (
+              <button
+                key={rs}
+                type="button"
+                className="a360-filter-btn"
+                onClick={() => applyQuery(rs)}
+              >
+                {rs}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="a360-search-chip-group">
+          <span className="a360-stat-label">Suggested:</span>
+          {SEARCH_SUGGESTIONS.slice(0, 7).map((sg) => (
+            <button
+              key={sg}
+              type="button"
+              className="a360-filter-btn"
+              onClick={() => applyQuery(sg)}
+            >
+              {sg}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {focusedRecordV2 && (
+        <div style={{ marginTop: '16px', marginBottom: '20px' }}>
+          <StructureReferenceCard
+            record={focusedRecordV2}
+            atlas={atlas}
+            onInspectConcept={onInspectConcept}
+            onOpenRelationships={onOpenRelationships}
+            onOpenLearnSystem={onOpenLearnSystem}
+            onOpenFlashcards={onOpenFlashcards}
+            onOpenPracticalLab={onOpenPracticalLab}
+          />
+        </div>
       )}
 
-      <div className="a360-search-results-list">
-        {hits.length === 0 ? (
+      {/* Results List */}
+      <div className="a360-search-results-list" style={{ marginTop: '16px' }}>
+        {discovery.results.length === 0 ? (
           <div className="a360-empty-box">
             <p>
-              No anatomical structures match &ldquo;{query}&rdquo;. Try an anatomical name, common
-              term (e.g. shinbone, kneecap), system name, or FMA identifier.
+              No anatomical structures match &ldquo;{query}&rdquo; under the current filters. Try a
+              common term (e.g., collarbone, shinbone), Latin name (e.g., cor, hepar), or clear your system filter.
             </p>
           </div>
         ) : (
-          hits.map((hit) => (
-            <div key={hit.key} className="a360-search-row">
-              <div className="a360-search-row-info">
-                <strong className="a360-capitalize">{hit.title}</strong>
-                <span>
-                  {hit.systemLabel} · {hit.subtitle} ·{' '}
-                  {hit.inModel
-                    ? `${hit.piecesCount} ${hit.piecesCount === 1 ? '3D piece' : '3D pieces'}`
-                    : 'Planned (Not in current 3D model)'}
-                </span>
-              </div>
-              {hit.inModel ? (
-                <button
-                  type="button"
-                  className="a360-card-btn"
-                  onClick={() => {
-                    if (hit.partId) onInspectPart(hit.partId);
-                    else if (hit.conceptId) onInspectConcept(hit.conceptId);
-                  }}
-                >
-                  Inspect in 3D <ArrowRight size={14} />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="a360-btn-secondary"
-                  onClick={() => hit.knowledge && setSelectedPlanned(hit.knowledge)}
-                >
-                  Read Notes
-                </button>
-              )}
-            </div>
-          ))
+          discovery.results.map((hit) => {
+            const relatedNames = hit.relatedConceptIds.length
+              ? resolveRelatedNames(hit.relatedConceptIds.slice(0, 3), atlas)
+              : [];
+            const saved = hit.conceptId ? isBookmarked('structure', hit.conceptId) : false;
+
+            return (
+              <article key={hit.key} className="a360-search-rich-row">
+                <div className="a360-search-row-info">
+                  <div className="a360-search-title-line">
+                    <strong className="a360-capitalize">{hit.anatomicalName}</strong>
+                    {hit.latinName && (
+                      <span className="a360-muted">
+                        · <em>{hit.latinName}</em>
+                      </span>
+                    )}
+                    <span className="a360-muted">
+                      · {hit.systemLabel} · {hit.region} · {hit.matchReason}
+                    </span>
+                  </div>
+                  <p className="a360-card-detail">{hit.shortDefinition}</p>
+                  <p className="a360-muted">
+                    {hit.conceptId ?? hit.partId} · {getCoverageBadgeLabel(hit.coverageTier)}
+                    {relatedNames.length > 0 && (
+                      <> · Related: {relatedNames.map((r) => r.name).join(', ')}</>
+                    )}
+                  </p>
+                </div>
+
+                <div className="a360-card-actions">
+                  {hit.inModel && (
+                    <button
+                      type="button"
+                      className="a360-card-btn"
+                      onClick={() => {
+                        if (query.trim().length >= 2) addRecentSearch(query.trim());
+                        if (hit.partId) onInspectPart(hit.partId);
+                        else if (hit.conceptId) onInspectConcept(hit.conceptId);
+                      }}
+                    >
+                      Inspect in 3D <ArrowRight size={14} />
+                    </button>
+                  )}
+                  {hit.conceptId && (
+                    <>
+                      <button
+                        type="button"
+                        className="a360-btn-secondary"
+                        onClick={() => setFocusedHit(hit)}
+                      >
+                        Reference Notes
+                      </button>
+                      <button
+                        type="button"
+                        className="a360-btn-secondary"
+                        onClick={() => onOpenRelationships(hit.conceptId!)}
+                      >
+                        <GitBranch size={13} /> Relations
+                      </button>
+                      <button
+                        type="button"
+                        className={`a360-btn-secondary ${saved ? 'is-saved' : ''}`}
+                        aria-label={`Bookmark ${hit.anatomicalName}`}
+                        onClick={() =>
+                          toggleBookmark({
+                            kind: 'structure',
+                            targetId: hit.conceptId!,
+                            title: hit.anatomicalName,
+                            subtitle: hit.systemLabel,
+                            canonicalSystem: hit.canonicalSystem,
+                          })
+                        }
+                      >
+                        <Bookmark size={13} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </article>
+            );
+          })
         )}
       </div>
+
+      {/* Matching Lessons & Terminology */}
+      {(discovery.relatedTopics.length > 0 || discovery.relatedTerms.length > 0) && (
+        <section className="a360-dashboard-grid" style={{ marginTop: '24px' }}>
+          {discovery.relatedTopics.length > 0 && (
+            <div className="a360-chart-panel">
+              <h2>Related Learning Lesson Topics</h2>
+              <div className="a360-dash-list">
+                {discovery.relatedTopics.map((tp) => (
+                  <div key={tp.id} className="a360-dash-row">
+                    <div>
+                      <strong>{tp.title}</strong>
+                      <span>System lesson topic</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="a360-card-btn"
+                      onClick={() => onOpenLearnSystem(tp.systemId, tp.id)}
+                    >
+                      <BookOpen size={13} /> Open Lesson
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {discovery.relatedTerms.length > 0 && (
+            <div className="a360-chart-panel">
+              <h2>Related Anatomical Terminology</h2>
+              <div className="a360-dash-list">
+                {discovery.relatedTerms.map((tm) => (
+                  <div key={tm.term} className="a360-dash-row">
+                    <div>
+                      <strong>{tm.term}</strong>
+                      <span>{tm.definition}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

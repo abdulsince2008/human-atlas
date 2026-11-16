@@ -1,7 +1,20 @@
-import { ArrowRight, BookOpen, Compass, HelpCircle, Layers3, Search } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  BookOpen,
+  Compass,
+  GitBranch,
+  HelpCircle,
+  Layers3,
+  Microscope,
+  Search,
+  Stethoscope,
+  X,
+} from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import type { AppRoute } from '../components/SiteHeader';
+import { useStudy } from '../components/StudyContext';
 
 interface Props {
   atlas: Atlas | null;
@@ -29,6 +42,8 @@ export default function HomePage({
   onInspectConcept,
   onExploreSystem,
 }: Props) {
+  const { state, dismissOnboarding, revisionQueue } = useStudy();
+
   const partCountsByMesh = new Map<string, number>();
   if (atlas) {
     for (const p of atlas.parts) {
@@ -38,6 +53,45 @@ export default function HomePage({
 
   return (
     <div className="a360-page">
+      {!state.onboardingDismissed && (
+        <section className="a360-onboarding-banner" aria-label="Student quick-start onboarding">
+          <div>
+            <p className="a360-kicker">
+              Welcome to Anatomy 360 · Study Track: {state.profile.track}
+            </p>
+            <h2>Connected 3D Exploration, Curriculum, Practical Spotter & Revision</h2>
+            <p className="a360-muted">
+              Inspect 3D anatomy directly without creating an account. Progress is saved locally
+              and includes spaced-repetition flashcards, physiological models, and JSON backup.
+            </p>
+            <div className="a360-card-actions" style={{ marginTop: '10px' }}>
+              <button
+                type="button"
+                className="a360-card-btn"
+                onClick={() => onNavigate('dashboard')}
+              >
+                Open Study Dashboard & Profile
+              </button>
+              <button
+                type="button"
+                className="a360-card-link"
+                onClick={() => onNavigate('relationships')}
+              >
+                Explore Structure Relationships
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="a360-btn-secondary"
+            aria-label="Dismiss quick-start banner"
+            onClick={() => dismissOnboarding(true)}
+          >
+            <X size={15} /> Dismiss
+          </button>
+        </section>
+      )}
+
       <section className="a360-hero">
         <div className="a360-hero-copy">
           <p className="a360-kicker">Interactive 3D Human Anatomy Learning Platform</p>
@@ -45,15 +99,26 @@ export default function HomePage({
           <p className="a360-lead">
             Built for FSc pre-medical, MDCAT, MBBS, nursing, and biology students. Rotate, zoom,
             dissect, and inspect 2,234 individually selectable anatomical meshes across 12 human
-            body systems — paired with verified explanations, guided pathways, and revision quizzes.
+            body systems — paired with verified explanations, relationship graphs, flashcards, and practical exams.
           </p>
           <div className="a360-hero-actions">
             <button type="button" className="a360-btn-primary" onClick={onExplore}>
               Launch 3D Explorer
               <ArrowRight size={17} />
             </button>
-            <button type="button" className="a360-btn-secondary" onClick={() => onNavigate('systems')}>
-              Browse 12 Systems
+            <button
+              type="button"
+              className="a360-btn-secondary"
+              onClick={() => onNavigate('practical-lab')}
+            >
+              Practical Lab (3D Spotter)
+            </button>
+            <button
+              type="button"
+              className="a360-btn-secondary"
+              onClick={() => onNavigate('dashboard')}
+            >
+              Study Dashboard ({revisionQueue.length} due)
             </button>
             <button type="button" className="a360-btn-secondary" onClick={() => onNavigate('search')}>
               <Search size={15} />
@@ -107,12 +172,12 @@ export default function HomePage({
           <div>
             <h2>Human Anatomical Systems</h2>
             <p>
-              Explore every major system in 3D. Coverage labels honestly indicate where the
-              BodyParts3D 4.0 male reference has complete, partial, or planned structures.
+              Explore every major system in 3D or inspect hierarchical structure reference pages.
+              Coverage labels clearly mark complete, partial, male-only, or planned geometry.
             </p>
           </div>
           <button type="button" className="a360-text-link" onClick={() => onNavigate('systems')}>
-            View all systems <ArrowRight size={15} />
+            Open Reference Library <ArrowRight size={15} />
           </button>
         </div>
 
@@ -142,7 +207,7 @@ export default function HomePage({
                     className="a360-card-link"
                     onClick={() => onNavigate('systems')}
                   >
-                    Structure list
+                    Reference library
                   </button>
                 </div>
               </article>
@@ -154,10 +219,10 @@ export default function HomePage({
       <section className="a360-section a360-learning-band">
         <div className="a360-section-head">
           <div>
-            <h2>Structured Study & Exam Preparation</h2>
+            <h2>Connected Study, Revision & Medical Science Labs</h2>
             <p>
-              Connect spatial 3D exploration with concise explanations, guided anatomical pathways,
-              terminology, and self-testing quizzes.
+              Every anatomy concept flows smoothly across structured lessons, relationship diagrams,
+              flashcards, physiological mechanics, histology, and practical spotter exams.
             </p>
           </div>
         </div>
@@ -165,42 +230,74 @@ export default function HomePage({
         <div className="a360-features-grid">
           <button type="button" className="a360-feature-card" onClick={() => onNavigate('learn')}>
             <BookOpen size={20} />
-            <h3>System & Structure Lessons</h3>
+            <h3>12-System Lessons & Tours</h3>
             <p>
-              Read clear FSc, MDCAT, and MBBS-aligned explanations with key facts linked directly to
-              3D organs, bones, and muscles.
+              Synchronized curriculum with guided 3D pathways, terminology, and direct mesh highlighting.
             </p>
             <span className="a360-feature-cta">Open lessons <ArrowRight size={14} /></span>
           </button>
 
-          <button type="button" className="a360-feature-card" onClick={() => onNavigate('learn')}>
-            <Compass size={20} />
-            <h3>Guided 3D Body Pathways</h3>
+          <button type="button" className="a360-feature-card" onClick={() => onNavigate('relationships')}>
+            <GitBranch size={20} />
+            <h3>Relationship Explorer</h3>
             <p>
-              Step sequentially through blood circulation, airway ventilation, digestion, and the
-              weight-bearing skeletal axis.
+              Trace verified muscle attachments, joint articulations, arterial supply, and innervation networks.
             </p>
-            <span className="a360-feature-cta">Start a tour <ArrowRight size={14} /></span>
+            <span className="a360-feature-cta">Explore connections <ArrowRight size={14} /></span>
+          </button>
+
+          <button type="button" className="a360-feature-card" onClick={() => onNavigate('revision')}>
+            <Layers3 size={20} />
+            <h3>Flashcards & Spaced Repetition</h3>
+            <p>
+              Active recall deck with 3D previews, SM-2 intervals, bookmarks, and weak-area revision queue.
+            </p>
+            <span className="a360-feature-cta">Open flashcards <ArrowRight size={14} /></span>
+          </button>
+
+          <button type="button" className="a360-feature-card" onClick={() => onNavigate('physiology')}>
+            <Activity size={20} />
+            <h3>Physiology Simulations</h3>
+            <p>
+              Interactive cardiac output, diaphragm ventilation, nephron filtration, and elbow lever mechanics.
+            </p>
+            <span className="a360-feature-cta">Launch simulations <ArrowRight size={14} /></span>
+          </button>
+
+          <button type="button" className="a360-feature-card" onClick={() => onNavigate('histology')}>
+            <Microscope size={20} />
+            <h3>Histology & Microanatomy</h3>
+            <p>
+              Epithelial, connective, muscle, and nervous tissue architecture linked to gross organs.
+            </p>
+            <span className="a360-feature-cta">Browse microanatomy <ArrowRight size={14} /></span>
+          </button>
+
+          <button type="button" className="a360-feature-card" onClick={() => onNavigate('clinical')}>
+            <Stethoscope size={20} />
+            <h3>Clinical Correlations</h3>
+            <p>
+              Applied regional anatomy scenarios with learning objectives, 3D inspection, and self-checks.
+            </p>
+            <span className="a360-feature-cta">Study correlations <ArrowRight size={14} /></span>
           </button>
 
           <button type="button" className="a360-feature-card" onClick={() => onNavigate('quiz')}>
             <HelpCircle size={20} />
-            <h3>Verified Anatomy Quizzes</h3>
+            <h3>Verified Quizzes</h3>
             <p>
-              Test your recall with system and structure MCQs, instant rationales, and one-click
-              3D inspection of every tested organ.
+              Multiple-choice self-assessment linked to 3D organs with explanations and progress tracking.
             </p>
             <span className="a360-feature-cta">Practice quizzes <ArrowRight size={14} /></span>
           </button>
 
-          <button type="button" className="a360-feature-card" onClick={onExplore}>
-            <Layers3 size={20} />
-            <h3>Dissect, Ghost & Isolate</h3>
+          <button type="button" className="a360-feature-card" onClick={() => onNavigate('atlases')}>
+            <Compass size={20} />
+            <h3>Multi-Atlas & Content Packs</h3>
             <p>
-              Separate overlapping systems using the 0–100% Explode inventory, make surrounding
-              tissues transparent, or isolate any single piece.
+              Registry specifications for future female/pediatric atlases and JSON manifest validation tools.
             </p>
-            <span className="a360-feature-cta">Open 3D studio <ArrowRight size={14} /></span>
+            <span className="a360-feature-cta">Open atlas manager <ArrowRight size={14} /></span>
           </button>
         </div>
       </section>
@@ -212,7 +309,8 @@ export default function HomePage({
         </p>
         <div className="a360-footer-links">
           <button type="button" onClick={() => onNavigate('about')}>About & Attribution</button>
-          <button type="button" onClick={() => onNavigate('search')}>Search Catalog</button>
+          <button type="button" onClick={() => onNavigate('atlases')}>Atlas & Packs</button>
+          <button type="button" onClick={() => onNavigate('dashboard')}>Dashboard</button>
           <button type="button" onClick={onExplore}>3D Explorer</button>
         </div>
       </footer>

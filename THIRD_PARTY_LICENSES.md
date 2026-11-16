@@ -1,6 +1,6 @@
 # Third-Party Licenses & Attribution
 
-This document records the origin, license, commercial-use status, and attribution requirements for every external repository, dataset, and major dependency used in **Anatomy 360**.
+This document records the audited origin, license, commercial-use status, and attribution requirements for every external dataset, open-source package, and font/asset used in **Anatomy 360**.
 
 ## 1. 3D Anatomical Dataset & Meshes
 
@@ -27,24 +27,37 @@ This document records the origin, license, commercial-use status, and attributio
 - **Commercial Use Permitted:** Yes
 - **Modification Permitted:** Yes
 - **Attribution Requirement:** Preserve copyright notice (`Copyright (c) 2026 ashemag`) and MIT license text in `LICENSE`.
-- **Where Used:** Core Three.js merged-geometry + GPU `DataTexture` rendering engine (`app/scene.tsx`), binary loader (`app/model-download.ts`), explosion packing algorithm (`app/explosion-layout.ts`), pointer tap disambiguation (`app/pointer-tap.ts`), and asset optimization scripts (`scripts/`).
+- **Where Used:** Core Three.js merged-geometry + GPU `DataTexture` rendering engine (`app/scene.tsx`), binary loader (`app/model-download.ts`), explosion packing algorithm (`app/explosion-layout.ts`), and pointer tap disambiguation (`app/pointer-tap.ts`).
 
 ---
 
-## 3. Core Open-Source Libraries
+## 3. Runtime & Visualization Dependencies (Audited against `package.json`)
 
-| Package | License | Source / Repository | Purpose in Anatomy 360 |
-|---|---|---|---|
-| **Three.js** (`three`) | MIT | https://github.com/mrdoob/three.js | WebGL 3D rendering, OrbitControls, RoomEnvironment, Raycaster |
-| **React & React DOM** | MIT | https://github.com/facebook/react | UI component runtime |
-| **Tailwind CSS** | MIT | https://github.com/tailwindlabs/tailwindcss | Styling and responsive utility system |
-| **Lucide React** | ISC | https://github.com/lucide-icons/lucide | UI affordance icons |
-| **shadcn/ui & Base UI** | MIT | https://ui.shadcn.com / https://base-ui.com | Accessible UI primitives (buttons, sheets, sliders, switches, combobox) |
-| **meshoptimizer** | MIT | https://github.com/zeux/meshoptimizer | Offline mesh simplification during model pipeline |
+| Package | Version in `package.json` | License | Repository / Source | Purpose in Anatomy 360 |
+|---|---|---|---|---|
+| **three** | `^0.159.0` | MIT | https://github.com/mrdoob/three.js | WebGL 3D scene engine, OrbitControls, RoomEnvironment, Raycaster |
+| **react** / **react-dom** | `19.2.6` | MIT | https://github.com/facebook/react | UI component runtime |
+| **recharts** | `3.8.0` | MIT | https://github.com/recharts/recharts | Study Dashboard per-system bar charts |
+| **lucide-react** | `1.31.0` | ISC | https://github.com/lucide-icons/lucide | UI affordance iconography |
+| **@base-ui/react** / **@shadcn/react** | `1.7.0` / `0.3.0` | MIT | https://base-ui.com / https://ui.shadcn.com | Accessible sheets, sliders, switches, combobox primitives |
+| **cmdk** | `1.1.1` | MIT | https://github.com/pacocoursey/cmdk | Accessible combobox list behavior |
+| **date-fns** | `4.1.0` | MIT | https://github.com/date-fns/date-fns | Date/time formatting utilities |
+| **tailwindcss** | `4.2.1` | MIT | https://github.com/tailwindlabs/tailwindcss | CSS utility & design token system |
+| **class-variance-authority** / **clsx** / **tailwind-merge** | `0.7.1` / `2.1.1` / `3.6.0` | Apache-2.0 / MIT | NPM registry | Class composition helpers |
+| **meshoptimizer** (dev/build tool) | `^1.2.0` | MIT | https://github.com/zeux/meshoptimizer | Offline mesh compression during asset build |
 
 ---
 
-## 4. Excluded Assets (Inspected, Not Integrated)
+## 4. Fonts & Browser Storage
 
-- **Z-Anatomy (`Z-Anatomy/Models`)**: Inspected as reference. Individual blended/annotated assets require explicit per-asset license verification (many derived from BodyParts3D CC BY-SA 2.1 JP or Blender community assets with ShareAlike/non-uniform terms). Not bundled in this release to keep Anatomy 360 cleanly under MIT + CC BY 4.0.
-- **HuBMAP Female Reference Organ Set v1.5**: Referenced in upstream `public/ATTRIBUTION.md` as historical; not included in the `public/models/` binary bundle of this repository. Female reproductive and missing endocrine/sensory structures are explicitly marked as planned for future verified CC BY 4.0 / CC0 expansion.
+- **Typography:** Plus Jakarta Sans, DM Sans, and IBM Plex Mono (Open Font License 1.1 / system sans-serif fallbacks).
+- **Client Persistence:** Browser-native **IndexedDB** (`Anatomy360StudyDB`) and **Web Storage** (`localStorage`), keeping all student progress and bookmarks on the user's device.
+
+---
+
+## 5. Unavailable / Excluded Assets (Honest Scope Disclosure)
+
+- **Female Reference 3D Model (HuBMAP / Verified Female Atlas v1.5):** Not bundled in `public/models/`. Listed in the Atlas Registry with `unavailable_assets` status and explicit mesh/manifest integration requirements.
+- **Pediatric Reference 3D Model:** Not bundled in `public/models/`. Listed with explicit asset and FMA concept requirements.
+- **Real Microscopy Histology Slides:** `app/data/histology-data.ts` ships verified microanatomy text and strict `SpecimenAssetSlot` schemas requiring CC BY 4.0 / CC0 micrographs with magnification metadata before attaching image files.
+- **Z-Anatomy (`Z-Anatomy/Models`):** Excluded pending per-asset license harmonization so Anatomy 360 maintains clean MIT + CC BY 4.0 distribution terms.

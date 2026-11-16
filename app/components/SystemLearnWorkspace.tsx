@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import {
   ArrowLeft,
   ArrowRight,
+  Bookmark,
   CheckCircle2,
   Circle,
   Crosshair,
@@ -28,6 +29,7 @@ import {
 import { lookupStructureKnowledge } from '../anatomy-knowledge';
 import { CANONICAL_SYSTEMS, canonicalSystemForMeshSystem, type CanonicalSystemId } from '../anatomy-systems';
 import { ANATOMY_LESSONS, type AnatomyLesson, type LessonTopic } from '../learning-data';
+import { useStudy } from './StudyContext';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -36,6 +38,8 @@ const COMPLETED_TOPICS_KEY = 'a360.learn.completedTopics.v1';
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
+  initialSystemId?: CanonicalSystemId | null;
+  initialTopicId?: string | null;
   onInspectConcept: (conceptId: string) => void;
 }
 
@@ -59,9 +63,20 @@ function readCompletedTopics(): string[] {
   }
 }
 
-export default function SystemLearnWorkspace({ atlas, atlasError, onInspectConcept }: Props) {
-  const [activeSystemId, setActiveSystemId] = useState<CanonicalSystemId>('cardiovascular');
-  const [activeTopicId, setActiveTopicId] = useState<string>('topic-cardio-heart-chambers');
+export default function SystemLearnWorkspace({
+  atlas,
+  atlasError,
+  initialSystemId,
+  initialTopicId,
+  onInspectConcept,
+}: Props) {
+  const { isBookmarked, setTopicCompleted, toggleBookmark } = useStudy();
+  const [activeSystemId, setActiveSystemId] = useState<CanonicalSystemId>(
+    initialSystemId ?? 'cardiovascular',
+  );
+  const [activeTopicId, setActiveTopicId] = useState<string>(
+    initialTopicId ?? 'topic-cardio-heart-chambers',
+  );
   const [focusedConceptId, setFocusedConceptId] = useState<string | null>(null);
   const [clicked3D, setClicked3D] = useState<ClickedSelection | null>(null);
 
@@ -139,11 +154,17 @@ export default function SystemLearnWorkspace({ atlas, atlasError, onInspectConce
     }
   }, [completedTopics]);
 
-  const toggleTopicCompleted = useCallback((topicId: string) => {
-    setCompletedTopics((prev) =>
-      prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId],
-    );
-  }, []);
+  const toggleTopicCompleted = useCallback(
+    (topicId: string, topicTitle?: string) => {
+      setCompletedTopics((prev) => {
+        const exists = prev.includes(topicId);
+        const nextCompleted = !exists;
+        setTopicCompleted(topicId, nextCompleted, topicTitle);
+        return exists ? prev.filter((id) => id !== topicId) : [...prev, topicId];
+      });
+    },
+    [setTopicCompleted],
+  );
 
   // Re-focus once after WebGL chunks finish loading so initial camera centers cleanly on topic structures
   useEffect(() => {
@@ -154,13 +175,16 @@ export default function SystemLearnWorkspace({ atlas, atlasError, onInspectConce
   }, [sceneProgress]);
 
   const selectSystem = useCallback(
-    (sysId: CanonicalSystemId) => {
+    (sysId: CanonicalSystemId, keepTopicId?: string | null) => {
       const nextLessons = lessonsBySystem.get(sysId) ?? [];
-      const firstTopic = nextLessons[0]?.topics[0];
+      const matchingTopic = keepTopicId
+        ? nextLessons.flatMap((l) => l.topics).find((t) => t.id === keepTopicId)
+        : undefined;
+      const targetTopic = matchingTopic ?? nextLessons[0]?.topics[0];
       setActiveSystemId(sysId);
-      if (firstTopic) {
-        setActiveTopicId(firstTopic.id);
-        setView(firstTopic.preferredView ?? 'three-quarter');
+      if (targetTopic) {
+        setActiveTopicId(targetTopic.id);
+        setView(targetTopic.preferredView ?? 'three-quarter');
       }
       setFocusedConceptId(null);
       setClicked3D(null);
@@ -168,6 +192,12 @@ export default function SystemLearnWorkspace({ atlas, atlasError, onInspectConce
     },
     [lessonsBySystem],
   );
+
+  useEffect(() => {
+    if (initialSystemId) {
+      selectSystem(initialSystemId, initialTopicId);
+    }
+  }, [initialSystemId, initialTopicId, selectSystem]);
 
   const selectTopic = useCallback((topic: LessonTopic) => {
     setActiveTopicId(topic.id);
@@ -415,14 +445,34 @@ export default function SystemLearnWorkspace({ atlas, atlasError, onInspectConce
                     </p>
                     <h3>{activeTopic.title.en}</h3>
                   </div>
-                  <button
-                    type="button"
-                    className={`a360-complete-btn ${isTopicCompleted ? 'completed' : ''}`}
-                    onClick={() => toggleTopicCompleted(activeTopic.id)}
-                  >
-                    {isTopicCompleted ? <CheckCircle2 size={15} /> : <Circle size={15} />}
-                    <span>{isTopicCompleted ? 'Completed' : 'Mark Complete'}</span>
-                  </button>
+                  <div className="a360-ref-actions">
+                    <button
+                      type="button"
+                      className={`a360-btn-secondary ${isBookmarked('lesson', activeTopic.id) ? 'is-saved' : ''}`}
+                      onClick={() =>
+                        toggleBookmark({
+                          kind: 'lesson',
+                          targetId: activeTopic.id,
+                          title: activeTopic.title.en,
+                          subtitle: activeSystem.name.en,
+                          canonicalSystem: activeSystem.id,
+                        })
+                      }
+                    >
+                      <Bookmark size={14} />
+                      <span>
+                        {isBookmarked('lesson', activeTopic.id) ? 'Saved' : 'Bookmark'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`a360-complete-btn ${isTopicCompleted ? 'completed' : ''}`}
+                      onClick={() => toggleTopicCompleted(activeTopic.id, activeTopic.title.en)}
+                    >
+                      {isTopicCompleted ? <CheckCircle2 size={15} /> : <Circle size={15} />}
+                      <span>{isTopicCompleted ? 'Completed' : 'Mark Complete'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <p className="a360-topic-explanation">{activeTopic.explanation.en}</p>

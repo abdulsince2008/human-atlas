@@ -3,10 +3,17 @@ import * as T from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {
+  SYSTEMS,
+  type Atlas,
+  type ClippingPlaneState,
+  type SceneState,
+  type SystemId,
+} from './anatomy';
 import { createExplosionLayout } from './explosion-layout';
+import { computeClipPlaneEquation } from './interaction-engine';
 import { decodeModelResponse } from './model-download';
 import { PointerTap } from './pointer-tap';
-import { SYSTEMS, type Atlas, type SceneState } from './anatomy';
 
 interface Props {
   atlas: Atlas;
@@ -19,7 +26,16 @@ interface Props {
 const _vecA = new T.Vector3();
 const _vecB = new T.Vector3();
 const _vecC = new T.Vector3();
+const _vecPivot = new T.Vector3();
+const _vecRotPivot = new T.Vector3();
+const _quatTmp = new T.Quaternion();
 const _boxTmp = new T.Box3();
+const _worldOrigin = new T.Vector3(0, 0.85, 0);
+
+const MODEL_BOUNDS: { min: [number, number, number]; max: [number, number, number] } = {
+  min: [-0.42, -0.02, -0.22],
+  max: [0.42, 1.78, 0.22],
+};
 
 function detectSoftwareWebGL(): boolean {
   try {
@@ -56,10 +72,16 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     let lastIsolate = '';
     let lastZoomId = 0;
     let lastFocusId = 0;
+    let lastFocusBoxId = 0;
     let layoutKey = '';
     let amount = 0;
     let lastState: SceneState | null = null;
     let lastGhostMode = false;
+    let lastDimmedKey = '';
+    let lastSysOpacityKey = '';
+    let lastClippingEnabled = false;
+    let lastOverlayKey = '';
+    let lastPinnedKey = '';
 
     const isSoftwareGl = detectSoftwareWebGL();
     const abort = new AbortController();
@@ -80,7 +102,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       if (isSoftwareGl) {
         renderer.setPixelRatio(1);
       } else {
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, el.clientWidth < 768 || el.clientHeight < 600 ? 1.5 : 2));
+        renderer.setPixelRatio(
+          Math.min(window.devicePixelRatio || 1, el.clientWidth < 768 || el.clientHeight < 600 ? 1.5 : 2),
+        );
       }
     };
     updatePixelRatio();
@@ -88,6 +112,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
+    renderer.localClippingEnabled = true;
     el.appendChild(renderer.domElement);
     renderer.domElement.setAttribute(
       'aria-label',
@@ -95,7 +120,12 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     );
 
     const scene = new T.Scene();
-    const camera = new T.PerspectiveCamera(34, Math.max(1, el.clientWidth) / Math.max(1, el.clientHeight), 0.005, 100);
+    const camera = new T.PerspectiveCamera(
+      34,
+      Math.max(1, el.clientWidth) / Math.max(1, el.clientHeight),
+      0.005,
+      100,
+    );
     const controls = new OrbitControls(camera, renderer.domElement);
     camera.position.set(1.4, 1.05, 3.6);
     controls.target.set(0, 0.85, 0);
@@ -105,7 +135,6 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     controls.maxDistance = 40;
     controls.maxPolarAngle = Math.PI * 0.96;
 
-    // Smooth camera transition state (cancelled immediately when user grabs controls)
     let camTransitionActive = false;
     const camTargetGoal = new T.Vector3().copy(controls.target);
     const camPosGoal = new T.Vector3().copy(camera.position);
@@ -163,10 +192,51 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     innerRing.position.y = 0.001;
     scene.add(innerRing);
 
+    // Cross-section clipping plane + visual orientation frame
+    const clipPlane = new T.Plane(new T.Vector3(-1, 0, 0), 0);
+    const activeClipPlanes: T.Plane[] = [];
+
+    const clipFrameGroup = new T.Group();
+    clipFrameGroup.visible = false;
+    clipFrameGroup.renderOrder = 8;
+    const clipPlaneGeo = new T.PlaneGeometry(1, 1);
+    const clipPlaneMat = new T.MeshBasicMaterial({
+      color: 0x0f5c6e,
+      transparent: true,
+      opacity: 0.06,
+      side: T.DoubleSide,
+      depthWrite: false,
+    });
+    const clipPlaneFill = new T.Mesh(clipPlaneGeo, clipPlaneMat);
+    clipFrameGroup.add(clipPlaneFill);
+
+    const clipEdgePts = [
+      new T.Vector3(-0.5, -0.5, 0),
+      new T.Vector3(0.5, -0.5, 0),
+      new T.Vector3(0.5, 0.5, 0),
+      new T.Vector3(-0.5, 0.5, 0),
+    ];
+    const clipOutlineGeo = new T.BufferGeometry().setFromPoints(clipEdgePts);
+    const clipOutlineMat = new T.LineBasicMaterial({ color: 0x0f5c6e, transparent: true, opacity: 0.85 });
+    const clipOutline = new T.LineLoop(clipOutlineGeo, clipOutlineMat);
+    clipFrameGroup.add(clipOutline);
+    scene.add(clipFrameGroup);
+
+    // Per-part GPU state textures (2,234 parts fit cleanly in 4096x1 textures)
     const width = T.MathUtils.ceilPowerOfTwo(atlas.parts.length);
     const data = new Float32Array(width * 4);
     const partTexture = new T.DataTexture(data, width, 1, T.RGBAFormat, T.FloatType);
     partTexture.needsUpdate = true;
+
+    const rotData = new Float32Array(width * 4);
+    const pivotData = new Float32Array(width * 4);
+    for (let i = 0; i < width; i++) {
+      rotData[i * 4 + 3] = 1;
+    }
+    const partRotTexture = new T.DataTexture(rotData, width, 1, T.RGBAFormat, T.FloatType);
+    partRotTexture.needsUpdate = true;
+    const partPivotTexture = new T.DataTexture(pivotData, width, 1, T.RGBAFormat, T.FloatType);
+    partPivotTexture.needsUpdate = true;
 
     const selectedData = new Uint8Array(width * 4);
     const selectionTexture = new T.DataTexture(selectedData, width, 1);
@@ -178,10 +248,17 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     const centers = atlas.parts.map((p) =>
       new T.Vector3().fromArray(p.bounds[0]).add(new T.Vector3().fromArray(p.bounds[1])).multiplyScalar(0.5),
     );
+    const partIndexById = new Map<string, number>(atlas.parts.map((p, idx) => [p.id, idx]));
+    let prevActiveTransformIds = new Set<string>();
     const offsets: T.Vector3[] = [];
     const bounds = atlas.parts.map(
       (p) => new T.Box3(new T.Vector3().fromArray(p.bounds[0]), new T.Vector3().fromArray(p.bounds[1])),
     );
+
+    // Smooth per-part removal / restoration transition tracking (0 = intact, 1 = removed/hidden)
+    const removalFade = new Float32Array(atlas.parts.length);
+    const removalTarget = new Float32Array(atlas.parts.length);
+    const prevDesiredHidden = new Uint8Array(atlas.parts.length);
 
     let packingWidth = 1;
     let packingHeight = 1;
@@ -209,7 +286,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     markers.visible = false;
     scene.add(markers);
 
-    // Highlight overlay group for transparent-surroundings mode (reuses picker geometries with zero extra memory)
+    // Highlight overlay group for transparent-surroundings mode (reuses picker geometries)
     const highlightGroup = new T.Group();
     highlightGroup.renderOrder = 5;
     scene.add(highlightGroup);
@@ -222,6 +299,35 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       side: T.DoubleSide,
     });
     const highlightMeshes: { index: number; mesh: T.Mesh }[] = [];
+
+    // Dedicated per-part translucent overlay group (prevents breaking depthWrite on opaque merged systems)
+    const translucentGroup = new T.Group();
+    translucentGroup.renderOrder = 3;
+    scene.add(translucentGroup);
+    const translucentMaterials = new Map<string, T.MeshStandardMaterial>();
+
+    const getTranslucentMaterial = (system: SystemId, alpha: number, selectedPart: boolean) => {
+      const bucket = Math.max(1, Math.min(20, Math.round(alpha * 20)));
+      const key = `${system}:${bucket}:${selectedPart ? 1 : 0}`;
+      let mat = translucentMaterials.get(key);
+      if (!mat) {
+        const baseColor = SYSTEMS.find((s) => s.id === system)?.color ?? '#aebbb8';
+        mat = new T.MeshStandardMaterial({
+          color: selectedPart ? '#1cb0b8' : baseColor,
+          emissive: selectedPart ? '#0c4e55' : '#000000',
+          emissiveIntensity: selectedPart ? 0.25 : 0,
+          metalness: 0.08,
+          roughness: 0.48,
+          side: T.DoubleSide,
+          transparent: true,
+          opacity: bucket / 20,
+          depthWrite: false,
+          clippingPlanes: activeClipPlanes,
+        });
+        translucentMaterials.set(key, mat);
+      }
+      return mat;
+    };
 
     const hover = document.createElement('div');
     hover.className = 'part-hover';
@@ -261,37 +367,62 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         depthWrite: system !== 'integumentary',
       });
       m.userData.baseSystem = system;
+      m.userData.systemOpacity = system === 'integumentary' ? 0.1 : 1.0;
       m.onBeforeCompile = (shader) => {
         shader.uniforms.partState = { value: partTexture };
+        shader.uniforms.partRot = { value: partRotTexture };
+        shader.uniforms.partPivot = { value: partPivotTexture };
         shader.uniforms.selectionState = { value: selectionTexture };
         shader.uniforms.stateWidth = { value: width };
+        shader.uniforms.systemOpacity = { value: m.userData.systemOpacity };
+        m.userData.shader = shader;
+
         shader.vertexShader =
-          'attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partVisible; varying float partSelected; varying float partDimmed;\n' +
+          'attribute float partIndex;\nuniform sampler2D partState;\nuniform sampler2D partRot;\nuniform sampler2D partPivot;\nuniform sampler2D selectionState;\nuniform float stateWidth;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvec3 a360RotateQuat(vec3 v, vec4 q) {\n  return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n}\n' +
           shader.vertexShader;
+
+        shader.vertexShader = shader.vertexShader.replace(
+          '#include <beginnormal_vertex>',
+          `#include <beginnormal_vertex>
+          vec2 normStateUv = vec2((partIndex + 0.5) / stateWidth, 0.5);
+          vec4 normQuat = texture2D(partRot, normStateUv);
+          objectNormal = a360RotateQuat(objectNormal, normQuat);`,
+        );
+
         shader.vertexShader = shader.vertexShader.replace(
           '#include <begin_vertex>',
           `#include <begin_vertex>
           vec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5);
           vec4 state = texture2D(partState, stateUv);
           vec4 selState = texture2D(selectionState, stateUv);
-          transformed += state.xyz;
+          vec4 qRot = texture2D(partRot, stateUv);
+          vec4 qPivot = texture2D(partPivot, stateUv);
+          transformed = a360RotateQuat(transformed - qPivot.xyz, qRot) + qPivot.xyz + state.xyz;
           partVisible = state.w;
           partSelected = selState.r;
-          partDimmed = selState.g;`,
+          partDimmed = selState.g;
+          partPinned = selState.b;`,
         );
+
         shader.fragmentShader =
-          'varying float partVisible; varying float partSelected; varying float partDimmed;\n' +
+          'uniform float systemOpacity;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\n' +
           shader.fragmentShader;
+
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <clipping_planes_fragment>',
-          '#include <clipping_planes_fragment>\nif (partVisible < 0.5) discard;\nif (partDimmed > 0.5 && partSelected > 0.5) discard;',
+          '#include <clipping_planes_fragment>\nif (partVisible < 0.5) discard;\nif (partPinned < 0.5 && partDimmed > 0.5 && partSelected > 0.5) discard;',
         );
+
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <color_fragment>',
           `#include <color_fragment>
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.11, 0.68, 0.71), partSelected * 0.78);
-          if (partDimmed > 0.5 && partSelected < 0.5) {
-            diffuseColor.a *= 0.13;
+          if (partPinned > 0.5) {
+            diffuseColor.a = 1.0;
+          } else if (partDimmed > 0.5 && partSelected < 0.5) {
+            diffuseColor.a *= min(0.14, systemOpacity);
+          } else if (systemOpacity < 0.995) {
+            diffuseColor.a *= systemOpacity;
           }`,
         );
       };
@@ -381,7 +512,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         : mobile
           ? Math.max(
               4.5,
-              (1.8 * el.clientHeight) / Math.max(160, el.clientHeight - 350) / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2))),
+              (1.8 * el.clientHeight) /
+                Math.max(160, el.clientHeight - 350) /
+                (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2))),
             )
           : 4;
       const reservedHeight = embedded ? 72 : mobile ? 350 : 270;
@@ -391,7 +524,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         (el.clientWidth - sideReserve) / Math.max(160, el.clientHeight - reservedHeight),
       );
       const atlasDistance =
-        (Math.max(packingHeight, packingWidth / availableAspect) / (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)))) *
+        (Math.max(packingHeight, packingWidth / availableAspect) /
+          (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)))) *
         (el.clientHeight / Math.max(160, el.clientHeight - reservedHeight)) *
         1.08;
 
@@ -416,20 +550,15 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       dirty = true;
     };
 
-    const focusOnSelection = (selectedIds: string[], inspectorOpen?: boolean, embedded?: boolean) => {
-      if (!selectedIds.length) return;
-      _boxTmp.makeEmpty();
-      const selSet = new Set(selectedIds);
-      atlas.parts.forEach((p, i) => {
-        if (selSet.has(p.id)) {
-          _vecA.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
-          _boxTmp.union(bounds[i].clone().translate(_vecA));
-        }
-      });
-      if (_boxTmp.isEmpty()) return;
-
-      const center = _boxTmp.getCenter(_vecB);
-      const size = _boxTmp.getSize(_vecC);
+    const focusOnBox = (
+      box: T.Box3,
+      inspectorOpen?: boolean,
+      embedded?: boolean,
+      preferredDir?: [number, number, number],
+    ) => {
+      if (box.isEmpty()) return;
+      const center = box.getCenter(_vecB);
+      const size = box.getSize(_vecC);
       const w = el.clientWidth;
       const h = el.clientHeight;
       const mobile = w < 768;
@@ -457,19 +586,25 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       const availableHeight = Math.max(60, bottom - top);
       camera.setViewOffset(w, h, w / 2 - (left + right) / 2, h / 2 - (top + bottom) / 2, w, h);
 
+      const projectedSpanX = preferredDir ? size.x * 0.86 + size.z * 0.52 : size.x;
+      const padding = preferredDir ? 1.24 : 1.45;
       const distance = Math.max(
         0.16,
         (Math.max(
           (size.y * h) / availableHeight,
-          (size.x * w) / availableWidth / Math.max(0.25, camera.aspect),
+          (projectedSpanX * w) / availableWidth / Math.max(0.25, camera.aspect),
           size.z,
         ) /
           (2 * Math.tan(T.MathUtils.degToRad(camera.fov / 2)))) *
-          1.45,
+          padding,
       );
       controls.maxDistance = Math.max(40, distance * 2.5);
       camTargetGoal.copy(center);
-      _vecA.subVectors(camera.position, controls.target);
+      if (preferredDir) {
+        _vecA.set(preferredDir[0], preferredDir[1], preferredDir[2]);
+      } else {
+        _vecA.subVectors(camera.position, controls.target);
+      }
       if (_vecA.lengthSq() < 1e-6) _vecA.set(0.2, 0.1, 1);
       _vecA.normalize();
       camPosGoal.copy(center).addScaledVector(_vecA, distance);
@@ -483,6 +618,24 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         camTransitionActive = true;
       }
       dirty = true;
+    };
+
+    const focusOnSelection = (selectedIds: string[], inspectorOpen?: boolean, embedded?: boolean) => {
+      if (!selectedIds.length) return;
+      _boxTmp.makeEmpty();
+      const selSet = new Set(selectedIds);
+      atlas.parts.forEach((p, i) => {
+        if (selSet.has(p.id)) {
+          const picker = pickers[i];
+          if (picker) {
+            _boxTmp.union(bounds[i].clone().applyMatrix4(picker.matrix));
+          } else {
+            _vecA.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+            _boxTmp.union(bounds[i].clone().translate(_vecA));
+          }
+        }
+      });
+      focusOnBox(_boxTmp, inspectorOpen, embedded);
     };
 
     const resize = () => {
@@ -514,7 +667,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     };
     const move = (e: PointerEvent) => {
       tap.move(e.pointerId, e.clientX, e.clientY);
-      if (e.buttons || amount < 0.5 || e.pointerType === 'touch') {
+      if (e.buttons || amount < 0.5 || e.pointerType === 'touch' || latest.current.suppressHoverTooltip) {
         hover.hidden = true;
         return;
       }
@@ -531,6 +684,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       }
     };
     const cancel = (e: PointerEvent) => tap.cancel(e.pointerId);
+
     const up = (e: PointerEvent) => {
       const validTap = tap.up(e.pointerId, e.clientX, e.clientY);
       if (!validTap || !ready) return;
@@ -543,16 +697,55 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
 
       let nearest = Infinity;
       let found = -1;
-      const hasSolid = atlas.parts.some((p, i) => p.system !== 'integumentary' && data[i * 4 + 3] > 0.5);
+      const s = latest.current;
+      const activeDimmed = new Set(s.dimmedSystems ?? []);
+      const clipActive = Boolean(s.clipping?.enabled);
+      const hiddenSet = new Set(s.hiddenPartIds ?? []);
+      const visibleSet = new Set(s.visible);
+      const selectedSet = new Set(s.selected);
+
+      const isPartPickable = (i: number) => {
+        const p = atlas.parts[i];
+        if (hiddenSet.has(p.id) || removalFade[i] > 0.25) return false;
+        const vis = s.isolate ? selectedSet.has(p.id) : visibleSet.has(p.system) || selectedSet.has(p.id);
+        return vis;
+      };
+
+      const pinnedPickSet = new Set(s.pinnedOpaquePartIds ?? []);
+      const hasSolid = atlas.parts.some(
+        (p, i) =>
+          (pinnedPickSet.has(p.id) ||
+            (p.system !== 'integumentary' &&
+              !activeDimmed.has(p.system) &&
+              (s.systemOpacities?.[p.system] ?? 1) > 0.45)) &&
+          isPartPickable(i),
+      );
 
       pickers.forEach((mesh, i) => {
-        if (!mesh || data[i * 4 + 3] < 0.5 || (hasSolid && atlas.parts[i].system === 'integumentary')) return;
-        worldBox.copy(bounds[i]).translate(mesh.position);
+        if (!mesh || !isPartPickable(i)) return;
+        const p = atlas.parts[i];
+        const isPinned = pinnedPickSet.has(p.id);
+        const sysOp = isPinned
+          ? 1
+          : (s.systemOpacities?.[p.system] ?? (p.system === 'integumentary' ? (s.outerLayerOpacity ?? 0.1) : 1));
+        const partOp = s.partOpacities?.[p.id] ?? 1;
+        if (
+          hasSolid &&
+          !isPinned &&
+          (p.system === 'integumentary' || activeDimmed.has(p.system) || sysOp <= 0.3 || partOp <= 0.3)
+        ) {
+          return;
+        }
+        worldBox.copy(bounds[i]).applyMatrix4(mesh.matrix);
         if (!raycaster.ray.intersectBox(worldBox, hitPoint)) return;
         const hits = raycaster.intersectObject(mesh, false);
-        if (hits[0] && hits[0].distance < nearest) {
-          nearest = hits[0].distance;
-          found = i;
+        for (const h of hits) {
+          if (clipActive && clipPlane.distanceToPoint(h.point) < 0) continue;
+          if (h.distance < nearest) {
+            nearest = h.distance;
+            found = i;
+          }
+          break;
         }
       });
 
@@ -571,7 +764,6 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     renderer.domElement.addEventListener('pointercancel', cancel);
 
     const syncHighlightOverlay = (selection: Set<string>, activeGhost: boolean) => {
-      // Remove previous highlight meshes (geometries belong to pickers, never disposed here)
       while (highlightGroup.children.length > 0) {
         highlightGroup.remove(highlightGroup.children[0]);
       }
@@ -582,14 +774,67 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         const picker = pickers[i];
         if (!picker) return;
         const m = new T.Mesh(picker.geometry, highlightMaterial);
-        m.position.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+        m.position.copy(picker.position);
+        m.quaternion.copy(picker.quaternion);
         highlightGroup.add(m);
         highlightMeshes.push({ index: i, mesh: m });
       });
     };
 
+    const syncClippingPlane = (clip: ClippingPlaneState | undefined) => {
+      const enabled = Boolean(clip?.enabled);
+      if (enabled && clip) {
+        const eq = computeClipPlaneEquation(clip, MODEL_BOUNDS);
+        clipPlane.normal.set(eq.normal[0], eq.normal[1], eq.normal[2]);
+        clipPlane.constant = eq.constant;
+        if (activeClipPlanes.length === 0) activeClipPlanes.push(clipPlane);
+
+        clipFrameGroup.visible = true;
+        const spanX = MODEL_BOUNDS.max[0] - MODEL_BOUNDS.min[0];
+        const spanY = MODEL_BOUNDS.max[1] - MODEL_BOUNDS.min[1];
+        const spanZ = MODEL_BOUNDS.max[2] - MODEL_BOUNDS.min[2];
+        const cx = (MODEL_BOUNDS.min[0] + MODEL_BOUNDS.max[0]) * 0.5;
+        const cy = (MODEL_BOUNDS.min[1] + MODEL_BOUNDS.max[1]) * 0.5;
+        const cz = (MODEL_BOUNDS.min[2] + MODEL_BOUNDS.max[2]) * 0.5;
+
+        if (clip.axis === 'x') {
+          clipFrameGroup.position.set(eq.worldCoordinate, cy, cz);
+          clipFrameGroup.rotation.set(0, Math.PI / 2, 0);
+          clipFrameGroup.scale.set(spanZ * 1.35, spanY * 1.04, 1);
+        } else if (clip.axis === 'y') {
+          clipFrameGroup.position.set(cx, eq.worldCoordinate, cz);
+          clipFrameGroup.rotation.set(Math.PI / 2, 0, 0);
+          clipFrameGroup.scale.set(spanX * 1.15, spanZ * 1.35, 1);
+        } else {
+          clipFrameGroup.position.set(cx, cy, eq.worldCoordinate);
+          clipFrameGroup.rotation.set(0, 0, 0);
+          clipFrameGroup.scale.set(spanX * 1.15, spanY * 1.04, 1);
+        }
+      } else {
+        activeClipPlanes.length = 0;
+        clipFrameGroup.visible = false;
+      }
+
+      if (enabled !== lastClippingEnabled) {
+        const planesRef = enabled ? activeClipPlanes : null;
+        materials.forEach((m) => {
+          m.clippingPlanes = planesRef;
+          m.needsUpdate = true;
+        });
+        highlightMaterial.clippingPlanes = planesRef;
+        highlightMaterial.needsUpdate = true;
+        translucentMaterials.forEach((m) => {
+          m.clippingPlanes = planesRef;
+          m.needsUpdate = true;
+        });
+        lastClippingEnabled = enabled;
+      }
+      dirty = true;
+    };
+
     const clock = new T.Clock();
     let lastExtent = -1;
+    let lastSwRenderMs = 0;
 
     const animate = () => {
       if (disposed) return;
@@ -598,11 +843,28 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       const s = latest.current;
 
       const ghostActive = Boolean(s.ghostSurroundings && s.selected.length > 0 && !s.isolate);
-      const changed =
+      const dimmedKey = (s.dimmedSystems ?? []).join(',');
+      const sysOpacityKey = JSON.stringify(s.systemOpacities ?? {}) + ':' + (s.outerLayerOpacity ?? 1);
+      const hiddenKey = (s.hiddenPartIds ?? []).join(',');
+      const partOpKey = JSON.stringify(s.partOpacities ?? {});
+      const clipKey = JSON.stringify(s.clipping ?? null);
+      const pinnedKey = (s.pinnedOpaquePartIds ?? []).join(',');
+
+      const nonTransformChanged =
         lastState?.visible !== s.visible ||
         lastState?.selected !== s.selected ||
         lastState?.isolate !== s.isolate ||
-        lastGhostMode !== ghostActive;
+        lastState?.hiddenPartIds !== s.hiddenPartIds ||
+        lastState?.partOpacities !== s.partOpacities ||
+        lastState?.clipping !== s.clipping ||
+        lastState?.pinnedOpaquePartIds !== s.pinnedOpaquePartIds ||
+        lastGhostMode !== ghostActive ||
+        lastDimmedKey !== dimmedKey ||
+        lastSysOpacityKey !== sysOpacityKey ||
+        lastPinnedKey !== pinnedKey ||
+        lastOverlayKey !== `${hiddenKey}|${partOpKey}|${clipKey}`;
+
+      const changed = nonTransformChanged || lastState?.partTransforms !== s.partTransforms;
 
       const moving = Math.abs(amount - s.explode) > 0.0001;
       if (moving) {
@@ -611,7 +873,151 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         dirty = true;
       }
 
-      if (changed || moving || lastExtent < 0) {
+      // Check smooth dissection fade/removal transitions
+      const hiddenInputSet = new Set(s.hiddenPartIds ?? []);
+      let fadeMoving = false;
+      for (let i = 0; i < atlas.parts.length; i++) {
+        const pid = atlas.parts[i].id;
+        const desired = hiddenInputSet.has(pid) ? 1 : 0;
+        if (desired !== prevDesiredHidden[i]) {
+          prevDesiredHidden[i] = desired;
+          removalTarget[i] = desired;
+          if (isSoftwareGl) removalFade[i] = desired;
+        }
+        const diff = removalTarget[i] - removalFade[i];
+        if (Math.abs(diff) > 0.002) {
+          fadeMoving = true;
+          if (isSoftwareGl) {
+            removalFade[i] = removalTarget[i];
+          } else {
+            removalFade[i] = T.MathUtils.damp(removalFade[i], removalTarget[i], 10, dt);
+            if (Math.abs(removalTarget[i] - removalFade[i]) <= 0.003) {
+              removalFade[i] = removalTarget[i];
+            }
+          }
+        }
+      }
+
+      const onlyTransformsChanged =
+        !nonTransformChanged &&
+        !moving &&
+        !fadeMoving &&
+        lastExtent >= 0 &&
+        amount < 0.05 &&
+        lastState?.partTransforms !== s.partTransforms;
+
+      if (onlyTransformsChanged) {
+        const nextTransformKeys = Object.keys(s.partTransforms ?? {});
+        const touchedIds = new Set<string>(prevActiveTransformIds);
+        for (const id of nextTransformKeys) touchedIds.add(id);
+
+        const touchedIndices = new Set<number>();
+        for (const id of touchedIds) {
+          const i = partIndexById.get(id);
+          if (i === undefined) continue;
+          touchedIndices.add(i);
+          const c = centers[i];
+          let dx = 0;
+          let dy = 0;
+          let dz = 0;
+          let qx = 0;
+          let qy = 0;
+          let qz = 0;
+          let qw = 1;
+          let px = c.x;
+          let py = c.y;
+          let pz = c.z;
+          const xform = s.partTransforms?.[id];
+          if (xform) {
+            dx += xform.translation[0];
+            dy += xform.translation[1];
+            dz += xform.translation[2];
+            qx = xform.rotation[0];
+            qy = xform.rotation[1];
+            qz = xform.rotation[2];
+            qw = xform.rotation[3];
+            px = xform.pivot[0];
+            py = xform.pivot[1];
+            pz = xform.pivot[2];
+          }
+          const fade = removalFade[i];
+          if (fade > 0.002) {
+            _vecA.subVectors(c, _worldOrigin);
+            if (c.y > 1.48) _vecA.set(c.x, (c.y - 1.56) * 1.4 + 0.05, c.z * 1.2);
+            if (_vecA.lengthSq() < 1e-5) _vecA.set(0, 0.1, 0.1);
+            _vecA.normalize();
+            const slideDist = 0.26 * fade;
+            dx += _vecA.x * slideDist;
+            dy += (_vecA.y + 0.25) * slideDist;
+            dz += _vecA.z * slideDist;
+            if (qx === 0 && qy === 0 && qz === 0) {
+              _quatTmp.setFromAxisAngle(_vecB.set(-_vecA.z, 0, _vecA.x).normalize(), 0.22 * fade);
+              qx = _quatTmp.x;
+              qy = _quatTmp.y;
+              qz = _quatTmp.z;
+              qw = _quatTmp.w;
+            }
+          }
+
+          data[i * 4] = dx;
+          data[i * 4 + 1] = dy;
+          data[i * 4 + 2] = dz;
+          rotData.set([qx, qy, qz, qw], i * 4);
+          pivotData.set([px, py, pz, 0], i * 4);
+
+          if (data[i * 4 + 3] > 0.5) {
+            markerPositions.set([c.x + dx, c.y + dy, c.z + dz], i * 3);
+          }
+
+          const picker = pickers[i];
+          if (picker) {
+            _quatTmp.set(qx, qy, qz, qw);
+            _vecPivot.set(px, py, pz);
+            _vecRotPivot.copy(_vecPivot).applyQuaternion(_quatTmp);
+            picker.quaternion.copy(_quatTmp);
+            picker.position.set(
+              dx + px - _vecRotPivot.x,
+              dy + py - _vecRotPivot.y,
+              dz + pz - _vecRotPivot.z,
+            );
+            picker.updateMatrix();
+            picker.updateMatrixWorld(true);
+          }
+        }
+
+        if (translucentGroup.children.length > 0) {
+          for (const child of translucentGroup.children) {
+            const pIdx = child.userData.partIndex as number | undefined;
+            if (pIdx !== undefined && touchedIndices.has(pIdx)) {
+              const picker = pickers[pIdx];
+              if (picker) {
+                child.position.copy(picker.position);
+                child.quaternion.copy(picker.quaternion);
+              }
+            }
+          }
+        }
+        for (const h of highlightMeshes) {
+          if (touchedIndices.has(h.index)) {
+            const picker = pickers[h.index];
+            if (picker) {
+              h.mesh.position.copy(picker.position);
+              h.mesh.quaternion.copy(picker.quaternion);
+            }
+          }
+        }
+
+        partTexture.needsUpdate = true;
+        partRotTexture.needsUpdate = true;
+        partPivotTexture.needsUpdate = true;
+        markerGeometry.attributes.position.needsUpdate = true;
+        prevActiveTransformIds = new Set(nextTransformKeys);
+        lastState = s;
+        dirty = true;
+      } else if (changed || moving || fadeMoving || lastExtent < 0) {
+        prevActiveTransformIds = new Set(Object.keys(s.partTransforms ?? {}));
+        syncClippingPlane(s.clipping);
+
         const visible = new Set(s.visible);
         const selection = new Set(s.selected);
         const visibleParts = atlas.parts.filter((p) =>
@@ -630,15 +1036,47 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           if (amount > 0.05 && !s.isolate) fit(s.view, Math.max(0, (amount - 0.3) / 0.7));
         }
 
-        if (lastGhostMode !== ghostActive) {
+        const dimmedSet = new Set(s.dimmedSystems ?? []);
+        if (
+          lastGhostMode !== ghostActive ||
+          lastDimmedKey !== dimmedKey ||
+          lastSysOpacityKey !== sysOpacityKey
+        ) {
           materials.forEach((mat) => {
-            const isSkin = mat.userData.baseSystem === 'integumentary';
-            mat.transparent = ghostActive || isSkin;
-            mat.depthWrite = ghostActive ? false : !isSkin;
-            mat.needsUpdate = true;
+            const baseSys = mat.userData.baseSystem as SystemId;
+            const isSkin = baseSys === 'integumentary';
+            const isDimmedLayer = dimmedSet.has(baseSys);
+            const explicitSysOpacity = s.systemOpacities?.[baseSys];
+            const sysOp =
+              explicitSysOpacity !== undefined
+                ? explicitSysOpacity
+                : isSkin
+                  ? s.outerLayerOpacity ?? 0.1
+                  : 1.0;
+
+            mat.userData.systemOpacity = sysOp;
+            if (mat.userData.shader) {
+              mat.userData.shader.uniforms.systemOpacity.value = sysOp;
+            }
+
+            const shouldBeTransparent = ghostActive || isSkin || isDimmedLayer || sysOp < 0.995;
+            if (mat.transparent !== shouldBeTransparent || mat.depthWrite !== !shouldBeTransparent) {
+              mat.transparent = shouldBeTransparent;
+              mat.depthWrite = !shouldBeTransparent;
+              mat.needsUpdate = true;
+            }
           });
           lastGhostMode = ghostActive;
+          lastDimmedKey = dimmedKey;
+          lastSysOpacityKey = sysOpacityKey;
         }
+
+        // Rebuild lightweight translucent overlay meshes only for individually faded/X-Rayed parts
+        while (translucentGroup.children.length > 0) {
+          translucentGroup.remove(translucentGroup.children[0]);
+        }
+
+        const pinnedSet = new Set(s.pinnedOpaquePartIds ?? []);
 
         atlas.parts.forEach((p, i) => {
           const c = centers[i];
@@ -646,44 +1084,128 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           let dx = 0;
           let dy = 0;
           let dz = 0;
-          if (amount <= 0.45) {
-            const t = amount / 0.45;
-            const group = SYSTEMS.findIndex((sys) => sys.id === p.system);
-            const angle = (group / SYSTEMS.length) * Math.PI * 2;
-            dx = Math.sin(angle) * t * 0.48;
-            dy = (c.y - 0.85) * t * 0.28;
-            dz = Math.cos(angle) * t * 0.48;
-          } else {
-            const t = (amount - 0.45) / 0.55;
-            const group = SYSTEMS.findIndex((sys) => sys.id === p.system);
-            const angle = (group / SYSTEMS.length) * Math.PI * 2;
-            dx = T.MathUtils.lerp(Math.sin(angle) * 0.48, destination.x - c.x, t);
-            dy = T.MathUtils.lerp((c.y - 0.85) * 0.28, destination.y - c.y, t);
-            dz = T.MathUtils.lerp(Math.cos(angle) * 0.48, -c.z, t);
+
+          if (amount > 0.0001) {
+            if (amount <= 0.45) {
+              const t = amount / 0.45;
+              const group = SYSTEMS.findIndex((sys) => sys.id === p.system);
+              const angle = (group / SYSTEMS.length) * Math.PI * 2;
+              dx = Math.sin(angle) * t * 0.48;
+              dy = (c.y - 0.85) * t * 0.28;
+              dz = Math.cos(angle) * t * 0.48;
+            } else {
+              const t = (amount - 0.45) / 0.55;
+              const group = SYSTEMS.findIndex((sys) => sys.id === p.system);
+              const angle = (group / SYSTEMS.length) * Math.PI * 2;
+              dx = T.MathUtils.lerp(Math.sin(angle) * 0.48, destination.x - c.x, t);
+              dy = T.MathUtils.lerp((c.y - 0.85) * 0.28, destination.y - c.y, t);
+              dz = T.MathUtils.lerp(Math.cos(angle) * 0.48, -c.z, t);
+            }
           }
+
+          // Merge active kinematic / directional group separation transform
+          let qx = 0;
+          let qy = 0;
+          let qz = 0;
+          let qw = 1;
+          let px = c.x;
+          let py = c.y;
+          let pz = c.z;
+          const xform = s.partTransforms?.[p.id];
+          if (xform && amount < 0.05) {
+            dx += xform.translation[0];
+            dy += xform.translation[1];
+            dz += xform.translation[2];
+            qx = xform.rotation[0];
+            qy = xform.rotation[1];
+            qz = xform.rotation[2];
+            qw = xform.rotation[3];
+            px = xform.pivot[0];
+            py = xform.pivot[1];
+            pz = xform.pivot[2];
+          }
+
+          // Smooth Dissection Removal slide + subtle peel rotation
+          const fade = removalFade[i];
+          if (fade > 0.002) {
+            _vecA.subVectors(c, _worldOrigin);
+            if (c.y > 1.48) _vecA.set(c.x, (c.y - 1.56) * 1.4 + 0.05, c.z * 1.2);
+            if (_vecA.lengthSq() < 1e-5) _vecA.set(0, 0.1, 0.1);
+            _vecA.normalize();
+            const slideDist = 0.26 * fade;
+            dx += _vecA.x * slideDist;
+            dy += (_vecA.y + 0.25) * slideDist;
+            dz += _vecA.z * slideDist;
+            if (qx === 0 && qy === 0 && qz === 0) {
+              _quatTmp.setFromAxisAngle(_vecB.set(-_vecA.z, 0, _vecA.x).normalize(), 0.22 * fade);
+              qx = _quatTmp.x;
+              qy = _quatTmp.y;
+              qz = _quatTmp.z;
+              qw = _quatTmp.w;
+            }
+          }
+
           const isSelected = selection.has(p.id);
-          const isPartVisible = s.isolate ? isSelected : visible.has(p.system) || isSelected;
-          data.set([dx, dy, dz, isPartVisible ? 1 : 0], i * 4);
+          const baseVisible = s.isolate ? isSelected : visible.has(p.system) || isSelected;
+          const fullyRemoved = fade >= 0.996;
+          const isTranslucentAnimating = fade > 0.002 && !fullyRemoved;
+          const partOp = s.partOpacities?.[p.id];
+          const isIndividuallyTransparent = partOp !== undefined && partOp < 0.995;
+
+          const drawInMergedPass =
+            baseVisible && !fullyRemoved && !isTranslucentAnimating && !isIndividuallyTransparent;
+
+          data.set([dx, dy, dz, drawInMergedPass ? 1 : 0], i * 4);
+          rotData.set([qx, qy, qz, qw], i * 4);
+          pivotData.set([px, py, pz, 0], i * 4);
+
           selectedData[i * 4] = isSelected ? 255 : 0;
-          selectedData[i * 4 + 1] = ghostActive ? 255 : 0;
-          markerPositions.set(isPartVisible ? [c.x + dx, c.y + dy, c.z + dz] : [10000, 10000, 10000], i * 3);
-          const mesh = pickers[i];
-          if (mesh) {
-            mesh.position.set(dx, dy, dz);
-            mesh.updateMatrix();
-            mesh.updateMatrixWorld(true);
+          selectedData[i * 4 + 1] = ghostActive ? 255 : dimmedSet.has(p.system) && !isSelected ? 255 : 0;
+          selectedData[i * 4 + 2] = pinnedSet.has(p.id) ? 255 : 0;
+
+          markerPositions.set(
+            baseVisible && !fullyRemoved ? [c.x + dx, c.y + dy, c.z + dz] : [10000, 10000, 10000],
+            i * 3,
+          );
+
+          const picker = pickers[i];
+          if (picker) {
+            _quatTmp.set(qx, qy, qz, qw);
+            _vecPivot.set(px, py, pz);
+            _vecRotPivot.copy(_vecPivot).applyQuaternion(_quatTmp);
+            picker.quaternion.copy(_quatTmp);
+            picker.position.set(
+              dx + px - _vecRotPivot.x,
+              dy + py - _vecRotPivot.y,
+              dz + pz - _vecRotPivot.z,
+            );
+            picker.updateMatrix();
+            picker.updateMatrixWorld(true);
+
+            if (baseVisible && !fullyRemoved && (isTranslucentAnimating || isIndividuallyTransparent)) {
+              const effAlpha = (partOp ?? 1) * (1 - fade);
+              if (effAlpha > 0.03) {
+                const tMat = getTranslucentMaterial(p.system, effAlpha, isSelected);
+                const tMesh = new T.Mesh(picker.geometry, tMat);
+                tMesh.userData.partIndex = i;
+                tMesh.position.copy(picker.position);
+                tMesh.quaternion.copy(picker.quaternion);
+                translucentGroup.add(tMesh);
+              }
+            }
           }
         });
 
         partTexture.needsUpdate = true;
+        partRotTexture.needsUpdate = true;
+        partPivotTexture.needsUpdate = true;
         selectionTexture.needsUpdate = true;
         markerGeometry.attributes.position.needsUpdate = true;
         syncHighlightOverlay(selection, ghostActive);
-        for (const h of highlightMeshes) {
-          h.mesh.position.set(data[h.index * 4], data[h.index * 4 + 1], data[h.index * 4 + 2]);
-        }
 
         lastState = s;
+        lastOverlayKey = `${hiddenKey}|${partOpKey}|${clipKey}`;
+        lastPinnedKey = pinnedKey;
         lastExtent = amount;
         dirty = true;
       }
@@ -721,7 +1243,16 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         focusOnSelection(s.selected, s.inspectorOpen, s.embedded);
       }
 
-      const isolateKey = s.isolate ? s.selected.join(',') + ':' + s.reset + ':' + s.inspectorOpen + ':' + Boolean(s.embedded) + ':' + camera.aspect : '';
+      if (s.focusBox && s.focusBox.request !== lastFocusBoxId) {
+        lastFocusBoxId = s.focusBox.request;
+        _boxTmp.min.set(s.focusBox.min[0], s.focusBox.min[1], s.focusBox.min[2]);
+        _boxTmp.max.set(s.focusBox.max[0], s.focusBox.max[1], s.focusBox.max[2]);
+        focusOnBox(_boxTmp, s.inspectorOpen, s.embedded, s.focusBox.viewDirection);
+      }
+
+      const isolateKey = s.isolate
+        ? s.selected.join(',') + ':' + s.reset + ':' + s.inspectorOpen + ':' + Boolean(s.embedded) + ':' + camera.aspect
+        : '';
       if (isolateKey !== lastIsolate || (s.isolate && moving)) {
         if (s.isolate) {
           focusOnSelection(s.selected, s.inspectorOpen, s.embedded);
@@ -760,45 +1291,51 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       if (controls.autoRotate) dirty = true;
 
       if (dirty) {
-        renderer.render(scene, camera);
-        targets = [];
-        if (amount > 0.45) {
-          const hasSolid = atlas.parts.some((p, i) => p.system !== 'integumentary' && data[i * 4 + 3] > 0.5);
-          atlas.parts.forEach((p, i) => {
-            if (data[i * 4 + 3] < 0.5 || (hasSolid && p.system === 'integumentary')) return;
-            let left = Infinity;
-            let right = -Infinity;
-            let top = Infinity;
-            let bottom = -Infinity;
-            for (let corner = 0; corner < 8; corner++) {
-              projected
-                .set(
-                  p.bounds[corner & 1 ? 1 : 0][0] + data[i * 4],
-                  p.bounds[corner & 2 ? 1 : 0][1] + data[i * 4 + 1],
-                  p.bounds[corner & 4 ? 1 : 0][2] + data[i * 4 + 2],
-                )
-                .project(camera);
-              const x = ((projected.x + 1) * el.clientWidth) / 2;
-              const y = ((1 - projected.y) * el.clientHeight) / 2;
-              left = Math.min(left, x);
-              right = Math.max(right, x);
-              top = Math.min(top, y);
-              bottom = Math.max(bottom, y);
-            }
-            projected.copy(centers[i]).add(_vecA.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])).project(camera);
-            if (projected.z < -1 || projected.z > 1) return;
-            targets.push({
-              index: i,
-              x: ((projected.x + 1) * el.clientWidth) / 2,
-              y: ((1 - projected.y) * el.clientHeight) / 2,
-              left,
-              right,
-              top,
-              bottom,
+        const nowMs = performance.now();
+        if (isSoftwareGl && ready && lastExtent >= 0 && nowMs - lastSwRenderMs < 260) {
+          // Keep dirty=true so software WebGL catches up without piling GPU frames
+        } else {
+          renderer.render(scene, camera);
+          if (isSoftwareGl) lastSwRenderMs = performance.now();
+          targets = [];
+          if (amount > 0.45) {
+            const hasSolid = atlas.parts.some((p, i) => p.system !== 'integumentary' && data[i * 4 + 3] > 0.5);
+            atlas.parts.forEach((p, i) => {
+              if (data[i * 4 + 3] < 0.5 || (hasSolid && p.system === 'integumentary')) return;
+              let left = Infinity;
+              let right = -Infinity;
+              let top = Infinity;
+              let bottom = -Infinity;
+              for (let corner = 0; corner < 8; corner++) {
+                projected
+                  .set(
+                    p.bounds[corner & 1 ? 1 : 0][0] + data[i * 4],
+                    p.bounds[corner & 2 ? 1 : 0][1] + data[i * 4 + 1],
+                    p.bounds[corner & 4 ? 1 : 0][2] + data[i * 4 + 2],
+                  )
+                  .project(camera);
+                const x = ((projected.x + 1) * el.clientWidth) / 2;
+                const y = ((1 - projected.y) * el.clientHeight) / 2;
+                left = Math.min(left, x);
+                right = Math.max(right, x);
+                top = Math.min(top, y);
+                bottom = Math.max(bottom, y);
+              }
+              projected.copy(centers[i]).add(_vecA.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])).project(camera);
+              if (projected.z < -1 || projected.z > 1) return;
+              targets.push({
+                index: i,
+                x: ((projected.x + 1) * el.clientWidth) / 2,
+                y: ((1 - projected.y) * el.clientHeight) / 2,
+                left,
+                right,
+                top,
+                bottom,
+              });
             });
-          });
+          }
+          dirty = false;
         }
-        dirty = false;
       }
     };
     animate();
@@ -829,8 +1366,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       geometries.forEach((g) => g.dispose());
       materials.forEach((m) => m.dispose());
       highlightMaterial.dispose();
+      translucentMaterials.forEach((m) => m.dispose());
       scene.traverse((o) => {
-        if (o instanceof T.Mesh && !geometries.includes(o.geometry)) {
+        if ((o instanceof T.Mesh || o instanceof T.LineLoop) && !geometries.includes(o.geometry)) {
           o.geometry.dispose();
           const ms = Array.isArray(o.material) ? o.material : [o.material];
           ms.forEach((m) => m.dispose());
@@ -838,6 +1376,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       });
       env.dispose();
       partTexture.dispose();
+      partRotTexture.dispose();
+      partPivotTexture.dispose();
       selectionTexture.dispose();
       markerGeometry.dispose();
       markerMaterial.dispose();

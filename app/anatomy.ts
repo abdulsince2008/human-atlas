@@ -74,6 +74,23 @@ export interface Atlas {
 export type View = 'three-quarter' | 'front' | 'back' | 'left' | 'right';
 export type InteractionMode = 'orbit' | 'pan';
 
+export type ClipAxis = 'x' | 'y' | 'z';
+
+export interface ClippingPlaneState {
+  enabled: boolean;
+  axis: ClipAxis;
+  /** Normalized slice position across the active bounds [0..1] */
+  offset: number;
+  inverted: boolean;
+}
+
+export interface PartAnimationTransform {
+  translation: [number, number, number];
+  /** Quaternion [x, y, z, w] applied around world-space pivot */
+  rotation: [number, number, number, number];
+  pivot: [number, number, number];
+}
+
 export interface SceneState {
   inspectorOpen?: boolean;
   embedded?: boolean;
@@ -82,12 +99,30 @@ export interface SceneState {
   selected: string[];
   isolate: boolean;
   ghostSurroundings?: boolean;
+  dimmedSystems?: SystemId[];
+  suppressHoverTooltip?: boolean;
   interactionMode?: InteractionMode;
   view: View;
   rotate: boolean;
   reset: number;
   zoomStep?: { id: number; delta: number };
   focusRequest?: number;
+  /** Advanced 3D dissection, transparency, cutaway, and animation extensions */
+  hiddenPartIds?: string[];
+  partOpacities?: Record<string, number>;
+  systemOpacities?: Partial<Record<SystemId, number>>;
+  pinnedOpaquePartIds?: string[];
+  outerLayerOpacity?: number;
+  regionalExplode?: number;
+  groupExplosion?: { groupId: string; amount: number } | null;
+  clipping?: ClippingPlaneState;
+  partTransforms?: Record<string, PartAnimationTransform>;
+  focusBox?: {
+    min: [number, number, number];
+    max: [number, number, number];
+    request: number;
+    viewDirection?: [number, number, number];
+  } | null;
 }
 
 export const DEFAULT_VISIBLE: SystemId[] = [

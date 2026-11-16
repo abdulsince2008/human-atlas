@@ -95,13 +95,80 @@ export default function AboutPage({ onExplore }: Props) {
           </div>
 
           <div className="a360-license-item">
-            <h3>Three.js, React, Tailwind CSS, Lucide & shadcn/Base UI</h3>
+            <h3>Open-Source Runtime & Visualization Dependencies</h3>
             <p>
-              Built on open-source MIT / ISC licensed web libraries with zero paid APIs or
-              proprietary subscription dependencies, ready for static hosting on Cloudflare Pages.
+              Anatomy 360 runs strictly offline-capable in the browser with zero paid API keys or
+              proprietary subscriptions. Complete third-party notices are maintained in{' '}
+              <code>THIRD_PARTY_LICENSES.md</code>.
             </p>
+            <div className="a360-license-table-wrap">
+              <table className="a360-license-table">
+                <thead>
+                  <tr>
+                    <th>Asset / Package</th>
+                    <th>Purpose</th>
+                    <th>License</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>BodyParts3D 4.0 (DBCLS)</td>
+                    <td>2,234 anatomical meshes &amp; FMA concepts</td>
+                    <td>CC BY 4.0</td>
+                  </tr>
+                  <tr>
+                    <td>Human Atlas (ashemag)</td>
+                    <td>Merged-batch Three.js renderer &amp; bin loader</td>
+                    <td>MIT</td>
+                  </tr>
+                  <tr>
+                    <td>Three.js (`three`)</td>
+                    <td>WebGL 3D scene engine &amp; orbit controls</td>
+                    <td>MIT</td>
+                  </tr>
+                  <tr>
+                    <td>React &amp; React DOM</td>
+                    <td>Component UI framework</td>
+                    <td>MIT</td>
+                  </tr>
+                  <tr>
+                    <td>Base UI &amp; shadcn/ui primitives</td>
+                    <td>Accessible sheets, switches, sliders &amp; combobox</td>
+                    <td>MIT</td>
+                  </tr>
+                  <tr>
+                    <td>Recharts</td>
+                    <td>Dashboard study progress bar charts</td>
+                    <td>MIT</td>
+                  </tr>
+                  <tr>
+                    <td>Lucide React &amp; Tailwind CSS</td>
+                    <td>Iconography &amp; styling system</td>
+                    <td>ISC / MIT</td>
+                  </tr>
+                  <tr>
+                    <td>meshoptimizer</td>
+                    <td>Vertex/index compression decoder</td>
+                    <td>MIT</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
+      </section>
+
+      <section className="a360-prose-block">
+        <h2>Storage Privacy &amp; Offline Notes</h2>
+        <p>
+          All student profiles, completed lesson topics, SM-2 flashcard schedules, quiz scores,
+          Practical Lab attempts, and saved bookmarks are persisted locally in your browser via{' '}
+          <strong>IndexedDB</strong> (with automatic <code>localStorage</code> fallback). Export a{' '}
+          <code>.json</code> backup anytime from the <strong>Study Dashboard</strong> to move data
+          between devices. The 3D binary chunks (<code>/models/body-0..14.bin.gz</code>) load on
+          demand over HTTP; once cached by the browser or served from static CDN storage, exploration
+          works smoothly with minimal bandwidth.
+        </p>
       </section>
 
       <div className="a360-about-cta">

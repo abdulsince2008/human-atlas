@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
+import { ArrowRight, Bookmark, CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
 import { CANONICAL_SYSTEMS } from '../anatomy-systems';
+import { useStudy } from '../components/StudyContext';
 import { QUIZ_QUESTIONS } from '../quiz-data';
 
 interface Props {
@@ -29,6 +30,7 @@ function loadProgress(): SavedProgress {
 }
 
 export default function QuizPage({ onInspectConcept }: Props) {
+  const { isBookmarked, recordQuizResult, toggleBookmark } = useStudy();
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [index, setIndex] = useState(0);
@@ -60,11 +62,12 @@ export default function QuizPage({ onInspectConcept }: Props) {
   const submitAnswer = (optIndex: number) => {
     if (!current || selectedOption !== null) return;
     setSelectedOption(optIndex);
+    const isCorrect = optIndex === current.correctIndex;
+    recordQuizResult(current.id, isCorrect, current.relatedStructureName);
     setProgress((prev) => {
       const answeredIds = prev.answeredIds.includes(current.id)
         ? prev.answeredIds
         : [...prev.answeredIds, current.id];
-      const isCorrect = optIndex === current.correctIndex;
       const correctIds = isCorrect
         ? prev.correctIds.includes(current.id)
           ? prev.correctIds
@@ -164,8 +167,26 @@ export default function QuizPage({ onInspectConcept }: Props) {
             <span>
               Question {safeIndex + 1} of {pool.length}
             </span>
-            <span>
-              {systemInfo?.name.en} · {current.difficulty}
+            <span className="a360-ref-actions">
+              <span>
+                {systemInfo?.name.en} · {current.difficulty}
+              </span>
+              <button
+                type="button"
+                className={`a360-btn-secondary ${isBookmarked('quiz', current.id) ? 'is-saved' : ''}`}
+                onClick={() =>
+                  toggleBookmark({
+                    kind: 'quiz',
+                    targetId: current.id,
+                    title: current.relatedStructureName,
+                    subtitle: `${systemInfo?.name.en ?? current.systemId} · ${current.difficulty}`,
+                    canonicalSystem: current.systemId,
+                  })
+                }
+              >
+                <Bookmark size={13} />
+                {isBookmarked('quiz', current.id) ? 'Saved' : 'Save'}
+              </button>
             </span>
           </div>
 

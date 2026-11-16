@@ -10,7 +10,12 @@
     "build": "vite build",
     "build:vercel": "vite build",
     "check": "tsc --noEmit",
-    "lint": "oxlint app web"
+    "lint": "oxlint app web",
+    "validate:atlas": "node scripts/validate-atlas.mjs",
+    "validate:interactions": "node scripts/validate-interactions.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "test": "node scripts/test-platform.mjs",
+    "validate:all": "npm run check && npm run lint && npm run validate:atlas && npm run validate:interactions && npm run validate:content && npm test"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

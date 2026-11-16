@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Compass, Layers, Type } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CURATED_KNOWLEDGE } from '../anatomy-knowledge';
-import { CANONICAL_SYSTEMS } from '../anatomy-systems';
+import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import SystemLearnWorkspace from '../components/SystemLearnWorkspace';
 import {
   GUIDED_PATHWAYS,
@@ -14,11 +14,22 @@ import {
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
+  initialSystemId?: CanonicalSystemId | null;
+  initialTopicId?: string | null;
   onInspectConcept: (conceptId: string) => void;
 }
 
-export default function LearnPage({ atlas, atlasError, onInspectConcept }: Props) {
+export default function LearnPage({
+  atlas,
+  atlasError,
+  initialSystemId,
+  initialTopicId,
+  onInspectConcept,
+}: Props) {
   const [category, setCategory] = useState<LearningCategoryId>('by-system');
+  useEffect(() => {
+    if (initialSystemId || initialTopicId) setCategory('by-system');
+  }, [initialSystemId, initialTopicId]);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [termFilter, setTermFilter] = useState<string>('all');
   const [activePathwayId, setActivePathwayId] = useState<string>(GUIDED_PATHWAYS[0].id);
@@ -83,6 +94,8 @@ export default function LearnPage({ atlas, atlasError, onInspectConcept }: Props
         <SystemLearnWorkspace
           atlas={atlas}
           atlasError={atlasError}
+          initialSystemId={initialSystemId}
+          initialTopicId={initialTopicId}
           onInspectConcept={onInspectConcept}
         />
       )}

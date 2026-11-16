@@ -1,0 +1,1101 @@
+# ANATOMY 360 — FINAL MEGA DEVELOPMENT PROMPT
+## V1 COMPLETION, SCALABLE EDUCATIONAL ARCHITECTURE, ADVANCED ANATOMY, STUDENT LEARNING, AND PRODUCTION READINESS
+
+PROJECT:
+https://github.com/abdulsince2008/human-atlas
+
+PROJECT NAME: ANATOMY 360
+
+OBJECTIVE:
+Complete the remaining major development work required to transform Anatomy 360 into a polished, comprehensive, scalable 3D anatomy education platform suitable for medical, nursing, pre-medical and general anatomy students.
+
+This is the FINAL MAJOR V1 DEVELOPMENT CYCLE.
+
+I have already invested significant development effort and completed two major implementation cycles:
+
+1. The structured anatomical Learning experience, including educational content across the 12 anatomical systems and its integration with the 3D anatomy experience.
+2. The Practical Lab, including structure identification, structure-location examinations, anatomical knowledge questions, scoring, feedback and examination review.
+
+TREAT THESE TWO IMPLEMENTATIONS AS EXISTING FEATURES.
+
+Do not unnecessarily rebuild them.
+
+The objective now is to complete ALL REMAINING HIGH-VALUE V1 WORK in one comprehensive development task.
+
+I do not want to continue implementing dozens of small features in separate development sessions.
+
+You must independently inspect the existing repository, identify what is already implemented, identify actual gaps, make sensible engineering decisions and implement the maximum realistic scope in this single development cycle.
+
+Do not stop after presenting a plan.
+
+Do not ask me to approve individual phases.
+
+Do not simply create UI mockups.
+
+Implement actual working functionality.
+
+Where required assets or scientifically validated information are unavailable, build scalable infrastructure and clearly document the missing dependencies rather than fabricating content.
+
+==================================================
+PART 1 — COMPLETE REPOSITORY AUDIT
+==================================================
+
+Before modifying anything, inspect the entire currently available project.
+
+Inspect:
+
+- Application architecture.
+- Routing and navigation.
+- Existing pages and components.
+- Three.js rendering engine.
+- Anatomical model assets.
+- Atlas manifest and concept identifiers.
+- Anatomical system registry.
+- Mesh-to-concept relationships.
+- Anatomical knowledge datasets.
+- Learning data and lesson components.
+- Practical Lab implementation.
+- Terminology and search.
+- Quiz and assessment systems.
+- Student progress and persistence.
+- Existing design system.
+- Existing dependencies.
+- Package scripts.
+- Validation and test scripts.
+- Licensing and attribution documentation.
+
+Search for duplicated implementations, unfinished screens, disconnected buttons, placeholder messages, fake data, broken navigation and inconsistent data mappings.
+
+IMPORTANT:
+
+Use the actual current source code as the ground truth.
+
+Do not trust the README or previous documentation without verification.
+
+Classify every major feature as:
+
+- Implemented and working.
+- Implemented but incomplete.
+- Implemented but disconnected.
+- Missing.
+- Blocked by unavailable assets or external infrastructure.
+
+Identify which components should be reused and which genuinely require improvement.
+
+Do not unnecessarily refactor stable existing functionality.
+
+==================================================
+PART 2 — BUILD A SCALABLE ANATOMICAL KNOWLEDGE ARCHITECTURE
+==================================================
+
+This is one of the most important foundational improvements.
+
+The application must not be limited to basic anatomical names and short descriptions.
+
+Develop a rich, scalable anatomical information architecture.
+
+Every anatomical structure should support relevant fields such as:
+
+IDENTIFICATION:
+- Canonical anatomical name.
+- Common name.
+- Latin terminology where available.
+- Anatomical synonyms.
+- Structure category.
+- Anatomical system.
+- Parent structure.
+- Child structures.
+- Related structures.
+
+ANATOMICAL LOCATION:
+- Anatomical region.
+- Body subdivision.
+- Position.
+- Orientation.
+- Nearby structures.
+- Anatomical boundaries.
+
+FUNCTION:
+- Primary function.
+- Secondary functions.
+- Physiological role.
+- Associated anatomical processes.
+
+STRUCTURAL RELATIONSHIPS:
+- Origin.
+- Insertion.
+- Attachments.
+- Articulations.
+- Innervation.
+- Arterial supply.
+- Venous drainage.
+- Lymphatic drainage.
+- Anatomical relationships.
+
+Only populate fields relevant to the structure type.
+
+For example, a bone should not receive a fabricated muscle insertion description, and a nerve should not receive irrelevant anatomical fields.
+
+EDUCATIONAL INFORMATION:
+- Beginner explanation.
+- Intermediate explanation.
+- Advanced explanation.
+- Important facts.
+- Related terminology.
+- Learning objectives.
+- Associated lesson topics.
+- Relevant practical examination questions.
+
+VISUALIZATION:
+- Canonical anatomical concept ID.
+- Associated mesh IDs.
+- Parent and child mesh relationships.
+- Recommended viewing position where available.
+- Available visualization capabilities.
+- Model coverage status.
+
+CONTENT PROVENANCE:
+- Source reference.
+- Source URL where available.
+- Attribution.
+- License information.
+- Verification status.
+- Last updated metadata.
+
+Create a normalized and typed data structure instead of maintaining duplicated anatomical information across unrelated components.
+
+Support versioned data schemas, validation and migration.
+
+All new structure records must connect to the existing atlas identifiers.
+
+Never generate random concept IDs or fabricated mesh identifiers.
+
+==================================================
+PART 3 — ADVANCED ANATOMICAL RELATIONSHIP EXPLORER
+==================================================
+
+Build a comprehensive structure-relationship learning capability.
+
+Students should be able to investigate how different anatomical structures connect to and relate to each other.
+
+Examples:
+
+- Muscle to bone attachment.
+- Nerve to innervated muscle.
+- Artery to supplied anatomical region.
+- Vein to drainage territory.
+- Bone to associated joint.
+- Organ to supporting structures.
+- Ligament to connected bones.
+
+Create an interactive relationship visualization.
+
+When a student opens a structure, show:
+
+1. Its direct anatomical relationships.
+2. Associated structures.
+3. Parent and child structures.
+4. Relevant functional relationships.
+5. Related systems.
+6. Available 3D structures.
+
+Allow students to navigate from one structure to another.
+
+Where appropriate, selecting a relationship should highlight the corresponding actual 3D anatomy.
+
+Do not introduce unsupported relationships.
+
+A relationship must have a verified source or a clear unverified/draft status.
+
+The relationship engine must support new anatomical records without requiring changes to the core viewer.
+
+==================================================
+PART 4 — EXPAND THE ANATOMICAL REFERENCE LIBRARY
+==================================================
+
+Build a comprehensive anatomical reference experience around the existing 3D atlas.
+
+Improve the existing system directory and structure-information experience.
+
+Provide:
+
+- Detailed anatomical information.
+- Searchable structures.
+- Hierarchical anatomy navigation.
+- Synonym discovery.
+- Related anatomy.
+- Anatomical terminology.
+- Structure-specific facts.
+- Direct 3D inspection.
+- Links to relevant Learning lessons.
+- Links to relevant Practical Lab examinations.
+
+Avoid duplicating the existing Explorer.
+
+The reference library should complement the current 3D viewer rather than replacing it.
+
+All structures must display their real model-coverage status.
+
+Distinguish between:
+
+- Individual mesh available.
+- Group of meshes available.
+- Concept available without separate visualization.
+- Anatomical information unavailable.
+- Source data not yet verified.
+
+==================================================
+PART 5 — MULTI-ATLAS ARCHITECTURE AND FEMALE ANATOMY SUPPORT
+==================================================
+
+The existing anatomical model is the foundation of Anatomy 360.
+
+However, the project must not become permanently dependent on a single adult male reference anatomy dataset.
+
+Develop a scalable multi-atlas architecture.
+
+Introduce an atlas registry capable of supporting multiple anatomical reference models.
+
+Each atlas should have metadata such as:
+
+- Atlas ID.
+- Display name.
+- Reference anatomy profile.
+- Anatomical model source.
+- Model version.
+- Geometry format.
+- Anatomical concept mappings.
+- Associated assets.
+- License.
+- Attribution.
+- Coverage information.
+
+Support future integration of:
+
+- Adult female reference anatomy.
+- Additional adult anatomical reference models.
+- Pediatric reference anatomy.
+- Different anatomical variations.
+- Additional properly licensed anatomical datasets.
+
+IMPORTANT:
+
+First inspect the repository for any existing additional anatomical model assets.
+
+If valid female anatomy assets are already present and legally usable, integrate them into the atlas architecture.
+
+If they are not available, do NOT fabricate a female body from the male model.
+
+Do not use decorative illustrations as substitutes for actual interactive anatomical geometry.
+
+Instead:
+
+1. Build the multi-atlas architecture.
+2. Create the model import and manifest validation workflow.
+3. Support independent concept-to-mesh mappings for every atlas.
+4. Make atlas selection possible when more than one compatible model exists.
+5. Keep the current reference model fully functional.
+6. Clearly disclose unavailable reference models.
+7. Document the exact requirements for adding another licensed anatomy dataset.
+
+Adding future anatomical reference models must not require rewriting the Learning, Practical Lab or Explorer modules.
+
+==================================================
+PART 6 — TERMINOLOGY AND ADVANCED SEARCH
+==================================================
+
+Improve the existing search system into a proper anatomical discovery engine.
+
+Search should support:
+
+- Anatomical names.
+- Common names.
+- Latin terminology.
+- Synonyms.
+- Anatomical categories.
+- System names.
+- Regions.
+- Definitions.
+- Related structures.
+
+Support:
+
+- Partial matching.
+- Case-insensitive search.
+- Basic typo tolerance.
+- Search suggestions.
+- Recent searches.
+- Filters.
+- Related search results.
+
+When the student searches for a structure, show:
+
+1. Anatomical name.
+2. Relevant system.
+3. Short definition.
+4. Available 3D representation.
+5. Related structures.
+6. Relevant Learning content.
+7. Related terminology.
+
+Use the canonical anatomical data as the source of search results.
+
+Do not build a separate manually maintained search database that becomes inconsistent with the atlas.
+
+Keep indexing scalable for additional anatomical structures.
+
+==================================================
+PART 7 — ADVANCED STUDENT REVISION SYSTEM
+==================================================
+
+Build a unified revision experience.
+
+Integrate with the existing Learning and Practical Lab features.
+
+Implement:
+
+A. ANATOMY FLASHCARDS
+
+Students should be able to revise:
+
+- Anatomical names.
+- Functions.
+- Locations.
+- Relationships.
+- Important facts.
+- Identification questions.
+
+Where appropriate, display actual 3D structures on flashcards.
+
+Support:
+
+- Show answer.
+- Mark as difficult.
+- Mark as understood.
+- Repeat later.
+- Save structure.
+- Filter by anatomical system.
+
+B. SPACED REPETITION
+
+Implement a simple, reliable spaced-repetition scheduling algorithm.
+
+It should consider:
+
+- Whether the student answered correctly.
+- Self-reported familiarity where appropriate.
+- Previous review history.
+- Time since previous revision.
+- Difficulty level.
+
+Use a documented and maintainable scheduling algorithm.
+
+Do not claim medically validated learning outcomes.
+
+C. SAVED ANATOMICAL STRUCTURES
+
+Students should be able to bookmark:
+
+- Structures.
+- Lessons.
+- Difficult topics.
+- Practical questions.
+- Important terminology.
+
+Bookmarks must link to the actual underlying anatomy and educational records.
+
+D. REVISION QUEUE
+
+Display structures and topics that need revision.
+
+The queue should be informed by:
+
+- Incorrect examination answers.
+- Difficult flashcards.
+- Incomplete lessons.
+- Previously bookmarked weak structures.
+
+All features must share the same underlying educational data.
+
+Do not duplicate the existing Practical Lab question bank.
+
+==================================================
+PART 8 — STUDENT DASHBOARD AND PROGRESS TRACKING
+==================================================
+
+Build a meaningful personal study dashboard.
+
+The dashboard should help students understand their actual learning progress.
+
+Display:
+
+- Completed Learning topics.
+- Completed lessons.
+- Practical Lab attempts.
+- Examination accuracy.
+- Performance by anatomical system.
+- Weak anatomical areas.
+- Saved structures.
+- Flashcard review progress.
+- Upcoming revision.
+- Recent study activity.
+
+Create visualizations that communicate progress clearly without inventing data.
+
+Support a simple local student profile without requiring authentication.
+
+Allow students to:
+
+- Maintain their local study history.
+- Export their study data.
+- Import previously exported study data.
+- Reset their own progress with confirmation.
+
+Use a maintainable persistence abstraction.
+
+Prefer an appropriate local storage implementation, such as IndexedDB where suitable, rather than putting large datasets into localStorage.
+
+Keep the persistence layer separate from the UI.
+
+Design the storage interface so that a real backend and optional cloud synchronization can be introduced later without rebuilding the dashboard or study features.
+
+Do not introduce a paid database or external service.
+
+==================================================
+PART 9 — INTRODUCE EDUCATIONAL PHYSIOLOGY SIMULATIONS
+==================================================
+
+Anatomy education should eventually connect structure with function.
+
+Build a scalable physiology-simulation module.
+
+Start with educational simulations that can be supported by verified information.
+
+Potential modules include:
+
+CARDIOVASCULAR:
+- Basic cardiac conduction.
+- Simplified cardiac cycle.
+- Relationship between heart chambers and blood flow.
+
+RESPIRATORY:
+- Basic ventilation mechanics.
+- Inspiration and expiration.
+- Relationship between diaphragm movement and lung volume.
+
+RENAL:
+- Simplified nephron filtration and urine-formation pathway.
+
+MUSCULOSKELETAL:
+- Basic muscle contraction.
+- Joint movement relationships.
+- Antagonistic muscle action.
+
+Requirements:
+
+- Interactive visual controls where appropriate.
+- Clear educational explanations.
+- Adjustable parameters only when scientifically justified.
+- Visible explanation of simplified assumptions.
+- Consistent relationship to the relevant anatomical structures.
+- Reset controls.
+- Accessible visualizations.
+- Mobile-friendly interaction.
+
+Do not simulate clinical outcomes.
+
+Do not present simplified educational formulas as complete physiological models.
+
+Use scientifically sourced values and formulas.
+
+If a simulation cannot be supported accurately, build the reusable simulation architecture and clearly mark that simulation as unavailable rather than displaying fabricated results.
+
+Keep simulations separate from the existing Three.js anatomy renderer where separation is technically appropriate.
+
+==================================================
+PART 10 — HISTOLOGY AND MICROANATOMY LIBRARY
+==================================================
+
+Build a scalable histology and microanatomy module.
+
+The architecture should support:
+
+- Tissue categories.
+- Epithelial tissue.
+- Connective tissue.
+- Muscle tissue.
+- Nervous tissue.
+- Organ-specific histology.
+- Microscopic structures.
+- Educational descriptions.
+- Image collections.
+- Image attribution.
+- Magnification metadata.
+- Related anatomical structures.
+- Related Learning lessons.
+
+Create a system capable of integrating properly licensed histology images and microscope assets.
+
+Do not invent microscope images or present generated illustrative images as real histological specimens.
+
+If no appropriately licensed histology images exist in the repository, make the library infrastructure import-ready.
+
+Do not expose empty fake galleries or nonfunctional controls.
+
+Where useful, provide educational text describing the supported tissue categories while clearly distinguishing text-only content from actual histological imagery.
+
+Ensure future histology assets can be integrated without modifying the core 3D anatomy engine.
+
+==================================================
+PART 11 — ANATOMICAL CLINICAL CORRELATIONS AND CASE STUDIES
+==================================================
+
+Introduce a clinically oriented anatomy-learning module.
+
+This should teach students how anatomical structures relate to educational clinical scenarios.
+
+Potential content categories:
+
+- Nerve injury and anatomical relationships.
+- Joint and ligament injuries.
+- Blood supply and anatomical regions.
+- Respiratory anatomical relationships.
+- Cardiovascular structural relationships.
+- Relevant regional anatomy.
+
+Every case should contain:
+
+- Case title.
+- Learning objectives.
+- Educational scenario.
+- Relevant structures.
+- Anatomical explanation.
+- Associated Learning lessons.
+- Related 3D visualization.
+- Knowledge questions.
+- Source references.
+
+Clearly identify educational case studies as learning material.
+
+Do not offer individual diagnoses, treatments or patient-specific medical advice.
+
+Do not fabricate clinical statistics, study results or authoritative references.
+
+Use properly sourced cases when available.
+
+If validated case material is unavailable, build the case-study architecture and content guidelines rather than publishing invented cases as factual medical education.
+
+==================================================
+PART 12 — CONNECT THE ENTIRE EDUCATIONAL EXPERIENCE
+==================================================
+
+The platform must behave as one connected education system.
+
+Create consistent relationships between:
+
+- 3D Explorer.
+- Anatomical Systems.
+- Structure Reference Library.
+- Learning.
+- Practical Lab.
+- Terminology.
+- Flashcards.
+- Revision.
+- Progress Dashboard.
+- Physiology.
+- Histology.
+- Clinical Correlations.
+
+For example:
+
+A student opens a heart structure.
+
+They should be able to:
+
+1. Inspect its actual 3D representation.
+2. Read its anatomical description.
+3. Understand its position and relationships.
+4. Open the relevant Learning topic.
+5. Practice identifying the structure.
+6. Review related terminology.
+7. Save it to flashcards.
+8. Study related physiology.
+9. See their examination performance involving that structure.
+
+Create reusable navigation and linking patterns.
+
+Do not create disconnected standalone pages.
+
+All cross-references must use stable canonical IDs.
+
+==================================================
+PART 13 — PRESERVE AND IMPROVE EXISTING LEARNING
+==================================================
+
+The expanded Learning module has already been implemented.
+
+Do not rebuild it.
+
+Audit it and correct any remaining real problems.
+
+Verify:
+
+- Existing anatomical system coverage.
+- Lesson-to-concept mappings.
+- 3D topic synchronization.
+- Structure highlighting.
+- Topic navigation.
+- Educational completeness.
+- Terminology links.
+- Progress integration.
+
+Fix genuine defects found during inspection.
+
+Do not remove existing lessons or replace detailed educational content with generic explanations.
+
+New Learning topics and systems must be addable through data registration, not extensive modifications to multiple components.
+
+==================================================
+PART 14 — PRESERVE AND IMPROVE PRACTICAL LAB
+==================================================
+
+The Practical Lab has already been implemented.
+
+Preserve the existing functional implementation.
+
+Audit and improve only where genuinely necessary.
+
+Check:
+
+- Actual mesh identification.
+- Concept mapping.
+- Multiple mesh concepts.
+- Question accuracy.
+- Distractor quality.
+- Exam randomization.
+- Difficulty.
+- Scoring.
+- Timed examinations.
+- Examination history.
+- Incorrect answer review.
+- Links to Learning.
+- Links to Revision.
+
+All assessment questions must be connected to validated anatomical records.
+
+Make the question-bank schema scalable so new questions can be added without modifying the main examination engine.
+
+Do not recreate existing quiz functionality.
+
+==================================================
+PART 15 — ACCESSIBILITY, RESPONSIVENESS AND USER EXPERIENCE
+==================================================
+
+Review the complete application for usability.
+
+Improve:
+
+- Desktop experience.
+- Tablet experience.
+- Mobile experience.
+- Keyboard navigation.
+- Focus management.
+- Clear labels.
+- Contrast.
+- Readable educational typography.
+- Loading states.
+- Error states.
+- Empty states.
+- Consistent navigation.
+- Helpful onboarding.
+- Clear system and atlas selection.
+
+The 3D model must remain the central educational experience.
+
+Do not redesign the platform unnecessarily.
+
+Preserve its existing visual identity.
+
+Make the interface look like a professional medical education product, not a generic admin dashboard.
+
+Ensure that the 3D viewer remains usable on smaller devices and does not consume the entire screen at the expense of educational controls.
+
+==================================================
+PART 16 — PERFORMANCE AND ENGINEERING QUALITY
+==================================================
+
+Optimize the existing implementation without compromising anatomical detail.
+
+Review:
+
+- Model loading.
+- Lazy loading.
+- Component rendering.
+- Large anatomical datasets.
+- Mesh selection.
+- Geometry resource cleanup.
+- Memory consumption.
+- Event-handler cleanup.
+- Search performance.
+- Data indexing.
+- State synchronization.
+- Persistence.
+- Repeated scene initialization.
+- Mobile GPU performance.
+
+Reuse the existing Three.js architecture.
+
+Do not create a second 3D engine.
+
+Avoid unnecessary dependencies.
+
+Do not blindly optimize code without identifying real bottlenecks.
+
+Use appropriate caching and lazy loading.
+
+Where compatible with the current architecture, support selective offline access for educational text, saved progress and previously cached essential assets.
+
+Do not force users to download the entire anatomical model to access basic learning content.
+
+==================================================
+PART 17 — SCALABLE CONTENT AND ASSET MANAGEMENT
+==================================================
+
+This section is essential for future growth.
+
+The project must support expansion without requiring a major code rewrite every time new anatomy or educational content is added.
+
+Create a clean, documented content-registration architecture.
+
+Support independently registered:
+
+- Anatomical systems.
+- Anatomical structures.
+- Atlas models.
+- Anatomical concept mappings.
+- Lessons.
+- Lesson topics.
+- Terminology.
+- Relationships.
+- Quiz questions.
+- Flashcards.
+- Physiology simulations.
+- Histology collections.
+- Clinical case studies.
+
+Each content type must have stable identifiers, type definitions and validation rules.
+
+Implement schema versioning.
+
+Create reusable validators and scripts to detect:
+
+- Duplicate IDs.
+- Invalid system references.
+- Invalid concept mappings.
+- Missing mesh references.
+- Broken cross-links.
+- Duplicate terminology.
+- Missing required lesson fields.
+- Missing question explanations.
+- Missing asset attribution.
+- Invalid content metadata.
+
+A new anatomical system, atlas or content collection should be addable by registering its data and assets rather than rewriting existing navigation, viewer or assessment logic.
+
+Document the process for adding a new content pack.
+
+Avoid unnecessary enterprise-level abstraction and overengineering.
+
+The architecture must remain practical for a small development project.
+
+==================================================
+PART 18 — COMMERCIAL AND RELEASE READINESS
+==================================================
+
+Prepare the application for a realistic future paid educational release.
+
+Improve:
+
+- First-time student onboarding.
+- Navigation clarity.
+- Product branding consistency.
+- Helpful introductory content.
+- Attribution and credits.
+- Version information.
+- Data transparency.
+- Offline limitations.
+- Asset loading feedback.
+- Error handling.
+
+Audit third-party software and model licensing.
+
+Verify actual licenses before claiming redistribution rights.
+
+Create an accurate attribution and license inventory using the licenses present in the project.
+
+Document any unknown or unresolved licensing requirements.
+
+Do not invent legal permissions.
+
+Do not automatically integrate a payment gateway, subscription service, or external account provider.
+
+Do not build an authentication system just for the sake of commercial readiness.
+
+Maintain the current local-first experience while keeping a clean path toward optional future accounts, institution licensing and cloud synchronization.
+
+Create a production-readiness checklist covering the items that still require human verification.
+
+==================================================
+PART 19 — STRICT DEVELOPMENT CONSTRAINTS
+==================================================
+
+These rules are mandatory.
+
+1. Preserve existing working functionality.
+2. Preserve the expanded Learning module.
+3. Preserve the Practical Lab.
+4. Reuse the actual anatomical model and mesh mappings.
+5. Do not fabricate anatomical geometry.
+6. Do not invent medical facts.
+7. Do not generate fake histology specimens.
+8. Do not pretend an unavailable female reference model exists.
+9. Do not create disconnected feature mockups.
+10. Do not add buttons that do nothing.
+11. Do not create duplicate anatomical datasets.
+12. Do not introduce paid APIs or subscriptions.
+13. Do not unnecessarily add dependencies.
+14. Do not break existing routing.
+15. Do not remove working features to simplify implementation.
+16. Do not unnecessarily redesign the interface.
+17. Do not replace working Three.js rendering logic.
+18. Do not introduce external AI API requirements.
+19. Do not make unsupported scientific claims.
+20. Do not stop after writing a development roadmap.
+
+When a feature needs assets that are unavailable:
+
+- Build its reusable data architecture where worthwhile.
+- Ensure it integrates cleanly with existing modules.
+- Display honest availability information.
+- Document the exact missing asset or reference requirement.
+- Do not present incomplete functionality as finished.
+
+==================================================
+PART 20 — TESTING AND FINAL VALIDATION
+==================================================
+
+Inspect all available scripts in package.json before running validation.
+
+Run the existing appropriate checks, including where available:
+
+- TypeScript validation.
+- Linting.
+- Unit tests.
+- Integration tests.
+- Atlas validation.
+- Interaction validation.
+- Educational-content validation.
+- Production build.
+
+Add targeted automated tests for the new data architecture and functionality.
+
+Test the following complete user journey:
+
+1. Open the application.
+2. Open the 3D Explorer.
+3. Search for an anatomical structure.
+4. Open its reference information.
+5. Navigate to related structures.
+6. Open the associated Learning lesson.
+7. Inspect the associated structure in 3D.
+8. Open Practical Lab.
+9. Complete an examination.
+10. Review examination results.
+11. Add a missed structure to revision.
+12. Review its flashcard.
+13. Check progress on the dashboard.
+14. Export student progress.
+15. Import previously exported progress.
+16. Navigate through the other available educational modules.
+
+Also test:
+
+- Existing anatomy systems.
+- Multiple mesh structures.
+- Missing anatomical assets.
+- Invalid concept mappings.
+- Empty search results.
+- Corrupted local progress data.
+- Mobile layout.
+- Browser resizing.
+- 3D resource cleanup.
+- Existing Learning functionality.
+- Existing Practical Lab functionality.
+
+Fix all errors introduced by your changes.
+
+Never claim a test passed if it was not actually executed.
+
+==================================================
+PART 21 — IMPLEMENTATION EXECUTION STRATEGY
+==================================================
+
+You are authorized to make reasonable engineering decisions without asking me to approve every feature individually.
+
+This is one comprehensive development assignment.
+
+Do not stop at the audit.
+
+Execute the work in the following priority order within this single task:
+
+PRIORITY A — CORE COMPLETENESS
+
+- Anatomical knowledge architecture.
+- Structure relationship explorer.
+- Advanced reference library.
+- Search and terminology improvements.
+- Integrations with existing Learning and Practical Lab.
+
+PRIORITY B — STUDENT EDUCATION
+
+- Flashcards.
+- Spaced repetition.
+- Saved structures.
+- Student dashboard.
+- Progress tracking.
+- Revision recommendations.
+
+PRIORITY C — ADVANCED MEDICAL EDUCATION
+
+- Physiology simulation framework and supported initial simulations.
+- Histology framework and available content.
+- Clinical case-study architecture and properly supported cases.
+
+PRIORITY D — MODEL AND PLATFORM SCALABILITY
+
+- Multi-atlas architecture.
+- Additional anatomical model support.
+- Future female anatomy integration where assets permit.
+- Modular content packs.
+- Data validation.
+- Import workflows.
+
+PRIORITY E — RELEASE QUALITY
+
+- Responsive UX.
+- Accessibility.
+- Performance.
+- Local persistence and export/import.
+- Licensing inventory.
+- Documentation.
+- Production validation.
+
+Do not sacrifice core quality by implementing numerous empty modules.
+
+Complete all realistic high-value tasks in this execution.
+
+Where time or environment limitations prevent an entire feature from being fully populated, finish the reusable infrastructure and provide an exact remaining-asset checklist.
+
+If a build error is caused by an existing defect unrelated to your changes, document it clearly and do not silently hide it.
+
+==================================================
+PART 22 — FINAL V1 ACCEPTANCE CRITERIA
+==================================================
+
+Anatomy 360 V1 should deliver the following:
+
+A. INTERACTIVE ANATOMY
+
+- Existing 3D model remains functional.
+- Existing exploration features remain functional.
+- Anatomical structures remain searchable and selectable.
+- Structure information is substantially richer.
+- Anatomical relationships are navigable.
+
+B. EDUCATIONAL EXPERIENCE
+
+- Structured Learning remains functional.
+- Practical Lab remains functional.
+- Learning and assessment share anatomical records.
+- Flashcards and revision work.
+- Student progress is recorded.
+- Weak areas can be identified.
+
+C. ADVANCED CONTENT
+
+- Physiology simulation architecture exists.
+- Available initial simulations work.
+- Histology supports scalable asset integration.
+- Clinical case learning supports structured expansion.
+- Missing assets are disclosed honestly.
+
+D. SCALABILITY
+
+- Additional atlas models can be registered.
+- Additional anatomical systems can be registered.
+- Additional structures can be imported.
+- New lessons and questions can be added through data.
+- Data validation catches broken mappings.
+- Content schemas are versioned and documented.
+
+E. STUDENT EXPERIENCE
+
+- The application works responsively.
+- Navigation is clear.
+- Progress is meaningful.
+- Saved study data can be exported and restored.
+- Existing core functionality is not broken.
+
+F. RELEASE READINESS
+
+- Build succeeds or existing blockers are documented.
+- Validation scripts are executed.
+- Third-party attribution is documented.
+- License uncertainties are identified.
+- Production limitations are disclosed.
+
+==================================================
+PART 23 — FINAL REPORT
+==================================================
+
+After implementation, produce a comprehensive report containing:
+
+1. Original problems discovered.
+2. Features already implemented and preserved.
+3. New features successfully completed.
+4. Improvements made to existing features.
+5. Exact files created.
+6. Exact files modified.
+7. Data architecture changes.
+8. New reusable modules.
+9. Validation and test results.
+10. Production build result.
+11. Performance issues discovered and addressed.
+12. Licensing or asset limitations.
+13. Features that remain incomplete.
+14. Exact assets or information required to complete remaining items.
+15. The recommended V1 release checklist.
+
+Provide honest completion percentages only where they can be measured from actual implementation or validated content coverage.
+
+Do not label infrastructure-only features as fully completed.
+
+Do not report a feature as production-ready merely because its interface exists.
+
+FINAL INSTRUCTION:
+
+The objective is to leave Anatomy 360 in the strongest realistic V1 state possible.
+
+Prioritize functional educational capabilities, anatomical accuracy, connected workflows, reusable architecture, reliability and commercial product quality.
+
+Use the existing project intelligently.
+
+Preserve what already works.
+
+Complete the major remaining work.
+
+Make the unfinished areas easy to expand later.
+
+This is not a request for another roadmap.
+
+THIS IS THE FINAL COMPREHENSIVE V1 IMPLEMENTATION TASK.
