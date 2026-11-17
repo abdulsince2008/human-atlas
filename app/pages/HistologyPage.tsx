@@ -6,6 +6,7 @@ import {
   HISTOLOGY_ENTRIES,
   type HistologyCategory,
 } from '../data/histology-data';
+import StudyResourceList from '../components/StudyResourceList';
 
 interface Props {
   onInspectConcept: (conceptId: string) => void;
@@ -40,6 +41,12 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
         expected staining protocols, magnification specifications, and strict CC BY 4.0 / CC0 specimen
         attribution slots without displaying synthetic placeholder microscope pictures.
       </div>
+
+      <StudyResourceList
+        module="histology"
+        limit={3}
+        heading="Open Virtual Microscopy & Tissue References"
+      />
 
       <section className="a360-filter-row" aria-label="Filter histology categories">
         <button

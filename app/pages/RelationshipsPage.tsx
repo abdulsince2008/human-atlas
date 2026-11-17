@@ -3,25 +3,30 @@ import {
   ArrowRight,
   Bookmark,
   BookOpen,
-  Eye,
+  Box,
   GitBranch,
   Layers,
+  Network,
   RotateCcw,
   Search,
 } from 'lucide-react';
 import {
   DEFAULT_VISIBLE,
   type Atlas,
+  type SceneRelationshipEdge,
   type SceneState,
 } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import { getReviewStatusLabel } from '../data/provenance-registry';
 import {
   getRelationshipsForConcept,
   getStructureRecordV2,
   KNOWLEDGE_GRAPH_V2,
   type RelationshipType,
 } from '../knowledge-graph';
+import { getPartCenter } from '../visualization-colors';
 import { useStudy } from '../components/StudyContext';
+import StudyResourceList from '../components/StudyResourceList';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -49,6 +54,33 @@ const RELATIONSHIP_COLOR: Record<RelationshipType, string> = {
   antagonist: '#9a3412',
 };
 
+const CENTER_NODE_COLOR = '#0f5c6e';
+const INITIAL_BATCH_SIZE = 12;
+
+function getConceptWorldCenter(
+  conceptId: string,
+  conceptMap: Map<string, string[]>,
+  partMap: Map<string, Atlas['parts'][number]>,
+): [number, number, number] | null {
+  const partIds = conceptMap.get(conceptId);
+  if (!partIds || partIds.length === 0) return null;
+  let sx = 0;
+  let sy = 0;
+  let sz = 0;
+  let count = 0;
+  for (const pid of partIds) {
+    const part = partMap.get(pid);
+    if (!part) continue;
+    const c = getPartCenter(part);
+    sx += c[0];
+    sy += c[1];
+    sz += c[2];
+    count++;
+  }
+  if (count === 0) return null;
+  return [sx / count, sy / count, sz / count];
+}
+
 export default function RelationshipsPage({
   atlas,
   initialConceptId,
@@ -60,8 +92,10 @@ export default function RelationshipsPage({
   const [filterText, setFilterText] = useState('');
   const [systemFilter, setSystemFilter] = useState<CanonicalSystemId | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<RelationshipType | 'all'>('all');
-  const [show3DPreview, setShow3DPreview] = useState(false);
+  const [viewMode, setViewMode] = useState<'3d' | '2d'>('3d');
   const [highlightMode, setHighlightMode] = useState<'center' | 'network'>('network');
+  const [showConnectors, setShowConnectors] = useState(true);
+  const [showAllNodes, setShowAllNodes] = useState(false);
   const [focusRequest, setFocusRequest] = useState(1);
 
   const { isBookmarked, toggleBookmark } = useStudy();
@@ -69,9 +103,19 @@ export default function RelationshipsPage({
   useEffect(() => {
     if (initialConceptId) {
       setSelectedId(initialConceptId);
+      setShowAllNodes(false);
       setFocusRequest((n) => n + 1);
     }
   }, [initialConceptId]);
+
+  const conceptPartsMap = useMemo(
+    () => new Map(atlas?.concepts.map((c) => [c.id, c.elements]) ?? []),
+    [atlas],
+  );
+  const partMap = useMemo(
+    () => new Map(atlas?.parts.map((p) => [p.id, p]) ?? []),
+    [atlas],
+  );
 
   const curatedList = useMemo(() => {
     const q = filterText.trim().toLowerCase();
@@ -98,77 +142,132 @@ export default function RelationshipsPage({
     [selectedId, atlas],
   );
 
-  const combinedNodes = useMemo(() => {
+  const allCombinedNodes = useMemo(() => {
     const items: {
       key: string;
       conceptId?: string;
       label: string;
       type: RelationshipType | 'related';
       typeLabel: string;
+      color: string;
       direction: 'outgoing' | 'incoming' | 'curated';
       note: string;
       status: string;
+      hasMesh: boolean;
     }[] = [];
 
     for (const r of relationships.outgoing) {
       if (typeFilter !== 'all' && r.type !== typeFilter) continue;
+      const hasMesh = Boolean(
+        r.targetConceptId && (conceptPartsMap.get(r.targetConceptId)?.length ?? 0) > 0,
+      );
       items.push({
         key: r.id,
         conceptId: r.targetConceptId,
         label: r.targetLabel,
         type: r.type,
         typeLabel: r.directionLabel,
+        color: RELATIONSHIP_COLOR[r.type] ?? '#0f5c6e',
         direction: 'outgoing',
         note: r.note,
         status: r.verificationStatus,
+        hasMesh,
       });
     }
 
     for (const r of relationships.incoming) {
       if (typeFilter !== 'all' && r.type !== typeFilter) continue;
       const srcRec = getStructureRecordV2(r.sourceConceptId, atlas);
+      const hasMesh = (conceptPartsMap.get(r.sourceConceptId)?.length ?? 0) > 0;
       items.push({
         key: `in-${r.id}`,
         conceptId: r.sourceConceptId,
         label: srcRec.canonicalName,
         type: r.type,
         typeLabel: `${r.directionLabel} (Incoming)`,
+        color: RELATIONSHIP_COLOR[r.type] ?? '#0f5c6e',
         direction: 'incoming',
         note: r.note,
         status: r.verificationStatus,
+        hasMesh,
       });
     }
 
     if (typeFilter === 'all') {
       for (const fb of relationships.fallbackRelated) {
+        const hasMesh = (conceptPartsMap.get(fb.conceptId)?.length ?? 0) > 0;
         items.push({
           key: `fb-${fb.conceptId}`,
           conceptId: fb.conceptId,
           label: fb.name,
           type: 'related',
           typeLabel: 'Associated Structure',
+          color: '#64748b',
           direction: 'curated',
           note: `Cataloged anatomical relation with ${activeRecord.canonicalName}.`,
           status: 'verified',
+          hasMesh,
         });
       }
     }
 
-    return items.slice(0, 12);
-  }, [relationships, typeFilter, atlas, activeRecord.canonicalName]);
+    return items;
+  }, [relationships, typeFilter, atlas, activeRecord.canonicalName, conceptPartsMap]);
 
-  const sceneState = useMemo<SceneState>(() => {
-    const cMap = atlas ? new Map(atlas.concepts.map((c) => [c.id, c])) : null;
-    const selectedIds = new Set<string>(cMap?.get(selectedId)?.elements ?? []);
-    if (highlightMode === 'network' && cMap) {
-      for (const node of combinedNodes) {
-        if (!node.conceptId) continue;
-        for (const el of cMap.get(node.conceptId)?.elements ?? []) {
+  const visibleNodes = useMemo(
+    () => (showAllNodes ? allCombinedNodes : allCombinedNodes.slice(0, INITIAL_BATCH_SIZE)),
+    [allCombinedNodes, showAllNodes],
+  );
+
+  const ontologyOnlyNodes = useMemo(
+    () => allCombinedNodes.filter((n) => !n.hasMesh),
+    [allCombinedNodes],
+  );
+
+  // Build role-based GPU color overrides + 3D spatial connector edges
+  const { sceneState, activeLegendRoles } = useMemo(() => {
+    const selectedIds = new Set<string>(conceptPartsMap.get(selectedId) ?? []);
+    const colorOverrides: Record<string, string> = {};
+    const edges: SceneRelationshipEdge[] = [];
+    const legendMap = new Map<string, { label: string; color: string }>();
+
+    for (const pid of selectedIds) {
+      colorOverrides[pid] = CENTER_NODE_COLOR;
+    }
+
+    const centerPos = getConceptWorldCenter(selectedId, conceptPartsMap, partMap);
+
+    if (highlightMode === 'network') {
+      for (const node of visibleNodes) {
+        if (!node.conceptId || !node.hasMesh) continue;
+        const partIds = conceptPartsMap.get(node.conceptId) ?? [];
+        for (const el of partIds) {
           selectedIds.add(el);
+          if (!colorOverrides[el]) {
+            colorOverrides[el] = node.color;
+          }
+        }
+        legendMap.set(node.type, {
+          label: node.typeLabel.replace(' (Incoming)', ''),
+          color: node.color,
+        });
+
+        if (showConnectors && centerPos) {
+          const targetPos = getConceptWorldCenter(node.conceptId, conceptPartsMap, partMap);
+          if (targetPos) {
+            edges.push({
+              id: node.key,
+              from: centerPos,
+              to: targetPos,
+              color: node.color,
+              direction: node.direction,
+            });
+          }
         }
       }
     }
-    return {
+
+    const state: SceneState = {
       embedded: true,
       suppressHoverTooltip: true,
       explode: 0,
@@ -176,30 +275,48 @@ export default function RelationshipsPage({
       selected: Array.from(selectedIds),
       isolate: false,
       ghostSurroundings: selectedIds.size > 0,
+      partColorOverrides: colorOverrides,
+      relationshipEdges: edges,
       interactionMode: 'orbit',
       view: activeRecord.visualization.preferredView,
       rotate: false,
       reset: 0,
       focusRequest,
     };
-  }, [atlas, selectedId, highlightMode, combinedNodes, activeRecord.visualization.preferredView, focusRequest]);
+
+    return {
+      sceneState: state,
+      activeLegendRoles: Array.from(legendMap.values()),
+    };
+  }, [
+    conceptPartsMap,
+    partMap,
+    selectedId,
+    highlightMode,
+    visibleNodes,
+    showConnectors,
+    activeRecord.visualization.preferredView,
+    focusRequest,
+  ]);
 
   const activeSystem = CANONICAL_SYSTEMS.find((s) => s.id === activeRecord.canonicalSystem);
   const saved = isBookmarked('structure', activeRecord.conceptId);
 
   const selectStructure = (cid: string) => {
     setSelectedId(cid);
+    setShowAllNodes(false);
     setFocusRequest((n) => n + 1);
   };
 
   return (
     <div className="a360-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Anatomical Connections & Pathways</p>
+        <p className="a360-kicker">3D Spatial Anatomical Network & Pathways</p>
         <h1>Structure Relationship Explorer</h1>
         <p className="a360-lead">
-          Investigate verified muscle origins and insertions, joint articulations, arterial supply,
-          venous drainage, innervation, and adjacent anatomical neighbors—connected directly to 3D highlighting.
+          Explore verified muscle origins and insertions, joint articulations, arterial supply,
+          venous drainage, innervation, and anatomical neighbors directly in 3D space with
+          directional connectors and an instant 2D radial graph toggle.
         </p>
       </header>
 
@@ -251,7 +368,8 @@ export default function RelationshipsPage({
           <div className="a360-detail-top">
             <div>
               <p className="a360-kicker">
-                {activeSystem?.name.en} · {activeRecord.category} · {activeRecord.conceptId}
+                {activeSystem?.name.en} · {activeRecord.category} · {activeRecord.conceptId} ·{' '}
+                {getReviewStatusLabel(activeRecord.provenance.verificationStatus)}
               </p>
               <h2>{activeRecord.canonicalName}</h2>
               {activeRecord.latinName && (
@@ -260,6 +378,25 @@ export default function RelationshipsPage({
             </div>
 
             <div className="a360-ref-actions">
+              <div className="a360-segmented-toggle" role="group" aria-label="Relationship view mode">
+                <button
+                  type="button"
+                  className={`a360-filter-btn ${viewMode === '3d' ? 'active' : ''}`}
+                  aria-pressed={viewMode === '3d'}
+                  onClick={() => setViewMode('3d')}
+                >
+                  <Box size={14} /> 3D Spatial Network
+                </button>
+                <button
+                  type="button"
+                  className={`a360-filter-btn ${viewMode === '2d' ? 'active' : ''}`}
+                  aria-pressed={viewMode === '2d'}
+                  onClick={() => setViewMode('2d')}
+                >
+                  <Network size={14} /> 2D Radial Graph
+                </button>
+              </div>
+
               <button
                 type="button"
                 className={`a360-btn-secondary ${saved ? 'is-saved' : ''}`}
@@ -275,13 +412,7 @@ export default function RelationshipsPage({
               >
                 <Bookmark size={14} /> {saved ? 'Saved' : 'Save'}
               </button>
-              <button
-                type="button"
-                className="a360-btn-secondary"
-                onClick={() => setShow3DPreview((v) => !v)}
-              >
-                <Eye size={14} /> {show3DPreview ? 'Hide 3D Preview' : 'Show 3D Network'}
-              </button>
+
               {activeRecord.visualization.inModel && (
                 <button
                   type="button"
@@ -297,7 +428,7 @@ export default function RelationshipsPage({
           <div className="a360-filter-row" aria-label="Filter relationship types">
             {(
               [
-                ['all', 'All Relations'],
+                ['all', `All Relations (${allCombinedNodes.length})`],
                 ['origin', 'Origin'],
                 ['insertion', 'Insertion'],
                 ['articulation', 'Articulations'],
@@ -318,156 +449,12 @@ export default function RelationshipsPage({
             ))}
           </div>
 
-          {/* Interactive SVG Network Map */}
-          <div className="a360-rel-diagram-box">
-            {combinedNodes.length === 0 ? (
-              <div className="a360-empty-box">
-                <p>
-                  No relationships match the active filter for {activeRecord.canonicalName}. Reset
-                  to &ldquo;All Relations&rdquo; or inspect the structure in Reference View.
-                </p>
-                <button
-                  type="button"
-                  className="a360-btn-secondary"
-                  onClick={() => setTypeFilter('all')}
-                >
-                  <RotateCcw size={14} /> Reset Relationship Filter
-                </button>
-              </div>
-            ) : (
-              <svg
-                viewBox="0 0 760 400"
-                className="a360-rel-svg"
-                role="img"
-                aria-label={`Anatomical relationship graph centered on ${activeRecord.canonicalName}`}
-              >
-                {/* Radial links */}
-                {combinedNodes.map((node, i) => {
-                  const angle = (i / combinedNodes.length) * Math.PI * 2 - Math.PI / 2;
-                  const rx = 270;
-                  const ry = 148;
-                  const cx = 380 + Math.cos(angle) * rx;
-                  const cy = 200 + Math.sin(angle) * ry;
-                  const stroke =
-                    node.type === 'related' ? '#64748b' : RELATIONSHIP_COLOR[node.type] ?? '#0f5c6e';
-                  return (
-                    <g key={`edge-${node.key}`}>
-                      <line
-                        x1={380}
-                        y1={200}
-                        x2={cx}
-                        y2={cy}
-                        stroke={stroke}
-                        strokeWidth={1.75}
-                        strokeDasharray={node.direction === 'curated' ? '4 4' : undefined}
-                        opacity={0.75}
-                      />
-                    </g>
-                  );
-                })}
-
-                {/* Neighbor Nodes */}
-                {combinedNodes.map((node, i) => {
-                  const angle = (i / combinedNodes.length) * Math.PI * 2 - Math.PI / 2;
-                  const rx = 270;
-                  const ry = 148;
-                  const cx = 380 + Math.cos(angle) * rx;
-                  const cy = 200 + Math.sin(angle) * ry;
-                  const stroke =
-                    node.type === 'related' ? '#64748b' : RELATIONSHIP_COLOR[node.type] ?? '#0f5c6e';
-                  const shortTitle =
-                    node.label.length > 22 ? `${node.label.slice(0, 20)}…` : node.label;
-                  return (
-                    <g
-                      key={node.key}
-                      className="a360-svg-node"
-                      tabIndex={node.conceptId ? 0 : undefined}
-                      role={node.conceptId ? 'button' : undefined}
-                      aria-label={`Explore ${node.label} (${node.typeLabel})`}
-                      onClick={() => node.conceptId && selectStructure(node.conceptId)}
-                      onKeyDown={(e) => {
-                        if ((e.key === 'Enter' || e.key === ' ') && node.conceptId) {
-                          e.preventDefault();
-                          selectStructure(node.conceptId);
-                        }
-                      }}
-                    >
-                      <rect
-                        x={cx - 82}
-                        y={cy - 22}
-                        width={164}
-                        height={44}
-                        rx={8}
-                        fill="#ffffff"
-                        stroke={stroke}
-                        strokeWidth={1.5}
-                      />
-                      <text
-                        x={cx}
-                        y={cy - 3}
-                        textAnchor="middle"
-                        fontSize="11.5"
-                        fontWeight="600"
-                        fill="#0f172a"
-                      >
-                        {shortTitle}
-                      </text>
-                      <text
-                        x={cx}
-                        y={cy + 13}
-                        textAnchor="middle"
-                        fontSize="9.5"
-                        fill={stroke}
-                      >
-                        {node.typeLabel}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Center Focal Node */}
-                <g>
-                  <rect
-                    x={284}
-                    y={170}
-                    width={192}
-                    height={60}
-                    rx={10}
-                    fill="#0f5c6e"
-                    stroke="#094250"
-                    strokeWidth={2}
-                  />
-                  <text
-                    x={380}
-                    y={196}
-                    textAnchor="middle"
-                    fontSize="13.5"
-                    fontWeight="700"
-                    fill="#ffffff"
-                  >
-                    {activeRecord.canonicalName.length > 22
-                      ? `${activeRecord.canonicalName.slice(0, 20)}…`
-                      : activeRecord.canonicalName}
-                  </text>
-                  <text
-                    x={380}
-                    y={214}
-                    textAnchor="middle"
-                    fontSize="10.5"
-                    fill="#d8eef3"
-                  >
-                    {activeRecord.category} · {activeRecord.conceptId}
-                  </text>
-                </g>
-              </svg>
-            )}
-          </div>
-
-          {show3DPreview && (
-            <div className="a360-rel-3d-wrap">
+          {/* Primary 3D Spatial Network Viewport (Default) */}
+          {viewMode === '3d' && (
+            <div className="a360-rel-3d-wrap" data-testid="relationship-3d-stage">
               <div className="a360-rel-3d-bar">
                 <span>
-                  <Layers size={14} /> Inline 3D Relationship Highlight
+                  <Layers size={14} /> 3D Spatial Network · Click any highlighted organ to pivot
                 </span>
                 <div className="a360-level-bar">
                   <button
@@ -475,21 +462,30 @@ export default function RelationshipsPage({
                     className={`a360-filter-btn ${highlightMode === 'network' ? 'active' : ''}`}
                     onClick={() => setHighlightMode('network')}
                   >
-                    Highlight Full Network
+                    Full Network
                   </button>
                   <button
                     type="button"
                     className={`a360-filter-btn ${highlightMode === 'center' ? 'active' : ''}`}
                     onClick={() => setHighlightMode('center')}
                   >
-                    Target Structure Only
+                    Focal Organ Only
+                  </button>
+                  <button
+                    type="button"
+                    className={`a360-filter-btn ${showConnectors ? 'active' : ''}`}
+                    aria-pressed={showConnectors}
+                    onClick={() => setShowConnectors((v) => !v)}
+                  >
+                    {showConnectors ? '3D Connectors: On' : '3D Connectors: Off'}
                   </button>
                 </div>
               </div>
-              <div className="a360-rel-3d-viewport">
+
+              <div className="a360-rel-3d-viewport a360-rel-3d-primary">
                 {atlas ? (
                   <Suspense
-                    fallback={<div className="a360-empty-box">Loading 3D preview…</div>}
+                    fallback={<div className="a360-empty-box">Loading 3D spatial network…</div>}
                   >
                     <AnatomyScene
                       atlas={atlas}
@@ -506,16 +502,204 @@ export default function RelationshipsPage({
                   <div className="a360-empty-box">Loading 3D atlas catalog…</div>
                 )}
               </div>
+
+              {/* Dual-coded role color legend */}
+              <div className="a360-color-legend" aria-label="3D relationship color key">
+                <span className="a360-legend-item">
+                  <span className="a360-swatch" style={{ backgroundColor: CENTER_NODE_COLOR }} />
+                  Focal: {activeRecord.canonicalName}
+                </span>
+                {activeLegendRoles.map((role) => (
+                  <span key={role.label} className="a360-legend-item">
+                    <span className="a360-swatch" style={{ backgroundColor: role.color }} />
+                    {role.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Secondary 2D Radial SVG Graph (Toggleable) */}
+          {viewMode === '2d' && (
+            <div className="a360-rel-diagram-box" data-testid="relationship-2d-stage">
+              {visibleNodes.length === 0 ? (
+                <div className="a360-empty-box">
+                  <p>
+                    No relationships match the active filter for {activeRecord.canonicalName}. Reset
+                    to &ldquo;All Relations&rdquo; or inspect the structure in Reference View.
+                  </p>
+                  <button
+                    type="button"
+                    className="a360-btn-secondary"
+                    onClick={() => setTypeFilter('all')}
+                  >
+                    <RotateCcw size={14} /> Reset Relationship Filter
+                  </button>
+                </div>
+              ) : (
+                <svg
+                  viewBox="0 0 760 400"
+                  className="a360-rel-svg"
+                  role="img"
+                  aria-label={`Anatomical relationship graph centered on ${activeRecord.canonicalName}`}
+                >
+                  {visibleNodes.map((node, i) => {
+                    const angle = (i / visibleNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    const rx = 270;
+                    const ry = 148;
+                    const cx = 380 + Math.cos(angle) * rx;
+                    const cy = 200 + Math.sin(angle) * ry;
+                    return (
+                      <g key={`edge-${node.key}`}>
+                        <line
+                          x1={380}
+                          y1={200}
+                          x2={cx}
+                          y2={cy}
+                          stroke={node.color}
+                          strokeWidth={1.75}
+                          strokeDasharray={node.direction === 'curated' ? '4 4' : undefined}
+                          opacity={0.75}
+                        />
+                      </g>
+                    );
+                  })}
+
+                  {visibleNodes.map((node, i) => {
+                    const angle = (i / visibleNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    const rx = 270;
+                    const ry = 148;
+                    const cx = 380 + Math.cos(angle) * rx;
+                    const cy = 200 + Math.sin(angle) * ry;
+                    const shortTitle =
+                      node.label.length > 22 ? `${node.label.slice(0, 20)}…` : node.label;
+                    return (
+                      <g
+                        key={node.key}
+                        className="a360-svg-node"
+                        tabIndex={node.conceptId ? 0 : undefined}
+                        role={node.conceptId ? 'button' : undefined}
+                        aria-label={`Explore ${node.label} (${node.typeLabel})`}
+                        onClick={() => node.conceptId && selectStructure(node.conceptId)}
+                        onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && node.conceptId) {
+                            e.preventDefault();
+                            selectStructure(node.conceptId);
+                          }
+                        }}
+                      >
+                        <rect
+                          x={cx - 82}
+                          y={cy - 22}
+                          width={164}
+                          height={44}
+                          rx={8}
+                          fill="#ffffff"
+                          stroke={node.color}
+                          strokeWidth={1.5}
+                        />
+                        <text
+                          x={cx}
+                          y={cy - 3}
+                          textAnchor="middle"
+                          fontSize="11.5"
+                          fontWeight="600"
+                          fill="#0f172a"
+                        >
+                          {shortTitle}
+                        </text>
+                        <text
+                          x={cx}
+                          y={cy + 13}
+                          textAnchor="middle"
+                          fontSize="9.5"
+                          fill={node.color}
+                        >
+                          {node.typeLabel}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  <g>
+                    <rect
+                      x={284}
+                      y={170}
+                      width={192}
+                      height={60}
+                      rx={10}
+                      fill="#0f5c6e"
+                      stroke="#094250"
+                      strokeWidth={2}
+                    />
+                    <text
+                      x={380}
+                      y={196}
+                      textAnchor="middle"
+                      fontSize="13.5"
+                      fontWeight="700"
+                      fill="#ffffff"
+                    >
+                      {activeRecord.canonicalName.length > 22
+                        ? `${activeRecord.canonicalName.slice(0, 20)}…`
+                        : activeRecord.canonicalName}
+                    </text>
+                    <text
+                      x={380}
+                      y={214}
+                      textAnchor="middle"
+                      fontSize="10.5"
+                      fill="#d8eef3"
+                    >
+                      {activeRecord.category} · {activeRecord.conceptId}
+                    </text>
+                  </g>
+                </svg>
+              )}
+            </div>
+          )}
+
+          {/* Progressive Expansion Control (No silent 12-node truncation) */}
+          {allCombinedNodes.length > INITIAL_BATCH_SIZE && (
+            <div className="a360-expand-bar">
+              <span className="a360-muted">
+                Showing {visibleNodes.length} of {allCombinedNodes.length} anatomical connections
+              </span>
+              <button
+                type="button"
+                className="a360-btn-secondary"
+                onClick={() => setShowAllNodes((v) => !v)}
+              >
+                {showAllNodes
+                  ? `Show First ${INITIAL_BATCH_SIZE}`
+                  : `Show All ${allCombinedNodes.length} Connections`}
+              </button>
+            </div>
+          )}
+
+          {ontologyOnlyNodes.length > 0 && (
+            <div className="a360-coverage-box" role="note">
+              <strong>Ontology-Only Connections ({ontologyOnlyNodes.length}):</strong>{' '}
+              {ontologyOnlyNodes.map((n) => n.label).join(', ')} — documented in the FMA
+              relationship graph without individual 3D meshes in BodyParts3D 4.0 (no synthetic
+              3D coordinates are fabricated).
             </div>
           )}
 
           {/* Detailed Directional Relationship List */}
           <div className="a360-rel-cards-grid">
-            {combinedNodes.map((node) => (
+            {visibleNodes.map((node) => (
               <article key={`card-${node.key}`} className="a360-rel-item-card">
                 <div className="a360-rel-item-head">
                   <span className="a360-kicker">
-                    <GitBranch size={12} /> {node.typeLabel} · Status: {node.status}
+                    <span
+                      className="a360-swatch"
+                      style={{ backgroundColor: node.color }}
+                      aria-hidden="true"
+                    />
+                    <GitBranch size={12} /> {node.typeLabel} ·{' '}
+                    {getReviewStatusLabel(node.status)} ·{' '}
+                    {node.hasMesh ? '3D Mesh Linked' : 'Ontology Only'}
                   </span>
                   <h3>{node.label}</h3>
                 </div>
@@ -527,20 +711,29 @@ export default function RelationshipsPage({
                       className="a360-card-btn"
                       onClick={() => selectStructure(node.conceptId!)}
                     >
-                      Focus Graph Here
+                      Focus Network Here
                     </button>
-                    <button
-                      type="button"
-                      className="a360-card-link"
-                      onClick={() => onInspectConcept(node.conceptId!)}
-                    >
-                      Inspect in 3D
-                    </button>
+                    {node.hasMesh && (
+                      <button
+                        type="button"
+                        className="a360-card-link"
+                        onClick={() => onInspectConcept(node.conceptId!)}
+                      >
+                        Inspect in 3D
+                      </button>
+                    )}
                   </div>
                 )}
               </article>
             ))}
           </div>
+
+          <StudyResourceList
+            conceptId={activeRecord.conceptId}
+            canonicalSystem={activeRecord.canonicalSystem}
+            module="relationships"
+            limit={3}
+          />
 
           <div className="a360-ref-footer-links">
             <button

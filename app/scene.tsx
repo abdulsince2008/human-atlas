@@ -7,6 +7,7 @@ import {
   SYSTEMS,
   type Atlas,
   type ClippingPlaneState,
+  type SceneRelationshipEdge,
   type SceneState,
   type SystemId,
 } from './anatomy';
@@ -14,6 +15,7 @@ import { createExplosionLayout } from './explosion-layout';
 import { computeClipPlaneEquation } from './interaction-engine';
 import { decodeModelResponse } from './model-download';
 import { PointerTap } from './pointer-tap';
+import { hexToRgbBytes } from './visualization-colors';
 
 interface Props {
   atlas: Atlas;
@@ -82,6 +84,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     let lastClippingEnabled = false;
     let lastOverlayKey = '';
     let lastPinnedKey = '';
+    let lastColorOverridesRef: Record<string, string> | undefined = undefined;
+    let lastRelEdgesRef: SceneRelationshipEdge[] | undefined = undefined;
 
     const isSoftwareGl = detectSoftwareWebGL();
     const abort = new AbortController();
@@ -242,6 +246,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     const selectionTexture = new T.DataTexture(selectedData, width, 1);
     selectionTexture.needsUpdate = true;
 
+    const partColorData = new Uint8Array(width * 4);
+    const partColorTexture = new T.DataTexture(partColorData, width, 1);
+    partColorTexture.needsUpdate = true;
+
     const materials: T.MeshStandardMaterial[] = [];
     const geometries: T.BufferGeometry[] = [];
     const pickers: (T.Mesh | undefined)[] = [];
@@ -298,7 +306,86 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       roughness: 0.42,
       side: T.DoubleSide,
     });
+    const colorHighlightMaterials = new Map<string, T.MeshStandardMaterial>();
+    const getHighlightMaterialForColor = (hex?: string) => {
+      if (!hex) return highlightMaterial;
+      let mat = colorHighlightMaterials.get(hex);
+      if (!mat) {
+        mat = new T.MeshStandardMaterial({
+          color: hex,
+          emissive: hex,
+          emissiveIntensity: 0.22,
+          metalness: 0.08,
+          roughness: 0.44,
+          side: T.DoubleSide,
+          ...(activeClipPlanes.length > 0 ? { clippingPlanes: activeClipPlanes } : {}),
+        });
+        colorHighlightMaterials.set(hex, mat);
+      }
+      return mat;
+    };
     const highlightMeshes: { index: number; mesh: T.Mesh }[] = [];
+
+    // 3D Relationship spatial connector group (curves + directional arrowheads)
+    const relationshipEdgeGroup = new T.Group();
+    relationshipEdgeGroup.renderOrder = 7;
+    scene.add(relationshipEdgeGroup);
+    const disposeEdgeGroup = () => {
+      while (relationshipEdgeGroup.children.length > 0) {
+        const child = relationshipEdgeGroup.children[0];
+        relationshipEdgeGroup.remove(child);
+        if (child instanceof T.Mesh || child instanceof T.Line) {
+          child.geometry.dispose();
+          const ms = Array.isArray(child.material) ? child.material : [child.material];
+          ms.forEach((m) => m.dispose());
+        }
+      }
+    };
+    const syncRelationshipEdges = (edges: SceneRelationshipEdge[] | undefined) => {
+      disposeEdgeGroup();
+      if (!edges || edges.length === 0) return;
+      for (const edge of edges) {
+        const p0 = new T.Vector3(edge.from[0], edge.from[1], edge.from[2]);
+        const p2 = new T.Vector3(edge.to[0], edge.to[1], edge.to[2]);
+        const dist = p0.distanceTo(p2);
+        if (dist < 0.004) continue;
+
+        const mid = p0.clone().add(p2).multiplyScalar(0.5);
+        // Gentle outward/upward arc so connectors never collapse straight through organs
+        const arcLift = Math.min(0.09, dist * 0.24);
+        mid.y += arcLift * 0.65;
+        mid.z += arcLift * 0.75;
+
+        const curve = new T.QuadraticBezierCurve3(p0, mid, p2);
+        const tubeGeo = new T.TubeGeometry(curve, 20, 0.0024, 6, false);
+        const tubeMat = new T.MeshStandardMaterial({
+          color: edge.color,
+          emissive: edge.color,
+          emissiveIntensity: 0.32,
+          roughness: 0.35,
+          metalness: 0.05,
+        });
+        const tube = new T.Mesh(tubeGeo, tubeMat);
+        relationshipEdgeGroup.add(tube);
+
+        // Directional arrowhead cone near the target end (for outgoing/incoming)
+        const arrowT = edge.direction === 'incoming' ? 0.18 : 0.82;
+        const arrowPos = curve.getPoint(arrowT);
+        const tangent = curve.getTangent(arrowT).normalize();
+        if (edge.direction === 'incoming') tangent.negate();
+        const coneGeo = new T.ConeGeometry(0.0068, 0.018, 10);
+        const coneMat = new T.MeshStandardMaterial({
+          color: edge.color,
+          emissive: edge.color,
+          emissiveIntensity: 0.4,
+          roughness: 0.3,
+        });
+        const cone = new T.Mesh(coneGeo, coneMat);
+        cone.position.copy(arrowPos);
+        cone.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), tangent);
+        relationshipEdgeGroup.add(cone);
+      }
+    };
 
     // Dedicated per-part translucent overlay group (prevents breaking depthWrite on opaque merged systems)
     const translucentGroup = new T.Group();
@@ -373,12 +460,13 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         shader.uniforms.partRot = { value: partRotTexture };
         shader.uniforms.partPivot = { value: partPivotTexture };
         shader.uniforms.selectionState = { value: selectionTexture };
+        shader.uniforms.partColor = { value: partColorTexture };
         shader.uniforms.stateWidth = { value: width };
         shader.uniforms.systemOpacity = { value: m.userData.systemOpacity };
         m.userData.shader = shader;
 
         shader.vertexShader =
-          'attribute float partIndex;\nuniform sampler2D partState;\nuniform sampler2D partRot;\nuniform sampler2D partPivot;\nuniform sampler2D selectionState;\nuniform float stateWidth;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvec3 a360RotateQuat(vec3 v, vec4 q) {\n  return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n}\n' +
+          'attribute float partIndex;\nuniform sampler2D partState;\nuniform sampler2D partRot;\nuniform sampler2D partPivot;\nuniform sampler2D selectionState;\nuniform sampler2D partColor;\nuniform float stateWidth;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvarying vec4 partColorOverride;\nvec3 a360RotateQuat(vec3 v, vec4 q) {\n  return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n}\n' +
           shader.vertexShader;
 
         shader.vertexShader = shader.vertexShader.replace(
@@ -401,11 +489,12 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           partVisible = state.w;
           partSelected = selState.r;
           partDimmed = selState.g;
-          partPinned = selState.b;`,
+          partPinned = selState.b;
+          partColorOverride = texture2D(partColor, stateUv);`,
         );
 
         shader.fragmentShader =
-          'uniform float systemOpacity;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\n' +
+          'uniform float systemOpacity;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvarying vec4 partColorOverride;\n' +
           shader.fragmentShader;
 
         shader.fragmentShader = shader.fragmentShader.replace(
@@ -416,7 +505,12 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <color_fragment>',
           `#include <color_fragment>
-          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.11, 0.68, 0.71), partSelected * 0.78);
+          if (partColorOverride.a > 0.5) {
+            diffuseColor.rgb = pow(partColorOverride.rgb, vec3(2.2));
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.95, 0.99, 1.0), partSelected * 0.16);
+          } else {
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.11, 0.68, 0.71), partSelected * 0.78);
+          }
           if (partPinned > 0.5) {
             diffuseColor.a = 1.0;
           } else if (partDimmed > 0.5 && partSelected < 0.5) {
@@ -763,7 +857,11 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     renderer.domElement.addEventListener('pointerup', up);
     renderer.domElement.addEventListener('pointercancel', cancel);
 
-    const syncHighlightOverlay = (selection: Set<string>, activeGhost: boolean) => {
+    const syncHighlightOverlay = (
+      selection: Set<string>,
+      activeGhost: boolean,
+      colorOverrides?: Record<string, string>,
+    ) => {
       while (highlightGroup.children.length > 0) {
         highlightGroup.remove(highlightGroup.children[0]);
       }
@@ -773,7 +871,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         if (!selection.has(p.id)) return;
         const picker = pickers[i];
         if (!picker) return;
-        const m = new T.Mesh(picker.geometry, highlightMaterial);
+        const mat = getHighlightMaterialForColor(colorOverrides?.[p.id]);
+        const m = new T.Mesh(picker.geometry, mat);
         m.position.copy(picker.position);
         m.quaternion.copy(picker.quaternion);
         highlightGroup.add(m);
@@ -823,6 +922,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         });
         highlightMaterial.clippingPlanes = planesRef;
         highlightMaterial.needsUpdate = true;
+        colorHighlightMaterials.forEach((m) => {
+          m.clippingPlanes = planesRef;
+          m.needsUpdate = true;
+        });
         translucentMaterials.forEach((m) => {
           m.clippingPlanes = planesRef;
           m.needsUpdate = true;
@@ -858,6 +961,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         lastState?.partOpacities !== s.partOpacities ||
         lastState?.clipping !== s.clipping ||
         lastState?.pinnedOpaquePartIds !== s.pinnedOpaquePartIds ||
+        lastColorOverridesRef !== s.partColorOverrides ||
+        lastRelEdgesRef !== s.relationshipEdges ||
         lastGhostMode !== ghostActive ||
         lastDimmedKey !== dimmedKey ||
         lastSysOpacityKey !== sysOpacityKey ||
@@ -1159,7 +1264,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           rotData.set([qx, qy, qz, qw], i * 4);
           pivotData.set([px, py, pz, 0], i * 4);
 
-          selectedData[i * 4] = isSelected ? 255 : 0;
+          const hasColorOverride = Boolean(s.partColorOverrides?.[p.id]);
+          selectedData[i * 4] = isSelected && !(s.isolate && hasColorOverride) ? 255 : 0;
           selectedData[i * 4 + 1] = ghostActive ? 255 : dimmedSet.has(p.system) && !isSelected ? 255 : 0;
           selectedData[i * 4 + 2] = pinnedSet.has(p.id) ? 255 : 0;
 
@@ -1196,12 +1302,35 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           }
         });
 
+        if (lastColorOverridesRef !== s.partColorOverrides || lastState === null) {
+          partColorData.fill(0);
+          if (s.partColorOverrides) {
+            for (const [partId, hex] of Object.entries(s.partColorOverrides)) {
+              const idx = partIndexById.get(partId);
+              if (idx === undefined) continue;
+              const rgb = hexToRgbBytes(hex);
+              if (!rgb) continue;
+              partColorData[idx * 4] = rgb[0];
+              partColorData[idx * 4 + 1] = rgb[1];
+              partColorData[idx * 4 + 2] = rgb[2];
+              partColorData[idx * 4 + 3] = 255;
+            }
+          }
+          partColorTexture.needsUpdate = true;
+          lastColorOverridesRef = s.partColorOverrides;
+        }
+
+        if (lastRelEdgesRef !== s.relationshipEdges) {
+          syncRelationshipEdges(s.relationshipEdges);
+          lastRelEdgesRef = s.relationshipEdges;
+        }
+
         partTexture.needsUpdate = true;
         partRotTexture.needsUpdate = true;
         partPivotTexture.needsUpdate = true;
         selectionTexture.needsUpdate = true;
         markerGeometry.attributes.position.needsUpdate = true;
-        syncHighlightOverlay(selection, ghostActive);
+        syncHighlightOverlay(selection, ghostActive, s.partColorOverrides);
 
         lastState = s;
         lastOverlayKey = `${hiddenKey}|${partOpKey}|${clipKey}`;
@@ -1365,7 +1494,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       controls.dispose();
       geometries.forEach((g) => g.dispose());
       materials.forEach((m) => m.dispose());
+      disposeEdgeGroup();
       highlightMaterial.dispose();
+      colorHighlightMaterials.forEach((m) => m.dispose());
       translucentMaterials.forEach((m) => m.dispose());
       scene.traverse((o) => {
         if ((o instanceof T.Mesh || o instanceof T.LineLoop) && !geometries.includes(o.geometry)) {
@@ -1379,6 +1510,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       partRotTexture.dispose();
       partPivotTexture.dispose();
       selectionTexture.dispose();
+      partColorTexture.dispose();
       markerGeometry.dispose();
       markerMaterial.dispose();
       hover.remove();

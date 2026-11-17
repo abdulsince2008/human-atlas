@@ -181,10 +181,40 @@ assert.ok(
   'At least one atlas must be available',
 );
 
+// 7. Validate 4-Layer Provenance Registry, Curated Study Resources & Multi-Layer Visualization Colors
+const { validateProvenanceIntegrity, PROVENANCE_LAYERS, EDUCATIONAL_EVIDENCE_RECORDS } = await import(
+  '../app/data/provenance-registry.ts'
+);
+const { validateStudyResources, STUDY_RESOURCES } = await import('../app/data/study-resources.ts');
+const { resolveBrainRegions, resolveMusclePilotColors, FUNCTIONAL_MUSCLE_PILOTS } = await import(
+  '../app/visualization-colors.ts'
+);
+
+const provCheck = validateProvenanceIntegrity();
+assert.equal(provCheck.valid, true, `Provenance validation failed: ${provCheck.errors.join('; ')}`);
+
+const resCheck = validateStudyResources();
+assert.equal(resCheck.valid, true, `Study resources validation failed: ${resCheck.errors.join('; ')}`);
+for (const res of STUDY_RESOURCES) {
+  for (const sysId of res.canonicalSystems) {
+    assert.ok(canonicalSystemIds.has(sysId), `Study resource ${res.id}: invalid canonicalSystem ${sysId}`);
+  }
+}
+
+const brainRes = resolveBrainRegions(atlas);
+assert.ok(brainRes.totalMappedParts >= 70, `Brain regional palette mapped too few parts: ${brainRes.totalMappedParts}`);
+
+for (const pilot of FUNCTIONAL_MUSCLE_PILOTS) {
+  const mRes = resolveMusclePilotColors(atlas, pilot.id);
+  assert.ok(mRes.matchedPartIds.length >= 6, `Muscle pilot ${pilot.id}: expected >= 6 mapped muscles`);
+}
+
 console.log(
   `Content validation passed: ${KNOWLEDGE_GRAPH_V2.length} V2 knowledge structures, ` +
     `${VERIFIED_RELATIONSHIPS.length} verified relationships, ${ANATOMY_LESSONS.length} lessons ` +
     `(${ANATOMY_LESSONS.reduce((s, l) => s + l.topics.length, 0)} topics), ` +
     `${QUIZ_QUESTIONS.length} quiz questions, ${PHYSIOLOGY_MODULES.length} physiology specs, ` +
-    `${HISTOLOGY_ENTRIES.length} histology entries, and ${CLINICAL_CASES.length} clinical scenarios.`,
+    `${HISTOLOGY_ENTRIES.length} histology entries, ${CLINICAL_CASES.length} clinical scenarios, ` +
+    `${PROVENANCE_LAYERS.length} provenance layers (${EDUCATIONAL_EVIDENCE_RECORDS.length} evidence records), ` +
+    `${STUDY_RESOURCES.length} curated study resources, and ${brainRes.totalMappedParts} mapped brain meshes.`,
 );

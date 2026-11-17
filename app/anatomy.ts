@@ -91,6 +91,14 @@ export interface PartAnimationTransform {
   pivot: [number, number, number];
 }
 
+export interface SceneRelationshipEdge {
+  id: string;
+  from: [number, number, number];
+  to: [number, number, number];
+  color: string;
+  direction: 'outgoing' | 'incoming' | 'curated';
+}
+
 export interface SceneState {
   inspectorOpen?: boolean;
   embedded?: boolean;
@@ -117,6 +125,10 @@ export interface SceneState {
   groupExplosion?: { groupId: string; amount: number } | null;
   clipping?: ClippingPlaneState;
   partTransforms?: Record<string, PartAnimationTransform>;
+  /** Per-part GPU RGB color override (#RRGGBB) for regional brain, muscle role, or relationship coloring */
+  partColorOverrides?: Record<string, string>;
+  /** Optional 3D directional connector edges rendered in 3D Relationship Explorer */
+  relationshipEdges?: SceneRelationshipEdge[];
   focusBox?: {
     min: [number, number, number];
     max: [number, number, number];

@@ -14,7 +14,9 @@ import {
   getRelationshipsForConcept,
   type StructureKnowledgeV2,
 } from '../knowledge-graph';
+import { getReviewStatusLabel } from '../data/provenance-registry';
 import { useStudy } from './StudyContext';
+import StudyResourceList from './StudyResourceList';
 
 interface Props {
   record: StructureKnowledgeV2;
@@ -321,9 +323,18 @@ export default function StructureReferenceCard({
         </button>
       </div>
 
+      <StudyResourceList
+        conceptId={record.conceptId}
+        canonicalSystem={record.canonicalSystem}
+        module="learn"
+        limit={3}
+        compact
+      />
+
       <p className="a360-provenance-line">
-        Provenance: {record.provenance.sourceReference} · Status: {record.provenance.verificationStatus} ·{' '}
-        License: {record.provenance.license} · Updated {record.provenance.lastUpdated}
+        Provenance: {record.provenance.sourceReference} · Status:{' '}
+        {getReviewStatusLabel(record.provenance.verificationStatus)} · License:{' '}
+        {record.provenance.license} · Updated {record.provenance.lastUpdated}
       </p>
     </article>
   );

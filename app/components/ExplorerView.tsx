@@ -64,7 +64,20 @@ import {
   type InteractionEngineState,
 } from '../interaction-engine';
 import AnatomyScene from '../scene';
+import {
+  BRAIN_CAMERA_PRESETS,
+  BRAIN_REGION_SPECS,
+  FUNCTIONAL_MUSCLE_PILOTS,
+  MISSING_BRAIN_ASSETS,
+  MUSCLE_ROLE_META,
+  resolveBrainRegions,
+  resolveMusclePilotColors,
+  resolvePartColorOverrides,
+  type BrainCameraPreset,
+  type MuscleFunctionalRole,
+} from '../visualization-colors';
 import { useStudy } from './StudyContext';
+import StudyResourceList from './StudyResourceList';
 import { Button } from '@/components/ui/button';
 import {
   Combobox,
@@ -90,7 +103,7 @@ interface Props {
 }
 
 type RailTab = 'systems' | 'studio';
-type StudioSubTab = 'depth' | 'xray' | 'cutaway' | 'motion';
+type StudioSubTab = 'depth' | 'brain' | 'xray' | 'cutaway' | 'motion';
 
 let cachedSoftwareGl: boolean | null = null;
 function isSoftwareWebGL(): boolean {
@@ -145,6 +158,9 @@ export default function ExplorerView({
   const [railTab, setRailTab] = useState<RailTab>('systems');
   const [studioSubTab, setStudioSubTab] = useState<StudioSubTab>('depth');
   const [xraySystem, setXraySystem] = useState<SystemId>('skeletal');
+  const [brainRegionalColors, setBrainRegionalColors] = useState(true);
+  const [activeBrainPresetId, setActiveBrainPresetId] = useState<string>('anterior');
+  const [activeMusclePilotId, setActiveMusclePilotId] = useState<string | null>(null);
 
   const [progress, setProgress] = useState(0);
   const [sceneError, setSceneError] = useState('');
@@ -184,6 +200,23 @@ export default function ExplorerView({
   );
   const activeSystems = SYSTEMS.filter((s) => counts[s.id] > 0);
 
+  const brainRegions = useMemo(
+    () => (atlas ? resolveBrainRegions(atlas) : null),
+    [atlas],
+  );
+
+  const partColorOverrides = useMemo(
+    () =>
+      atlas
+        ? resolvePartColorOverrides({
+            atlas,
+            brainRegionalEnabled: brainRegionalColors,
+            activeMusclePilotId,
+          })
+        : undefined,
+    [atlas, brainRegionalColors, activeMusclePilotId],
+  );
+
   const sceneState: SceneState = useMemo(() => {
     if (!atlas || !registry) {
       return {
@@ -192,6 +225,7 @@ export default function ExplorerView({
         selected: engine.selected,
         isolate: engine.isolate,
         ghostSurroundings: engine.ghostSurroundings,
+        partColorOverrides,
         interactionMode,
         view,
         rotate,
@@ -200,13 +234,16 @@ export default function ExplorerView({
         focusRequest: engine.focusRequestCounter,
       };
     }
-    return buildSceneStateFromEngine(engine, registry, atlas, {
-      interactionMode,
-      view,
-      rotate,
-      zoomStep,
-    });
-  }, [atlas, registry, engine, interactionMode, view, rotate, zoomStep]);
+    return {
+      ...buildSceneStateFromEngine(engine, registry, atlas, {
+        interactionMode,
+        view,
+        rotate,
+        zoomStep,
+      }),
+      partColorOverrides,
+    };
+  }, [atlas, registry, engine, interactionMode, view, rotate, zoomStep, partColorOverrides]);
 
   const hiddenSet = useMemo(() => new Set(engine.hiddenPartIds), [engine.hiddenPartIds]);
 
@@ -946,6 +983,14 @@ export default function ExplorerView({
                   </button>
                   <button
                     type="button"
+                    data-testid="studio-subtab-brain"
+                    className={studioSubTab === 'brain' ? 'active' : ''}
+                    onClick={() => setStudioSubTab('brain')}
+                  >
+                    Brain
+                  </button>
+                  <button
+                    type="button"
                     data-testid="studio-subtab-xray"
                     className={studioSubTab === 'xray' ? 'active' : ''}
                     onClick={() => setStudioSubTab('xray')}
@@ -1099,6 +1144,164 @@ export default function ExplorerView({
                           </ul>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {studioSubTab === 'brain' && brainRegions && (
+                    <div className="studio-section" data-testid="brain-studio-panel">
+                      <div className="studio-row-between">
+                        <label htmlFor="brain-regional-color-switch" className="studio-label">
+                          Regional Brain Colors
+                        </label>
+                        <Switch
+                          id="brain-regional-color-switch"
+                          data-testid="brain-regional-color-switch"
+                          checked={brainRegionalColors}
+                          onCheckedChange={(checked) => setBrainRegionalColors(checked)}
+                        />
+                      </div>
+
+                      <div className="studio-preset-grid">
+                        <Button
+                          variant="ghost"
+                          data-testid="brain-focus-btn"
+                          onClick={() => {
+                            const preset =
+                              BRAIN_CAMERA_PRESETS.find((p) => p.id === activeBrainPresetId) ??
+                              BRAIN_CAMERA_PRESETS[0];
+                            setActiveMusclePilotId(null);
+                            setEngine((st) => ({
+                              ...st,
+                              visible: Array.from(new Set([...st.visible, 'nervous', 'endocrine'])),
+                              isolate: false,
+                              ghostSurroundings: false,
+                              systemOpacities: { ...st.systemOpacities, skeletal: 0.14, muscular: 0.08 },
+                              clipping: preset.clipping ?? {
+                                enabled: false,
+                                axis: 'x',
+                                offset: 0.5,
+                                inverted: false,
+                              },
+                              focusBox: {
+                                min: brainRegions.brainBounds.min,
+                                max: brainRegions.brainBounds.max,
+                                viewDirection: preset.viewDirection,
+                                request: (st.focusBox?.request ?? 0) + 1,
+                              },
+                            }));
+                          }}
+                        >
+                          X-Ray Skull
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          data-testid="brain-isolate-btn"
+                          onClick={() => {
+                            setActiveMusclePilotId(null);
+                            setEngine((st) => ({
+                              ...st,
+                              selected: brainRegions.allBrainPartIds,
+                              isolate: true,
+                              ghostSurroundings: false,
+                              explode: 0,
+                              focusBox: {
+                                min: brainRegions.brainBounds.min,
+                                max: brainRegions.brainBounds.max,
+                                viewDirection: [0.35, 0.14, 1],
+                                request: (st.focusBox?.request ?? 0) + 1,
+                              },
+                            }));
+                          }}
+                        >
+                          Isolate Brain
+                        </Button>
+                      </div>
+
+                      <div className="studio-field">
+                        <span className="studio-label">7 Anatomical Brain Views</span>
+                        <div className="brain-preset-grid">
+                          {BRAIN_CAMERA_PRESETS.map((preset: BrainCameraPreset) => (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              data-testid={`brain-preset-${preset.id}`}
+                              className={activeBrainPresetId === preset.id ? 'active' : ''}
+                              onClick={() => {
+                                setActiveBrainPresetId(preset.id);
+                                setEngine((st) => ({
+                                  ...st,
+                                  visible: Array.from(new Set([...st.visible, 'nervous'])),
+                                  clipping: preset.clipping
+                                    ? { ...preset.clipping }
+                                    : { enabled: false, axis: 'x', offset: 0.5, inverted: false },
+                                  focusBox: {
+                                    min: brainRegions.brainBounds.min,
+                                    max: brainRegions.brainBounds.max,
+                                    viewDirection: preset.viewDirection,
+                                    request: (st.focusBox?.request ?? 0) + 1,
+                                  },
+                                }));
+                              }}
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="studio-field">
+                        <span className="studio-label">
+                          Regional Legend ({brainRegions.totalMappedParts} verified meshes)
+                        </span>
+                        <div className="brain-legend-list">
+                          {BRAIN_REGION_SPECS.map((spec) => {
+                            const regionIds = brainRegions.partIdsByRegion.get(spec.id) ?? [];
+                            if (regionIds.length === 0) return null;
+                            return (
+                              <button
+                                key={spec.id}
+                                type="button"
+                                className="brain-legend-btn"
+                                onClick={() => {
+                                  const firstPart = parts.get(regionIds[0]);
+                                  if (firstPart) {
+                                    setChosen({
+                                      id: firstPart.conceptId,
+                                      name: spec.label,
+                                      elements: regionIds,
+                                    });
+                                  }
+                                  setEngine((st) => ({
+                                    ...st,
+                                    visible: Array.from(new Set([...st.visible, 'nervous'])),
+                                    hiddenPartIds: st.hiddenPartIds.filter(
+                                      (id) => !regionIds.includes(id),
+                                    ),
+                                    selected: regionIds,
+                                    isolate: false,
+                                    focusRequestCounter: st.focusRequestCounter + 1,
+                                  }));
+                                  setDetails(true);
+                                }}
+                              >
+                                <span
+                                  className="a360-swatch"
+                                  style={{ backgroundColor: brainRegionalColors ? spec.color : '#d8b565' }}
+                                  aria-hidden="true"
+                                />
+                                <span className="brain-legend-text">
+                                  <strong>{spec.shortLabel}</strong>
+                                  <span>{regionIds.length}</span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <p className="studio-hint">
+                        <strong>Asset Coverage Disclosure:</strong> {MISSING_BRAIN_ASSETS[0]}.
+                      </p>
                     </div>
                   )}
 
@@ -1307,6 +1510,21 @@ export default function ExplorerView({
                       <p className="studio-hint">
                         Clipped outer surfaces are excluded from raycasting so exposed internal organs can be clicked directly.
                       </p>
+
+                      <div className="studio-field">
+                        <span className="studio-label">Cross-Sectional &amp; Radiology Orientation</span>
+                        <p className="studio-hint">
+                          Sagittal (X), Axial/Transverse (Y), and Coronal/Frontal (Z) planes align with standard CT/MRI viewing axes for educational cross-sectional orientation (not clinical diagnostic imaging).
+                        </p>
+                        <a
+                          className="source-link"
+                          href="https://radiopaedia.org/articles/anatomical-planes"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Radiopaedia Anatomical Planes Reference <ArrowUpRight size={13} />
+                        </a>
+                      </div>
                     </div>
                   )}
 
@@ -1502,6 +1720,85 @@ export default function ExplorerView({
                           />
                         </div>
                       )}
+
+                      <div className="studio-field">
+                        <span className="studio-label">Functional Muscle Role Pilots</span>
+                        <div className="anim-list">
+                          {FUNCTIONAL_MUSCLE_PILOTS.map((pilot) => {
+                            const isActive = activeMusclePilotId === pilot.id;
+                            return (
+                              <button
+                                key={pilot.id}
+                                type="button"
+                                data-testid={`muscle-pilot-${pilot.id}`}
+                                className={`anim-item ${isActive ? 'active' : ''}`}
+                                onClick={() => {
+                                  if (isActive) {
+                                    setActiveMusclePilotId(null);
+                                    return;
+                                  }
+                                  setActiveMusclePilotId(pilot.id);
+                                  if (atlas) {
+                                    const resolved = resolveMusclePilotColors(atlas, pilot.id);
+                                    setEngine((st) => ({
+                                      ...st,
+                                      visible: Array.from(
+                                        new Set([...st.visible, 'skeletal', 'muscular']),
+                                      ),
+                                      isolate: false,
+                                      selected: [],
+                                      systemOpacities: { ...st.systemOpacities, integumentary: 0.05 },
+                                      activeAnimationId: pilot.animationId ?? st.activeAnimationId,
+                                      animationPlaying: !isSoftwareWebGL() && Boolean(pilot.animationId),
+                                      animationProgress: isSoftwareWebGL() && pilot.animationId ? 0.55 : 0,
+                                      focusBox: {
+                                        min: pilot.focusBounds.min,
+                                        max: pilot.focusBounds.max,
+                                        viewDirection: [0.45, 0.14, 1],
+                                        request: (st.focusBox?.request ?? 0) + 1,
+                                      },
+                                    }));
+                                    if (resolved.matchedPartIds.length === 0) {
+                                      setActiveMusclePilotId(null);
+                                    }
+                                  }
+                                }}
+                              >
+                                <div className="anim-item-head">
+                                  <strong>{pilot.title}</strong>
+                                  <span className="anim-badge supported_rigid">
+                                    {isActive ? 'Active' : 'Role Overlay'}
+                                  </span>
+                                </div>
+                                <p>{pilot.summary}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {activeMusclePilotId && (
+                          <div className="muscle-role-legend" data-testid="muscle-role-legend">
+                            {(
+                              ['agonist', 'antagonist', 'synergist', 'stabilizer'] as MuscleFunctionalRole[]
+                            ).map((role) => (
+                              <span key={role} className="a360-legend-item">
+                                <span
+                                  className="a360-swatch"
+                                  style={{ backgroundColor: MUSCLE_ROLE_META[role].color }}
+                                  aria-hidden="true"
+                                />
+                                {MUSCLE_ROLE_META[role].label}
+                              </span>
+                            ))}
+                            <p className="studio-hint">
+                              {
+                                FUNCTIONAL_MUSCLE_PILOTS.find((p) => p.id === activeMusclePilotId)
+                                  ?.scopeNote
+                              }
+                            </p>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="studio-field">
                         <span className="studio-label">Registered Anatomical Animations</span>
@@ -2074,6 +2371,16 @@ export default function ExplorerView({
                   </p>
                 )}
               </div>
+            )}
+
+            {chosen && (
+              <StudyResourceList
+                conceptId={chosen.id}
+                canonicalSystem={canonicalSys?.id}
+                module="explorer"
+                limit={2}
+                compact
+              />
             )}
 
             <a
