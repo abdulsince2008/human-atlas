@@ -54,15 +54,23 @@ test('functional muscle pilots map agonist, antagonist, synergist, and stabilize
   }
 });
 
-test('color layer resolver enforces strict priority: relationship > muscle pilot > brain regional', () => {
-  const brainOnly = resolvePartColorOverrides({ atlas, brainRegionalEnabled: true });
-  assert.equal(brainOnly['FJ1781'], '#CC79A7'); // Cerebellum
+test('color layer resolver defaults to Natural Anatomy and enforces priority: relationship > muscle pilot > opt-in regional brain', () => {
+  const naturalDefault = resolvePartColorOverrides({ atlas });
+  assert.ok(naturalDefault['FJ1781'] && naturalDefault['FJ1781'] !== '#CC79A7', 'Default cerebellum must use natural tissue color, not rainbow #CC79A7');
 
-  const disabled = resolvePartColorOverrides({ atlas, brainRegionalEnabled: false });
-  assert.equal(disabled['FJ1781'], undefined);
+  const brainOptIn = resolvePartColorOverrides({ atlas, brainRegionalEnabled: true });
+  assert.equal(brainOptIn['FJ1781'], '#CC79A7'); // Opt-in Regional Brain cerebellum
+
+  const systemMode = resolvePartColorOverrides({
+    atlas,
+    visualizationMode: 'system_highlight',
+    brainRegionalEnabled: false,
+  });
+  assert.equal(systemMode['FJ1781'], undefined);
 
   const overridden = resolvePartColorOverrides({
     atlas,
+    visualizationMode: 'natural',
     brainRegionalEnabled: true,
     activeMusclePilotId: 'elbow-flexion',
     relationshipColors: { FJ1781: '#B91C1C', FJ1478: '#1D4ED8' },

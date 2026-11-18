@@ -129,6 +129,8 @@ export interface SceneState {
   partColorOverrides?: Record<string, string>;
   /** Optional 3D directional connector edges rendered in 3D Relationship Explorer */
   relationshipEdges?: SceneRelationshipEdge[];
+  /** Optional hardware-aware rendering quality preset */
+  qualityPreset?: 'performance' | 'balanced' | 'high' | 'ultra';
   focusBox?: {
     min: [number, number, number];
     max: [number, number, number];

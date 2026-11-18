@@ -65,6 +65,15 @@ import {
 } from '../interaction-engine';
 import AnatomyScene from '../scene';
 import {
+  SURGICAL_ANATOMY_REGIONS,
+  SURGICAL_EDUCATION_DISCLAIMER,
+} from '../data/surgical-anatomy';
+import {
+  RENDER_QUALITY_PRESETS,
+  type RenderQualityPresetId,
+  type VisualizationMode,
+} from '../tissue-materials';
+import {
   BRAIN_CAMERA_PRESETS,
   BRAIN_REGION_SPECS,
   FUNCTIONAL_MUSCLE_PILOTS,
@@ -103,7 +112,7 @@ interface Props {
 }
 
 type RailTab = 'systems' | 'studio';
-type StudioSubTab = 'depth' | 'brain' | 'xray' | 'cutaway' | 'motion';
+type StudioSubTab = 'depth' | 'brain' | 'surgical' | 'xray' | 'cutaway' | 'motion';
 
 let cachedSoftwareGl: boolean | null = null;
 function isSoftwareWebGL(): boolean {
@@ -158,9 +167,14 @@ export default function ExplorerView({
   const [railTab, setRailTab] = useState<RailTab>('systems');
   const [studioSubTab, setStudioSubTab] = useState<StudioSubTab>('depth');
   const [xraySystem, setXraySystem] = useState<SystemId>('skeletal');
-  const [brainRegionalColors, setBrainRegionalColors] = useState(true);
+  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('natural');
+  const [qualityPreset, setQualityPreset] = useState<RenderQualityPresetId>('balanced');
+  const [brainRegionalColors, setBrainRegionalColors] = useState(false);
   const [activeBrainPresetId, setActiveBrainPresetId] = useState<string>('anterior');
   const [activeMusclePilotId, setActiveMusclePilotId] = useState<string | null>(null);
+  const [activeSurgicalRegionId, setActiveSurgicalRegionId] = useState<string>(
+    SURGICAL_ANATOMY_REGIONS[0].id,
+  );
 
   const [progress, setProgress] = useState(0);
   const [sceneError, setSceneError] = useState('');
@@ -210,11 +224,12 @@ export default function ExplorerView({
       atlas
         ? resolvePartColorOverrides({
             atlas,
+            visualizationMode,
             brainRegionalEnabled: brainRegionalColors,
             activeMusclePilotId,
           })
         : undefined,
-    [atlas, brainRegionalColors, activeMusclePilotId],
+    [atlas, visualizationMode, brainRegionalColors, activeMusclePilotId],
   );
 
   const sceneState: SceneState = useMemo(() => {
@@ -226,6 +241,7 @@ export default function ExplorerView({
         isolate: engine.isolate,
         ghostSurroundings: engine.ghostSurroundings,
         partColorOverrides,
+        qualityPreset,
         interactionMode,
         view,
         rotate,
@@ -242,8 +258,9 @@ export default function ExplorerView({
         zoomStep,
       }),
       partColorOverrides,
+      qualityPreset,
     };
-  }, [atlas, registry, engine, interactionMode, view, rotate, zoomStep, partColorOverrides]);
+  }, [atlas, registry, engine, interactionMode, view, rotate, zoomStep, partColorOverrides, qualityPreset]);
 
   const hiddenSet = useMemo(() => new Set(engine.hiddenPartIds), [engine.hiddenPartIds]);
 
@@ -631,6 +648,9 @@ export default function ExplorerView({
   const reset = () => {
     setGroupAnimTarget(null);
     setEngine((st) => resetEntireModel(st, DEFAULT_VISIBLE));
+    setVisualizationMode('natural');
+    setBrainRegionalColors(false);
+    setActiveMusclePilotId(null);
     setView('three-quarter');
     setInteractionMode('orbit');
     setRotate(false);
@@ -972,6 +992,71 @@ export default function ExplorerView({
               </>
             ) : (
               <div className="studio-tab-body">
+                <div className="studio-mode-bar" data-testid="visual-mode-bar">
+                  <div className="studio-mode-grid">
+                    <label className="studio-mini-field">
+                      <span>Appearance</span>
+                      <select
+                        aria-label="Visualization mode"
+                        data-testid="visual-mode-select"
+                        className="studio-select studio-select-sm"
+                        value={visualizationMode}
+                        onChange={(e) => {
+                          const next = e.target.value as VisualizationMode;
+                          setVisualizationMode(next);
+                          if (next === 'natural') {
+                            setBrainRegionalColors(false);
+                            setActiveMusclePilotId(null);
+                          } else if (next === 'regional_brain') {
+                            setBrainRegionalColors(true);
+                          }
+                        }}
+                      >
+                        <option value="natural">Natural Anatomy (Default)</option>
+                        <option value="regional_brain">Regional Brain Overlay</option>
+                        <option value="tissue_classification">Tissue Classification</option>
+                        <option value="system_highlight">System Colors</option>
+                      </select>
+                    </label>
+                    <label className="studio-mini-field">
+                      <span>Quality</span>
+                      <select
+                        aria-label="Rendering quality preset"
+                        data-testid="quality-preset-select"
+                        className="studio-select studio-select-sm"
+                        value={qualityPreset}
+                        onChange={(e) =>
+                          setQualityPreset(e.target.value as RenderQualityPresetId)
+                        }
+                      >
+                        {(Object.keys(RENDER_QUALITY_PRESETS) as RenderQualityPresetId[]).map(
+                          (pid) => (
+                            <option key={pid} value={pid}>
+                              {RENDER_QUALITY_PRESETS[pid].label}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </label>
+                  </div>
+                  {(visualizationMode !== 'natural' ||
+                    brainRegionalColors ||
+                    activeMusclePilotId !== null) && (
+                    <button
+                      type="button"
+                      className="studio-natural-reset"
+                      data-testid="return-natural-anatomy-btn"
+                      onClick={() => {
+                        setVisualizationMode('natural');
+                        setBrainRegionalColors(false);
+                        setActiveMusclePilotId(null);
+                      }}
+                    >
+                      <RotateCcw size={12} /> Return to Natural Anatomy
+                    </button>
+                  )}
+                </div>
+
                 <div className="studio-subtabs" role="tablist">
                   <button
                     type="button"
@@ -988,6 +1073,14 @@ export default function ExplorerView({
                     onClick={() => setStudioSubTab('brain')}
                   >
                     Brain
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="studio-subtab-surgical"
+                    className={studioSubTab === 'surgical' ? 'active' : ''}
+                    onClick={() => setStudioSubTab('surgical')}
+                  >
+                    Surgical
                   </button>
                   <button
                     type="button"
@@ -1151,15 +1244,23 @@ export default function ExplorerView({
                     <div className="studio-section" data-testid="brain-studio-panel">
                       <div className="studio-row-between">
                         <label htmlFor="brain-regional-color-switch" className="studio-label">
-                          Regional Brain Colors
+                          Regional Brain Overlay (Optional)
                         </label>
                         <Switch
                           id="brain-regional-color-switch"
                           data-testid="brain-regional-color-switch"
-                          checked={brainRegionalColors}
-                          onCheckedChange={(checked) => setBrainRegionalColors(checked)}
+                          checked={brainRegionalColors || visualizationMode === 'regional_brain'}
+                          onCheckedChange={(checked) => {
+                            setBrainRegionalColors(checked);
+                            setVisualizationMode(checked ? 'regional_brain' : 'natural');
+                          }}
                         />
                       </div>
+                      <p className="studio-hint">
+                        {brainRegionalColors || visualizationMode === 'regional_brain'
+                          ? 'Optional colorblind-safe regional lobe overlay is active. Toggle off to return to Natural Anatomy.'
+                          : 'Natural Anatomy active: realistic grey/white cortical & subcortical tissue tones (no rainbow lobes).'}
+                      </p>
 
                       <div className="studio-preset-grid">
                         <Button
@@ -1304,6 +1405,98 @@ export default function ExplorerView({
                       </p>
                     </div>
                   )}
+
+                  {studioSubTab === 'surgical' && (() => {
+                    const region =
+                      SURGICAL_ANATOMY_REGIONS.find((r) => r.id === activeSurgicalRegionId) ??
+                      SURGICAL_ANATOMY_REGIONS[0];
+                    return (
+                      <div className="studio-section" data-testid="surgical-studio-panel">
+                        <div className="studio-field">
+                          <span className="studio-label">Surgical Learning Region</span>
+                          <select
+                            aria-label="Select surgical anatomy region"
+                            data-testid="surgical-region-select"
+                            className="studio-select"
+                            value={region.id}
+                            onChange={(e) => setActiveSurgicalRegionId(e.target.value)}
+                          >
+                            {SURGICAL_ANATOMY_REGIONS.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <p className="studio-hint">{region.summary}</p>
+
+                        <Button
+                          variant="ghost"
+                          data-testid="surgical-focus-btn"
+                          onClick={() => {
+                            setVisualizationMode('natural');
+                            setBrainRegionalColors(false);
+                            setEngine((st) => ({
+                              ...st,
+                              visible: Array.from(new Set([...st.visible, ...region.highlightSystems])),
+                              isolate: false,
+                              ghostSurroundings: false,
+                              focusBox: {
+                                min: region.focusBounds.min,
+                                max: region.focusBounds.max,
+                                viewDirection: region.recommendedViewDirection,
+                                request: (st.focusBox?.request ?? 0) + 1,
+                              },
+                            }));
+                          }}
+                        >
+                          <Focus size={14} /> Focus Region in Natural 3D
+                        </Button>
+
+                        <div className="studio-field">
+                          <span className="studio-label">Superficial-to-Deep Tissue Layers</span>
+                          <div className="surgical-layer-list">
+                            <div className="surgical-layer-card">
+                              <strong>1. Superficial Layers</strong>
+                              <p>{region.superficialLayers.join(' · ')}</p>
+                            </div>
+                            <div className="surgical-layer-card">
+                              <strong>2. Deep Structures</strong>
+                              <p>{region.deepLayers.join(' · ')}</p>
+                            </div>
+                            <div className="surgical-layer-card">
+                              <strong>3. Fascial Planes</strong>
+                              <p>{region.fascialPlanes.join(' · ')}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="studio-field">
+                          <span className="studio-label">Key Landmarks &amp; Neurovascular Relations</span>
+                          <div className="surgical-relations-box">
+                            <div>
+                              <strong>Vessels:</strong> {region.keyVessels.join(', ')}
+                            </div>
+                            <div>
+                              <strong>Nerves:</strong> {region.keyNerves.join(', ')}
+                            </div>
+                            <div>
+                              <strong>Landmarks:</strong> {region.criticalLandmarks.join(', ')}
+                            </div>
+                            <div>
+                              <strong>Cross-Section:</strong> {region.crossSectionNote}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="honest-asset-box" role="note" data-testid="surgical-disclaimer">
+                          <strong>Educational Scope Only</strong>
+                          <p>{SURGICAL_EDUCATION_DISCLAIMER}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {studioSubTab === 'xray' && (
                     <div className="studio-section">

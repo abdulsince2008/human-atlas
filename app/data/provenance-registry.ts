@@ -53,15 +53,15 @@ export const GEOMETRY_PROVENANCE: ProvenanceLayerRecord = {
   layer: 'geometry',
   id: 'bp3d-4.0',
   name: 'BodyParts3D / Anatomography',
-  version: '4.0 (2013 release)',
+  version: '4.0 (2013 release; DBCLS Archive)',
   authority: 'Database Center for Life Science (DBCLS), Japan',
-  license: 'CC BY-SA 2.1 Japan',
-  url: 'https://lifesciencedb.jp/bp3d/',
+  license: 'CC BY 4.0 (DBCLS Archive; historically CC BY-SA 2.1 Japan)',
+  url: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html',
   scope: '2,234 adult male 3D anatomical surface meshes across 15 mesh system groups.',
   limitations:
     'Adult male reference model only; does not contain female reproductive anatomy, microscopic histology geometry, arachnoid/pia mater sheets, or deformable soft-tissue muscle rigs.',
   reviewStatus: 'verified',
-  lastAudited: '2026-11-17',
+  lastAudited: '2026-11-18',
 };
 
 export const ONTOLOGY_PROVENANCE: ProvenanceLayerRecord = {

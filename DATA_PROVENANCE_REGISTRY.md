@@ -1,7 +1,7 @@
 # Data Provenance & Visualization Architecture
 
 ## 1. Four-Layer Provenance Separation (`app/data/provenance-registry.ts`)
-1. **Geometry Provenance:** BodyParts3D / Anatomography 4.0 (DBCLS, CC BY-SA 2.1 Japan) — 2,234 adult male 3D meshes.
+1. **Geometry Provenance:** BodyParts3D / Anatomography 4.0 (DBCLS, CC BY 4.0 current DBCLS Archive; historically CC BY-SA 2.1 Japan) — 2,234 adult male 3D meshes.
 2. **Anatomical Ontology Provenance:** Foundational Model of Anatomy (FMA, University of Washington, CC BY 4.0) — canonical FMA IDs linking geometry to curriculum.
 3. **Educational Evidence Provenance:** Curated anatomical summaries, relationships, regional brain mappings, and functional muscle pilots aligned with OpenStax Anatomy & Physiology 2e and NCBI StatPearls. Every record uses a normalized 6-state review lifecycle (`draft`, `needs_evidence`, `under_review`, `verified`, `needs_revision`, `deprecated`).
 4. **External Study Resources (`app/data/study-resources.ts`):** Curated direct HTTPS links to open educational resources (OpenStax, NCBI Bookshelf / StatPearls, Radiopaedia, Histology Guide, BodyParts3D) displayed with explicit publisher, access type, license, and verification status.

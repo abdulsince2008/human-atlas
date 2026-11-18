@@ -1,0 +1,1889 @@
+# ANATOMY 360 — MASTER ONE-SHOT HIGH-FIDELITY ANATOMICAL RECONSTRUCTION & EDUCATIONAL PLATFORM UPGRADE
+
+## AUTONOMOUS DEVELOPMENT DIRECTIVE
+
+You are operating as a principal medical visualization engineer, senior Three.js/WebGL engineer, computational anatomist, anatomical asset-pipeline architect, medical illustrator, scientific data engineer, UX architect, and software quality engineer.
+
+Your assignment is to transform the existing Anatomy 360 repository into a substantially more anatomically detailed, visually realistic, scientifically grounded, extensible 3D human anatomy learning platform.
+
+This is an EXECUTION task, not a planning-only task.
+
+Do not merely describe how you would improve the application. Inspect the actual repository, make the necessary code and architecture changes, implement the improvements, run available validations, repair problems, and document every remaining external dependency.
+
+The application must remain extensible so future anatomical assets, tissue types, anatomical regions, educational modules, reference datasets, rendering techniques, and learning features can be integrated without rebuilding the application architecture.
+
+Complete as much implementation as the available environment genuinely permits in this single execution.
+
+Do not stop to request approvals or ask questions. Make reasonable engineering decisions independently. When an external dependency cannot be obtained, continue implementing all infrastructure that can be completed without it, record the exact blocker, and continue to the next task.
+
+---
+
+# 1. PROJECT IDENTITY AND INITIAL REPOSITORY AUDIT
+
+Repository:
+
+`abdulsince2008/human-atlas`
+
+Project:
+
+`ANATOMY 360`
+
+The previously inspected repository baseline was:
+
+- Latest inspected main commit: `b06baedef32f520374298e75c73e023fd74519af`
+- React 19
+- TypeScript 5.9
+- Vite 8
+- Three.js
+- BodyParts3D 4.0 as the existing primary anatomy dataset
+- Approximately 2,234 individually selectable meshes
+- Approximately 3,432 anatomical concepts
+- Approximately 2.29 million triangles
+- 15 binary geometry chunks
+
+The most recently inspected commit introduced regional brain colour overlays, GPU per-part colour overrides, relationship connectors, muscle-role visualizations, study resources, and provenance registries.
+
+IMPORTANT: This is a historical inspection baseline, not an instruction to assume that the working copy has not changed.
+
+Before editing:
+
+1. Inspect the actual latest repository state and current branch.
+2. Identify all current files, dependencies, existing features, model assets, binary manifests, documentation, tests, and asset conversion scripts.
+3. Inspect the complete anatomy rendering lifecycle, including geometry loading, materials, shaders, selection, clipping, transparency, explode transformations, and interaction.
+4. Inspect the current asset manifest and identify its actual geometry and material capabilities.
+5. Inspect all 12 anatomical systems and their real mesh coverage.
+6. Identify duplicated structures, missing anatomical structures, incomplete asset packs, outdated licensing declarations, and any inconsistencies between documentation and code.
+7. Identify existing working features that must not break.
+8. Check whether the available environment has GitHub access, terminal access, browser access, and the ability to obtain external datasets.
+
+Never assume an asset exists merely because a registry entry describes it.
+
+Never claim that a test passed without actually executing it.
+
+Never claim that the browser rendering is visually correct without inspecting an actual running build.
+
+## Preserve the existing foundation
+
+Do not unnecessarily rewrite the project from scratch.
+
+Preserve and improve:
+
+- Existing 3D Explorer
+- System navigation
+- Structure selection
+- Anatomical relationships
+- Learn modules
+- Practical Lab
+- Physiology
+- Histology
+- Clinical correlations
+- Quizzes
+- Flashcards
+- Spaced repetition
+- Bookmarks and study progress
+- Atlas and content-pack architecture
+- Existing routing and hosting compatibility
+
+Existing functionality must remain compatible or receive an explicit migration.
+
+---
+
+# 2. THE MOST IMPORTANT DESIGN REQUIREMENT: NATURAL HUMAN ANATOMY
+
+The application must not look like a collection of randomly colour-coded objects.
+
+The default visualization must resemble natural human anatomy.
+
+The primary objective is to improve anatomical realism, tissue appearance, actual geometry detail, structural completeness, material quality, and spatial accuracy.
+
+## 2.1 Natural Anatomy Mode must be the default
+
+Introduce a proper default rendering mode named:
+
+`Natural Anatomy`
+
+This mode must be enabled by default.
+
+It must disable the currently default regional brain rainbow palette and any equivalent colour-coded anatomy overlays unless the user explicitly enables them.
+
+Use anatomically appropriate tissue appearance:
+
+- Bones: natural ivory, cream, and subtle bone-surface variation.
+- Skeletal muscles: realistic red-brown muscle tissue appearance.
+- Tendons: natural pale fibrous tissue.
+- Ligaments: natural dense connective-tissue appearance.
+- Cartilage: appropriate smooth, slightly translucent tissue appearance.
+- Adipose tissue: natural yellowish soft-tissue appearance.
+- Skin: realistic human skin appearance with appropriate anatomical variation.
+- Arteries: anatomically appropriate vessel appearance.
+- Veins: distinguishable vascular appearance without unrealistic electric-blue colouring.
+- Peripheral nerves: natural pale yellowish/ivory nerve appearance.
+- Brain: natural grey-matter and white-matter appearance, without random lobe colours.
+- Internal organs: organ-appropriate natural colours and surface properties.
+- Fascia and membranes: appropriate thin connective-tissue appearance.
+
+Do not apply the same bright colour to every individual mesh.
+
+Do not assign random colours based on mesh IDs, array indexes, anatomy regions, or arbitrary component positions.
+
+Do not make the permanent anatomical appearance depend on a student identifying a structure through a rainbow colour legend.
+
+Use appropriate, evidence-based reference imagery and tissue material definitions.
+
+The natural appearance must be preserved even when students rotate, zoom, isolate, explode, or inspect structures.
+
+## 2.2 Optional educational visualization modes
+
+Colour coding remains useful for specific educational purposes, but must be optional.
+
+Create separate visualization modes:
+
+1. Natural Anatomy — default.
+2. Anatomical System Highlight.
+3. Regional Anatomy Highlight.
+4. Relationship Highlight.
+5. Functional Muscle Highlight.
+6. Tissue Classification.
+7. Dissection and Layer Exploration.
+8. Cross-sectional Anatomy.
+
+Each mode must have a clear purpose.
+
+Returning to Natural Anatomy must restore the underlying natural appearance without changing or damaging original material data.
+
+Selected structures may receive a restrained temporary selection outline, glow, or highlight. Do not permanently recolour their underlying tissue.
+
+The existing brain regional palette must become an optional study overlay rather than the default brain appearance.
+
+The same principle must apply to every other anatomical system.
+
+---
+
+# 3. HIGH-FIDELITY GEOMETRY: UPGRADE THE ACTUAL ANATOMICAL MODEL
+
+This is one of the highest-priority tasks.
+
+The existing application uses BodyParts3D 4.0 meshes. Preserve that dataset as a useful baseline, but do not treat it as the final quality ceiling.
+
+We need more detailed actual anatomy, not just visual shaders applied to existing simplified meshes.
+
+## 3.1 Preserve original geometry
+
+Inspect:
+
+- Original source mesh resolution.
+- Existing optimized mesh resolution.
+- Per-mesh triangle counts.
+- Vertex counts.
+- Normal precision.
+- Mesh boundaries.
+- Small structures and thin anatomical elements.
+- Anatomical details that may have been lost in optimization.
+
+The existing `scripts/optimize-anatomy.mjs` requests a reduced triangle target of approximately 22% of the original index count, subject to its simplification error tolerance.
+
+Do not blindly use this same reduction strategy for every anatomical structure.
+
+A large superficial muscle and a small cranial nerve must not receive identical optimization treatment.
+
+Implement a quality-aware geometry pipeline.
+
+Requirements:
+
+- Preserve source geometry before optimization.
+- Preserve high-resolution source variants.
+- Never destructively replace the highest-quality source assets.
+- Preserve source-to-output provenance.
+- Record original and optimized triangle counts per structure.
+- Record optimization method and measured error.
+- Create separate high-, medium-, and low-detail versions.
+- Apply optimization according to structure-specific requirements.
+- Preserve thin vessels, small nerves, small foramina, delicate structures, and anatomical landmarks.
+- Avoid destroying clinically relevant surface detail.
+- Preserve or correctly regenerate vertex normals.
+- Preserve sharp edges where anatomically appropriate.
+- Avoid smoothing distinct anatomical boundaries into one surface.
+- Validate mesh bounds and index integrity.
+- Detect NaN and infinite geometry values.
+- Detect degenerate and zero-area triangles where relevant.
+- Detect duplicate geometry and unintended overlapping surfaces.
+
+Do not confuse a reduction in file size with an improvement in anatomical quality.
+
+## 3.2 Introduce a structure-specific geometry quality policy
+
+Every anatomical mesh should be able to define:
+
+- Minimum acceptable triangle count.
+- Source resolution.
+- Maximum allowed simplification error.
+- Required preservation level.
+- Whether simplification is permitted.
+- Whether the mesh requires sharp-edge preservation.
+- Whether the mesh requires high-resolution detail near camera.
+- Whether the mesh is a critical anatomical landmark.
+- Whether the structure is too small or delicate for aggressive optimization.
+
+Examples:
+
+- Cranial nerves: very high preservation priority.
+- Major vessels: high preservation priority.
+- Small arteries: high preservation priority.
+- Articular surfaces: high preservation priority.
+- Ligaments: high preservation priority.
+- Tendons: high preservation priority.
+- Facial structures: high preservation priority.
+- Fine muscle attachments: high preservation priority.
+- Large non-critical surfaces: adaptive optimization may be allowed.
+
+Do not invent quality measurements. Measure them from the actual assets.
+
+## 3.3 Progressive geometry and Level of Detail
+
+Implement a scalable Level of Detail architecture.
+
+Provide:
+
+- LOD 0: original or highest-quality available geometry.
+- LOD 1: high-quality optimized geometry.
+- LOD 2: medium-detail geometry.
+- LOD 3: lightweight geometry for mobile or distant viewing.
+
+LOD switching should consider screen-space size, viewing distance, hardware capabilities, and user-selected quality settings.
+
+The system must dynamically load detailed anatomy when the user zooms into a structure and release unnecessary geometry when appropriate.
+
+No visual popping, disappearing structures, broken selection, or mismatched anatomical positions during LOD transitions.
+
+For missing high-resolution source geometry, retain the best verified existing mesh and clearly report the limitation.
+
+---
+
+# 4. REALISTIC TISSUE MATERIALS AND HIGH-RESOLUTION TEXTURES
+
+The current rendering system primarily uses shared system-level `MeshStandardMaterial` instances.
+
+That is not sufficient as the final architecture for lifelike tissue appearance.
+
+Upgrade material handling to support actual structure-specific and tissue-specific materials.
+
+## 4.1 Material system
+
+Implement a scalable physically based rendering (PBR) material architecture.
+
+Support:
+
+- Base colour maps.
+- Normal maps.
+- Roughness maps.
+- Ambient occlusion maps.
+- Metallic maps only where physically appropriate.
+- Opacity and transmission where appropriate.
+- Texture UV coordinates.
+- Tangent-space normal mapping.
+- Material variants.
+- Per-structure material assignments.
+- Per-atlas material definitions.
+- Per-tissue material definitions.
+
+Do not create a fake metallic appearance for organs.
+
+Use anatomically appropriate surface roughness, softness, light response, translucency, and material variation.
+
+Create reusable tissue material presets, but allow individual structures to override them.
+
+## 4.2 Preserve source material information
+
+Inspect the current anatomy conversion pipeline.
+
+The existing `scripts/convert-anatomy.py` primarily reads vertex positions, normals, and face indices.
+
+Improve the conversion pipeline so compatible source formats can preserve:
+
+- UV coordinates.
+- Texture references.
+- Material groups.
+- Per-face material assignment.
+- Tangents where present.
+- Vertex colours where meaningful.
+- Multiple material slots.
+- Structure identifiers.
+- Source metadata.
+
+Support modern GLTF/GLB anatomy asset ingestion alongside legacy OBJ and other formats where practical.
+
+Do not discard the original source material information when importing a new dataset.
+
+## 4.3 High-resolution textures
+
+Implement a texture pipeline capable of supporting high-resolution anatomy maps.
+
+Support a practical resolution hierarchy, such as:
+
+- 2K.
+- 4K.
+- 8K where the source quality and hardware justify it.
+
+Use texture compression and GPU-friendly delivery where practical.
+
+Consider KTX2/Basis texture compression, mipmaps, and appropriate texture loading strategies.
+
+Do not load every 8K texture simultaneously.
+
+Use progressive texture loading and memory budgeting.
+
+Do not invent authentic-looking medical texture data and present it as real anatomical source material.
+
+AI-generated illustrative textures must never be represented as validated anatomical evidence.
+
+If genuine reference textures are unavailable, create an honest procedural material fallback with clear documentation.
+
+---
+
+# 5. MULTI-SOURCE ANATOMICAL ASSET ARCHITECTURE
+
+The existing BodyParts3D dataset should become one asset source within a larger extensible system.
+
+Do not make the application permanently dependent on one anatomical dataset.
+
+Create a proper multi-atlas and multi-source asset architecture.
+
+## 5.1 Candidate datasets to investigate and integrate
+
+Investigate these resources. Verify their current availability, exact source version, asset quality, structure coverage, attribution requirements, redistribution rights, adaptation rights, and commercial-use permissions before integrating anything.
+
+### A. Existing BodyParts3D 4.0
+
+Official resource:
+
+https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html
+
+Official licensing:
+
+https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html
+
+Purpose:
+
+- Existing baseline atlas.
+- Existing FMA mapping.
+- Existing body-system content.
+
+Retain its historical source attribution and ensure the current official licence wording is accurately documented.
+
+### B. Z-Anatomy
+
+Source:
+
+https://github.com/Z-Anatomy/Models-of-human-anatomy
+
+Purpose:
+
+- Higher segmentation density.
+- Additional individual anatomical structures.
+- Broader whole-body anatomical coverage.
+- Potential replacement or enrichment of existing regions.
+
+Investigate its source and per-asset licensing carefully.
+
+Do not assume that every dependency has the same licensing terms.
+
+If CC BY-SA obligations apply, implement them correctly and keep the relevant asset pack separately attributed and licensed.
+
+Do not incorrectly claim that the entire project has one uniform licence if it contains differently licensed packs.
+
+### C. Open3DModel
+
+Source:
+
+https://anatomytool.org/open3dmodel
+
+Purpose:
+
+- Detailed upper-limb anatomy.
+- Detailed lower-limb anatomy.
+- Tendons.
+- Ligaments.
+- Fasciae.
+- Nerves.
+- Vessels.
+- Joint structures.
+- Anatomically reviewed regional models.
+
+Prioritize this source for detailed musculoskeletal and neurovascular anatomy where compatible assets are available.
+
+### D. VOXEL-MAN
+
+Dataset:
+
+https://doi.org/10.5281/zenodo.15882019
+
+Purpose:
+
+- Internal organ anatomy.
+- Thorax.
+- Abdomen.
+- Pelvis.
+- Segmentable anatomical structures.
+- Cross-sectional reference relationships.
+
+Investigate its actual mesh quality and source resolution before selecting it for a final rendering role.
+
+### E. HuBMAP Human Reference Atlas
+
+Source:
+
+https://humanatlas.io/3d-reference-library
+
+Purpose:
+
+- Male and female reference anatomy.
+- Organ-specific reference models.
+- Additional regional structures.
+- Future anatomical variation support.
+
+Use it as a complementary reference-organ source rather than assuming it is a complete muscular and skeletal atlas.
+
+### F. NLM Visible Human Project
+
+Source:
+
+https://datadiscovery.nlm.nih.gov/Diagnostic-Imaging/Visible-Human-Project/ux2j-9i9a
+
+Purpose:
+
+- Authentic cadaver-derived anatomical images.
+- Cross-sectional anatomy.
+- Real tissue reference.
+- CT/MRI and cryosection correlations.
+- Future segmentation into additional 3D structures.
+
+The original datasets can be extremely large.
+
+Do not attempt to commit huge unprocessed datasets into the main application repository.
+
+Implement a reproducible, optional external asset import pipeline instead.
+
+### G. 3D Atlas of Neurological Surgery
+
+Reference:
+
+https://3datlasofneurologicalsurgery.org/
+
+Purpose:
+
+- Visual benchmark.
+- Microsurgical anatomy reference.
+- Layered dissection learning.
+- High-quality neurosurgical educational presentation.
+
+Use this as a visual and educational benchmark unless explicit permission or an appropriate open licence for a particular asset is verified.
+
+Never copy protected assets simply because a website allows viewing them.
+
+## 5.2 Source selection policy
+
+Do not automatically replace the current dataset with the dataset having the highest number of structures.
+
+Evaluate:
+
+- Anatomical accuracy.
+- Geometry quality.
+- Material availability.
+- Individual mesh segmentation.
+- Spatial alignment.
+- Anatomical naming.
+- FMA compatibility.
+- Source authority.
+- Licensing.
+- Completeness.
+- Performance.
+- Compatibility with existing user interactions.
+
+Use the best suitable source for each structure or region.
+
+It is acceptable for the best atlas to contain a combination of separately attributed source packs.
+
+However, do not combine incompatible geometry without validating coordinate systems, anatomy mappings, scale, orientation, and positioning.
+
+## 5.3 Multi-atlas data architecture
+
+Create a source-independent structure registry.
+
+Every structure should support:
+
+- Stable internal structure ID.
+- FMA ID when available.
+- Common name.
+- Canonical anatomical name.
+- Latin terminology where appropriate.
+- Anatomical hierarchy.
+- Left/right/bilateral designation.
+- Anatomical system.
+- Tissue type.
+- Body region.
+- Atlas source ID.
+- Source-specific structure ID.
+- Geometry asset reference.
+- Material reference.
+- Texture references.
+- LOD variants.
+- Anatomical relationships.
+- Source citation.
+- Licence.
+- Verification status.
+- Coverage status.
+- Variant applicability.
+- Last reviewed timestamp.
+
+A structure must not lose its identity when it is imported from a second asset pack.
+
+Create robust mapping and deduplication rules.
+
+Do not assume two similarly named structures are identical without anatomical and ontology review.
+
+## 5.4 Future anatomy variants
+
+The architecture must support:
+
+- Adult male.
+- Adult female.
+- Pediatric.
+- Age-specific anatomical references.
+- Additional documented anatomical variations.
+- Individual regional asset packs.
+
+Never combine incompatible reference anatomies and label the resulting model as one anatomically consistent individual.
+
+Clearly identify which reference anatomy is currently displayed.
+
+---
+
+# 6. FULL-BODY ANATOMICAL DETAIL EXPANSION
+
+Do not focus exclusively on the brain.
+
+The quality improvement must cover the entire body.
+
+Create a regional expansion roadmap and implement all regions for which verified source assets are available.
+
+## Priority regions
+
+### A. Head, brain, skull and neck
+
+Improve:
+
+- Cerebral hemispheres.
+- Cerebral lobes and gyri.
+- Sulci where source geometry supports them.
+- Grey and white matter.
+- Corpus callosum.
+- Thalamus and hypothalamus.
+- Basal ganglia.
+- Hippocampus.
+- Amygdala.
+- Cerebellum.
+- Brainstem.
+- Ventricular system.
+- Meninges.
+- Cranial nerves.
+- Skull base.
+- Orbit.
+- Facial musculature.
+- Salivary glands.
+- Cervical fascia.
+- Neck muscles.
+- Carotid arteries.
+- Jugular veins.
+- Pharynx and larynx.
+- Cervical spinal nerves.
+
+Do not make these structures rainbow-coloured by default.
+
+### B. Spine and nervous system
+
+Improve:
+
+- Vertebral levels.
+- Intervertebral discs.
+- Spinal canal.
+- Spinal cord.
+- Spinal meninges.
+- Nerve roots.
+- Dorsal root ganglia.
+- Spinal nerves.
+- Major nerve plexuses.
+- Peripheral nerve pathways.
+- Sciatic nerve and its branches.
+- Upper- and lower-limb innervation.
+- Autonomic nervous system where source assets permit.
+
+### C. Thorax
+
+Improve:
+
+- Rib cage.
+- Sternum.
+- Thoracic vertebrae.
+- Intercostal muscles.
+- Diaphragm.
+- Pleura.
+- Lungs.
+- Bronchial tree.
+- Heart chambers.
+- Cardiac valves.
+- Coronary arteries.
+- Pulmonary arteries and veins.
+- Aorta.
+- Superior and inferior vena cava.
+- Esophagus.
+- Mediastinal structures.
+- Major nerves.
+- Important anatomical relations.
+
+### D. Abdomen
+
+Improve:
+
+- Abdominal wall layers.
+- Rectus sheath.
+- Obliques.
+- Transversus abdominis.
+- Peritoneum.
+- Omenta and mesenteries.
+- Liver.
+- Gallbladder.
+- Stomach.
+- Pancreas.
+- Spleen.
+- Small intestine.
+- Large intestine.
+- Kidneys.
+- Adrenal glands.
+- Ureters.
+- Major vessels.
+- Portal venous system.
+- Important retroperitoneal structures.
+
+### E. Pelvis and perineum
+
+Improve:
+
+- Pelvic bones.
+- Pelvic floor.
+- Pelvic fascia.
+- Bladder.
+- Rectum.
+- Urethra.
+- Reproductive organs.
+- Major pelvic vessels.
+- Pelvic nerves.
+- Male and female reproductive anatomy when licensed reference packs are available.
+
+### F. Upper limb
+
+Improve:
+
+- Shoulder girdle.
+- Scapular structures.
+- Rotator cuff.
+- Arm compartments.
+- Elbow.
+- Forearm flexors and extensors.
+- Tendons.
+- Wrist.
+- Carpal bones.
+- Hand muscles.
+- Digital flexor and extensor tendons.
+- Arteries.
+- Veins.
+- Brachial plexus.
+- Peripheral nerves.
+- Joint capsules.
+- Ligaments.
+
+### G. Lower limb
+
+Improve:
+
+- Hip.
+- Gluteal musculature.
+- Thigh compartments.
+- Knee.
+- Menisci.
+- Cruciate ligaments.
+- Collateral ligaments.
+- Leg compartments.
+- Ankle.
+- Foot.
+- Intrinsic foot muscles.
+- Tendons.
+- Arteries.
+- Veins.
+- Lumbosacral plexus.
+- Sciatic and tibial nerves.
+- Common and superficial fibular nerves.
+
+### H. Skin and superficial anatomy
+
+Improve:
+
+- Epidermis.
+- Dermis.
+- Hypodermis.
+- Superficial fascia.
+- Deep fascia.
+- Hair structures.
+- Sebaceous glands.
+- Sweat glands.
+- Cutaneous nerves.
+- Superficial vessels.
+
+Include actual microscopy references where available.
+
+### I. Special sensory systems
+
+Improve:
+
+- Eye.
+- Retina.
+- Optic pathways.
+- Extraocular muscles.
+- Lacrimal apparatus.
+- Ear.
+- Cochlea.
+- Vestibular apparatus.
+- Ossicles.
+- Olfactory pathways.
+
+Do not invent missing geometry.
+
+---
+
+# 7. LAYER-BY-LAYER DISSECTION EXPERIENCE
+
+Develop a substantially more realistic dissection learning environment.
+
+The user should be able to understand not only what an organ looks like, but where it is located relative to surrounding anatomy.
+
+Create a dedicated:
+
+`Dissection Studio`
+
+Users should be able to explore anatomical layers in a controlled sequence.
+
+Examples:
+
+- Skin.
+- Superficial fascia.
+- Deep fascia.
+- Superficial muscles.
+- Deep muscles.
+- Tendons and ligaments.
+- Arteries.
+- Veins.
+- Nerves.
+- Bones and joints.
+- Internal organs.
+
+Implement:
+
+1. Structure isolation.
+2. Anatomical layer visibility.
+3. Controlled removal and restoration.
+4. Layer-by-layer exploration paths.
+5. Region presets.
+6. Left/right comparison.
+7. Anterior/posterior views.
+8. Anatomical plane selection.
+9. Focus and magnification.
+10. Annotated anatomical landmarks.
+11. Neighboring structure visualization.
+12. Reversible dissection steps.
+13. Saved exploration states.
+14. Guided anatomical dissection lessons.
+
+The dissection engine must retain the spatial context of the body.
+
+When a user hides an outer muscle layer, deeper structures must appear in their actual registered positions.
+
+Do not simulate the cutting or retraction of soft tissue if the system has no real anatomical deformation model.
+
+Distinguish actual dissection geometry from a simple hidden-mesh visualization.
+
+Include a clear disclosure whenever a model is illustrative rather than a faithful representation of a physical dissection.
+
+---
+
+# 8. REALISTIC MUSCLE ANATOMY AND FUNCTION
+
+The existing project has individual muscle meshes and two functional muscle-role pilots.
+
+Expand this into a complete muscular anatomy learning system.
+
+Requirements:
+
+- Separate muscle heads where genuine source geometry exists.
+- Muscle origin and insertion.
+- Tendons.
+- Muscle compartments.
+- Fascial boundaries.
+- Joint relationships.
+- Innervation.
+- Blood supply.
+- Main actions.
+- Functional synergists and antagonists.
+- Biomechanical relationships.
+- Joint movement demonstrations.
+- Relevant muscle-group comparisons.
+
+Where feasible, integrate anatomically valid joint-driven movement models.
+
+Do not animate bones or muscles using arbitrary translations simply to make them move.
+
+Do not imply that rigid-body animations reproduce actual muscle contraction.
+
+Use appropriate musculoskeletal rigs and joint constraints when reliable source geometry and anatomical data are available.
+
+Clearly identify the distinction between:
+
+- Static anatomical geometry.
+- Rigid-body joint movement.
+- Muscle contraction simulation.
+- Physiological muscle mechanics.
+
+The architecture must support future muscle rigs without replacing the entire rendering engine.
+
+---
+
+# 9. 3D RELATIONSHIP EXPLORER — ACTUAL ANATOMICAL RELATIONSHIPS
+
+Upgrade the existing Relationship Explorer from primarily visual relationship highlighting into a more detailed spatial anatomy learning tool.
+
+The current implementation includes bounding-box-centre-based 3D connectors. These are useful visual indicators but must not be presented as the actual pathway of an artery, vein, or nerve.
+
+Create a distinction between:
+
+1. Semantic anatomical relationship.
+2. Actual 3D anatomical pathway.
+3. Verified attachment or insertion.
+4. Illustrative relationship connector.
+
+Where source geometry supports a vessel or nerve pathway, display its actual geometry.
+
+For vessels, show their genuine branching and course.
+
+For nerves, show their genuine anatomical paths and relevant branches.
+
+For muscles, identify actual origin and insertion attachments where verified.
+
+For joints, show articulating surfaces, ligaments, capsules, and related structures when available.
+
+For adjacent structures, preserve their actual spatial positions.
+
+Create an accurate spatial network view.
+
+Required interactions:
+
+- Click any connected structure.
+- Highlight the selected structure temporarily.
+- Focus the camera.
+- Isolate the structure.
+- Show its associated structures.
+- Show the actual 3D pathway when available.
+- Explain the relationship.
+- Show source and verification status.
+- Jump to the associated learning lesson.
+- Open a corresponding cross-sectional reference.
+- Return to natural anatomy.
+
+Do not draw guessed anatomical routes and label them verified.
+
+If a structure has no mesh or pathway geometry, display it as ontology-only or an illustrative connection.
+
+---
+
+# 10. REAL HISTOLOGY, MICROANATOMY AND TISSUE REFERENCES
+
+The current histology registry contains educational text and import-ready asset slots, but actual microscopy media must not be falsely implied to exist.
+
+Build a proper histology media architecture.
+
+Support:
+
+- Real microscopy images.
+- Verified source URLs.
+- Attribution.
+- Tissue type.
+- Organ.
+- Stain.
+- Magnification.
+- Scale bar.
+- Microscopic structures.
+- Diagnostic features.
+- Linked gross anatomical structure.
+- Zoom and pan.
+- Side-by-side comparisons.
+- Image-based quizzes.
+
+Prioritize:
+
+- Compact bone and osteons.
+- Skeletal muscle.
+- Cardiac muscle.
+- Smooth muscle.
+- Nervous tissue.
+- Peripheral nerve.
+- Blood vessels.
+- Skin.
+- Respiratory epithelium.
+- Lung alveoli.
+- Liver.
+- Kidney.
+- Glomerulus.
+- Nephron.
+- Gastrointestinal wall.
+- Pancreas.
+- Thyroid.
+- Reproductive tissue.
+
+Use genuine, properly licensed microscopy material.
+
+Do not manufacture fake microscopy photographs and describe them as real specimens.
+
+If a real image cannot be obtained, retain a clearly identified educational illustration placeholder and document its status.
+
+---
+
+# 11. RADIOLOGY AND CROSS-SECTIONAL ANATOMY
+
+Create a stronger cross-sectional learning system.
+
+Support anatomical orientation through:
+
+- Axial/transverse.
+- Coronal.
+- Sagittal.
+- Oblique sections where available.
+
+Integrate appropriately licensed anatomical CT/MRI and cross-sectional reference datasets.
+
+Where source images and anatomical segmentations are available, connect them to the 3D model.
+
+A student should be able to understand:
+
+1. The selected structure in 3D.
+2. Its position in a cross-section.
+3. Its neighboring structures.
+4. Its corresponding anatomical region.
+5. The relationship between the 3D surface and internal sectional anatomy.
+
+Implement coordinated 3D and 2D views where feasible.
+
+Do not create fake CT or MRI scans and claim that they are genuine clinical imaging.
+
+Label educational reconstructions and illustrative datasets correctly.
+
+---
+
+# 12. SURGICAL ANATOMY LEARNING ENVIRONMENT
+
+The platform should evolve towards better surgical anatomy education.
+
+Introduce a dedicated:
+
+`Surgical Anatomy Learning Mode`
+
+This is an educational mode, not a surgical planning or intraoperative navigation system.
+
+Prioritize regional anatomy and dissection understanding.
+
+For each supported region, provide:
+
+- Superficial anatomy.
+- Deep anatomy.
+- Important vessels.
+- Important nerves.
+- Fascial planes.
+- Muscles and attachments.
+- Organ relations.
+- Anatomical spaces.
+- Important landmarks.
+- Relevant anatomical variations where documented.
+- Cross-sectional references.
+- Real dissection references where licensed.
+- Knowledge-check questions.
+
+Develop structured learning paths for:
+
+1. Head and neck anatomy.
+2. Cranial and skull-base anatomy.
+3. Neuroanatomy.
+4. Thoracic anatomy.
+5. Abdominal anatomy.
+6. Pelvic anatomy.
+7. Upper-limb anatomy.
+8. Lower-limb anatomy.
+9. Musculoskeletal anatomy.
+10. Vascular and neurovascular anatomy.
+
+Each region must be data-driven so future regions can be added without hard-coding new pages.
+
+IMPORTANT SAFETY REQUIREMENT:
+
+Do not claim that the software is a certified surgical simulator, a surgical planning tool, or a substitute for supervised clinical training.
+
+Do not make clinical claims that have not been validated.
+
+The platform should improve anatomical understanding, not promise clinical competence or guarantee that a student will never encounter unfamiliar anatomy.
+
+---
+
+# 13. SCIENTIFIC ACCURACY AND ANATOMICAL PROVENANCE
+
+Visual realism must never take priority over anatomical truth.
+
+Introduce or improve a rigorous verification system for:
+
+- Geometry sources.
+- Ontology mappings.
+- Anatomical names.
+- Structural boundaries.
+- Muscle origins and insertions.
+- Vessel pathways.
+- Nerve pathways.
+- Anatomical relationships.
+- Histology media.
+- Radiology media.
+- Clinical learning statements.
+- Functional movement models.
+
+Every imported structure must preserve source provenance.
+
+Every educational statement should have appropriate supporting references.
+
+Use a normalized review lifecycle:
+
+- draft
+- needs_evidence
+- under_review
+- verified
+- needs_revision
+- deprecated
+
+Do not automatically label a record verified merely because it has a source URL.
+
+Verification must mean that its specific claim or mapping has been checked.
+
+Separate:
+
+1. Geometry-source verification.
+2. Anatomical ontology verification.
+3. Educational claim verification.
+4. Medical illustration/media verification.
+5. Licence and attribution verification.
+
+Use appropriate established educational and academic sources.
+
+Candidates include:
+
+- OpenStax Anatomy & Physiology.
+- NCBI Bookshelf.
+- PubMed.
+- Reputable university anatomy resources.
+- Established anatomical atlases.
+- Verified open microscopy repositories.
+- Official Human Reference Atlas resources.
+
+A source may support educational text but not necessarily prove the geometry of a 3D surface.
+
+Keep those distinctions explicit.
+
+---
+
+# 14. LICENSING AND ATTRIBUTION MANAGEMENT
+
+Licensing must be treated as a core part of the architecture.
+
+Audit the current inconsistent BodyParts3D licence descriptions before changing them.
+
+Verify the official current source licence and identify the actual applicable version for the assets being redistributed.
+
+Do not silently replace one licence statement with another without documenting the verification.
+
+For every new dataset:
+
+- Record official source URL.
+- Record dataset version.
+- Record rights holder.
+- Record licence.
+- Record redistribution conditions.
+- Record modification conditions.
+- Record attribution text.
+- Record source asset identifier.
+- Record any share-alike or non-commercial obligation.
+- Record date checked.
+
+Separate assets by source and licence where necessary.
+
+Do not assume that a model's viewer availability grants redistribution rights.
+
+Do not copy assets from reference websites without documented permission.
+
+Do not bundle restricted assets into public builds.
+
+Where the licence is unclear, exclude the asset from redistribution and document the reason.
+
+Create a machine-readable licence registry and a validator.
+
+---
+
+# 15. COMPLETE RENDERING ENGINE IMPROVEMENT
+
+Inspect and improve `app/scene.tsx`.
+
+Maintain the project's merged-geometry and GPU state architecture where it provides real performance benefits.
+
+Do not sacrifice structure-specific materials simply to preserve a simplistic material grouping strategy.
+
+Create a scalable renderer architecture that supports:
+
+- Multiple atlas sources.
+- Per-structure materials.
+- PBR textures.
+- High-resolution geometry.
+- LOD.
+- Progressive asset loading.
+- Dissection layers.
+- Per-structure visibility.
+- Per-structure transformations.
+- Transparent anatomy.
+- Clipping planes.
+- Relationship pathways.
+- Cross-sectional alignment.
+- Selection and hover.
+- Annotations.
+- GPU-friendly batching.
+
+Use material and texture atlasing or other appropriate GPU strategies when beneficial.
+
+Ensure that different material types do not require an excessive number of draw calls.
+
+Avoid recreating the entire scene for every minor state change.
+
+Keep geometry, material, visibility, selection, and anatomical relationship state logically separate.
+
+Maintain correct normal transformations when geometry is rotated or displaced.
+
+Ensure that clipping, explosion, transparency, selection, and picking continue to work with the new geometry architecture.
+
+Do not damage the existing scene-state contract or embedded learning viewer.
+
+---
+
+# 16. PROFESSIONAL VISUAL EXPERIENCE
+
+Upgrade the overall application so it feels like a polished professional anatomy platform.
+
+The visual design must serve anatomical study rather than distract from it.
+
+Required improvements:
+
+- Clear anatomical workspace.
+- High-quality 3D viewport.
+- Accurate structure labels.
+- Improved selection feedback.
+- Better focus transitions.
+- Natural anatomy as the primary visual style.
+- Optional educational colour overlays.
+- Material and detail quality controls.
+- Anatomical layer controls.
+- Improved regional navigation.
+- Context-aware detail panel.
+- Clear source and evidence information.
+- Useful keyboard controls.
+- Responsive desktop and mobile layouts.
+- Accessible interface controls.
+- Clear loading and asset-error states.
+- No decorative controls that do nothing.
+
+Create quality presets:
+
+1. Performance.
+2. Balanced.
+3. High Detail.
+4. Ultra Detail, where hardware and available assets permit.
+
+Quality presets must select actual asset and rendering quality rather than simply changing arbitrary lighting values.
+
+Make device-memory limitations explicit.
+
+---
+
+# 17. ASSET PIPELINE AND FUTURE IMPORT SYSTEM
+
+Build a reusable asset ingestion pipeline.
+
+The asset pipeline must be able to process future anatomy datasets without a redesign.
+
+Support, where feasible:
+
+- OBJ.
+- GLTF.
+- GLB.
+- PLY.
+- Existing custom binary model chunks.
+
+Implement adapters rather than making all datasets conform to one fragile source-specific parser.
+
+A new asset pack should be importable through a manifest and asset adapter.
+
+Required pipeline stages:
+
+1. Source acquisition.
+2. Licence verification.
+3. Source integrity verification.
+4. Format detection.
+5. Coordinate-system identification.
+6. Unit conversion.
+7. Anatomical identity mapping.
+8. Geometry validation.
+9. Material and texture import.
+10. Normal and tangent validation.
+11. LOD generation.
+12. Compression.
+13. Chunk generation.
+14. Manifest generation.
+15. Asset registration.
+16. Integration tests.
+17. Attribution generation.
+
+Each stage must produce explicit, inspectable results.
+
+Add reproducible processing scripts.
+
+Do not create a pipeline that depends on manually editing hundreds of IDs throughout the application.
+
+Do not require the user to edit source code every time a new atlas pack is added.
+
+---
+
+# 18. SCALABLE DATA-DRIVEN ARCHITECTURE
+
+All new capabilities must be designed for future expansion.
+
+Implement or extend the following architecture:
+
+### Atlas Registry
+
+Registers available anatomy packs and their compatibility.
+
+### Structure Registry
+
+Maintains stable anatomical identity independently of source mesh IDs.
+
+### Material Registry
+
+Maps tissue and anatomical structures to physical material definitions.
+
+### Texture Registry
+
+Stores references to licensed textures, maps and resolution variants.
+
+### Geometry Registry
+
+Tracks source meshes, LODs, geometry quality, dimensions and processing provenance.
+
+### Relationship Registry
+
+Stores typed and verified anatomical relations, including actual spatial pathways where available.
+
+### Dissection Registry
+
+Defines layer sequences, regional exploration presets and dissection learning paths.
+
+### Educational Content Registry
+
+Links lessons, quizzes, histology, clinical concepts and radiology references to anatomical structures.
+
+### Provenance Registry
+
+Tracks citations, licences and scientific verification.
+
+### Quality Registry
+
+Tracks asset-quality metrics and known limitations.
+
+All registries must have versioned schemas.
+
+Use explicit migrations for schema upgrades.
+
+Provide sensible validation and backward compatibility.
+
+New atlas packs should be installable without modifying the core rendering architecture.
+
+New tissue types must be addable without rewriting material handling.
+
+New anatomical regions must be addable through structured content.
+
+New educational modules must be addable through data-driven registries.
+
+Use modular code with explicit types and clean interfaces.
+
+Avoid creating enormous monolithic files.
+
+Avoid circular dependencies.
+
+Do not duplicate anatomy metadata across unrelated components.
+
+---
+
+# 19. LEARNING EXPERIENCE UPGRADES
+
+Improve the existing educational system alongside the asset architecture.
+
+Connect actual anatomy to the existing lessons, practical examinations, revision queue and learning materials.
+
+For every sufficiently supported anatomical structure, provide:
+
+- Anatomical name.
+- Common name.
+- Latin name where appropriate.
+- Anatomical system.
+- Anatomical location.
+- Structural description.
+- Tissue classification.
+- Function.
+- Relationships.
+- Origin/insertion where appropriate.
+- Blood supply.
+- Innervation.
+- Clinical relevance.
+- 3D inspection.
+- Related cross-sectional references.
+- Histology connection.
+- Supporting educational resources.
+- Provenance.
+- Review status.
+
+Improve the Practical Lab with structure identification, neighbouring structures and regional spatial understanding.
+
+Improve quizzes with image-based identification and 3D orientation questions where data supports them.
+
+Improve spaced repetition by using structure-specific weak areas.
+
+Improve guided learning paths with genuine regional anatomical sequences.
+
+Do not generate huge numbers of meaningless or duplicated quiz questions just to increase counts.
+
+---
+
+# 20. PERFORMANCE, MEMORY AND RESPONSIVENESS
+
+High visual quality must coexist with acceptable application performance.
+
+Implement:
+
+- Progressive model downloads.
+- Progressive textures.
+- Compression.
+- LOD.
+- Geometry caching.
+- Material caching.
+- Texture caching.
+- Selective disposal.
+- Lazy loading.
+- Atlas-pack loading.
+- Device-aware quality presets.
+- Adaptive pixel ratio.
+- Rendering only when necessary where possible.
+- Memory-budget controls.
+- Graceful fallback when high-detail assets are unavailable.
+
+Never load the entire highest-resolution anatomy collection into memory by default.
+
+Maintain low-detail and medium-detail fallback models.
+
+Ensure that the application can open its non-3D pages without immediately loading all 3D assets.
+
+Preserve static deployment compatibility unless a genuine technical requirement justifies a change.
+
+Avoid paid external services and APIs as architectural dependencies.
+
+Prefer free, open-source, reproducible tools.
+
+---
+
+# 21. AUTOMATED VALIDATION AND TESTING
+
+Extend the existing test infrastructure.
+
+Preserve all current tests.
+
+Add appropriate commands and scripts such as:
+
+- `npm run validate:assets`
+- `npm run validate:materials`
+- `npm run validate:licenses`
+- `npm run validate:anatomy`
+- `npm run validate:lod`
+- `npm run validate:all`
+
+Use the existing naming conventions where appropriate.
+
+Validation must cover:
+
+### Asset validation
+- Unique structure IDs.
+- Correct atlas references.
+- Valid geometry references.
+- Valid texture paths.
+- Valid UV data.
+- Valid normal data.
+- Valid index buffers.
+- Valid bounding boxes.
+- Valid chunk ranges.
+- Valid LOD relationships.
+- No accidental missing files.
+
+### Material validation
+- Every material resolves.
+- No invalid texture assignments.
+- No missing texture references.
+- Natural anatomy materials exist.
+- Default mode does not enable rainbow regional coloring.
+- Overlay states remain reversible.
+
+### Anatomical validation
+- FMA and other ontology references resolve.
+- No unapproved duplicate structure identities.
+- Relationships have valid endpoints.
+- Missing pathways are not represented as genuine geometry.
+- Source and verification status are retained.
+
+### Licensing validation
+- Every distributed asset has a licence record.
+- Required attribution exists.
+- Restricted assets are excluded from public bundles.
+- Share-alike obligations are documented.
+- Stale and contradictory licence documentation is identified.
+
+### Rendering validation
+- Geometry loads.
+- LOD switching works.
+- Material switching works.
+- Selection works.
+- Picking works.
+- Clipping works.
+- Dissection works.
+- Explode and restore work.
+- Relationship overlays work.
+- Existing embedded scene works.
+
+### Regression testing
+Run the existing:
+
+- `npm run check`
+- `npm run lint`
+- `npm run validate:atlas`
+- `npm run validate:interactions`
+- `npm run validate:content`
+- `npm test`
+- `npm run validate:all`
+- `npm run build`
+
+Run the actual available commands.
+
+Fix new and existing regressions introduced by your changes.
+
+Where a real browser is available, inspect the application at runtime.
+
+Where browser screenshot testing is available, capture representative views of:
+
+1. Full body Natural Anatomy.
+2. Brain Natural Anatomy.
+3. Brain optional regional overlay.
+4. Shoulder and upper-limb anatomy.
+5. Thorax.
+6. Abdomen.
+7. Pelvis.
+8. Lower limb.
+9. Dissection Studio.
+10. Cross-sectional anatomy.
+
+Do not claim visual validation if no real rendered preview was inspected.
+
+---
+
+# 22. DOCUMENTATION AND DEVELOPMENT RECOVERY
+
+Create and maintain the following documentation:
+
+### `ANATOMY360_ASSET_ARCHITECTURE.md`
+
+Explain the multi-atlas architecture, manifests, source adapters, geometry pipeline, LOD, material registry and texture registry.
+
+### `ANATOMY360_VISUAL_FIDELITY_ROADMAP.md`
+
+Explain the visual quality objectives, source asset priorities, rendering improvements, anatomical regional priorities and future extension points.
+
+### `ANATOMY360_SCIENTIFIC_VALIDATION.md`
+
+Document anatomical evidence, expert-review requirements, geometry verification, limitations and review workflow.
+
+### `ANATOMY360_ASSET_PROVENANCE.md`
+
+Document asset sources, licences, attribution and source-version information.
+
+### `ANATOMY360_ASSET_IMPORT_GUIDE.md`
+
+Explain how future anatomy asset packs can be added without rewriting the application.
+
+### `ANATOMY360_IMPLEMENTATION_LOG.md`
+
+Maintain an actual execution log of implemented changes, tests, discovered limitations and remaining work.
+
+### `ANATOMY360_BACKLOG.md`
+
+Maintain a prioritized, structured backlog for future upgrades.
+
+Update existing:
+
+- README.md
+- PROJECT_STATUS.md
+- REMAINING_TASKS.md
+- IMPLEMENTATION_ROADMAP.md
+- THIRD_PARTY_LICENSES.md
+- PRODUCTION_READINESS_CHECKLIST.md
+
+Do not leave contradictory documentation.
+
+The documentation must distinguish:
+
+- Implemented and tested.
+- Implemented but not visually verified.
+- Infrastructure implemented, external asset pending.
+- Research required.
+- Anatomical expert review required.
+- Not implemented.
+
+---
+
+# 23. EXECUTION ORDER — COMPLETE THE WORK IN ONE PASS
+
+Execute the following phases in order.
+
+Do not stop after writing a plan.
+
+## PHASE 0 — Inspect and protect
+
+- Inspect the actual current repository.
+- Identify current branch and working tree.
+- Preserve existing functionality.
+- Record the starting commit.
+- Identify the existing assets and actual limitations.
+- Make a safe development checkpoint if supported.
+- Do not overwrite original assets.
+
+## PHASE 1 — Fix incorrect visual defaults
+
+- Make Natural Anatomy the default.
+- Disable default rainbow brain colours.
+- Disable other permanent arbitrary colour overlays.
+- Preserve optional study overlays.
+- Introduce tissue-based material defaults.
+
+This phase is mandatory.
+
+## PHASE 2 — Build the asset foundation
+
+- Create or refactor asset registries.
+- Create versioned asset manifests.
+- Create material, geometry, texture and LOD metadata.
+- Add format adapters.
+- Improve import validation.
+- Preserve FMA and source IDs.
+- Implement licensing metadata.
+- Maintain backward compatibility with existing BodyParts3D manifests.
+
+## PHASE 3 — Improve geometry quality
+
+- Audit source and optimized geometry.
+- Preserve highest-quality originals.
+- Remove destructive universal simplification assumptions.
+- Introduce structure-specific quality policies.
+- Implement progressive LOD.
+- Improve mesh validation.
+- Implement high-detail loading.
+
+## PHASE 4 — Implement realistic material rendering
+
+- Improve `app/scene.tsx`.
+- Introduce the tissue material registry.
+- Support per-part PBR materials.
+- Preserve UVs and materials through conversion.
+- Add texture loading and caching.
+- Improve normal mapping and surface lighting.
+- Maintain selection and interaction performance.
+
+## PHASE 5 — Investigate and integrate verified anatomy packs
+
+- Inspect candidate datasets.
+- Verify rights.
+- Verify geometry.
+- Verify structure mappings.
+- Integrate appropriate assets where genuinely obtainable.
+- Preserve original sources and attribution.
+- Generate import manifests.
+- Record inaccessible assets and exact blockers.
+
+Do not wait for every source pack before implementing the rest of the application.
+
+## PHASE 6 — Upgrade body-wide anatomy
+
+- Improve head and neck.
+- Improve brain and cranial anatomy.
+- Improve nervous system.
+- Improve thorax.
+- Improve abdomen.
+- Improve pelvis.
+- Improve upper limb.
+- Improve lower limb.
+- Improve joints and connective tissue.
+- Improve cardiovascular anatomy.
+- Improve superficial and skin anatomy.
+- Improve sensory anatomy.
+
+Prioritize verified source geometry and genuine structural detail.
+
+## PHASE 7 — Dissection and regional exploration
+
+- Build the Dissection Studio.
+- Add layer registries.
+- Add guided dissection paths.
+- Add region presets.
+- Add reversible layer visibility.
+- Preserve real anatomical positions.
+- Integrate the existing explosion and clipping systems appropriately.
+
+## PHASE 8 — Relationship and functional anatomy
+
+- Improve real 3D relationship pathways.
+- Separate actual anatomical pathways from semantic connectors.
+- Expand muscular functional learning.
+- Improve origin, insertion, innervation, blood supply and joint relationships where verified.
+
+## PHASE 9 — Histology, radiology and surgical anatomy education
+
+- Integrate real licensed microscopy where available.
+- Improve cross-sectional anatomy.
+- Connect sectional references to 3D structures.
+- Implement regional surgical anatomy education.
+- Create honest asset coverage disclosures.
+
+## PHASE 10 — Complete educational integration
+
+- Integrate updated structures with lessons.
+- Integrate Practical Lab.
+- Improve quizzes and learning paths.
+- Improve revision and spaced repetition.
+- Integrate external educational resources.
+- Keep everything source-aware.
+
+## PHASE 11 — Performance and final QA
+
+- Run all available tests.
+- Run the complete build.
+- Fix regressions.
+- Review memory and download behaviour.
+- Test Natural Anatomy defaults.
+- Test optional overlay reversibility.
+- Test old model compatibility.
+- Test new atlas compatibility.
+- Inspect the application visually when the environment permits.
+
+## PHASE 12 — Finalize and document
+
+- Update all project documentation.
+- Update implementation log.
+- Update backlog.
+- Provide precise results.
+- Explain remaining external dependencies.
+
+---
+
+# 24. NON-NEGOTIABLE DEVELOPMENT RULES
+
+1. Do not return only a roadmap.
+2. Do not ask the user to approve each phase.
+3. Do not wait for a later conversation to finish work that can be completed now.
+4. Do not fabricate geometry, anatomy, pathways, textures, medical images, citations or licences.
+5. Do not claim an unverified anatomical structure is verified.
+6. Do not make the human body randomly colourful.
+7. Do not make rainbow anatomy the default.
+8. Do not replace high-quality source geometry with aggressively simplified models.
+9. Do not destroy current model assets.
+10. Do not remove functional existing features to simplify development.
+11. Do not make the renderer dependent on one anatomical source dataset.
+12. Do not make new asset integration require manually rewriting multiple components.
+13. Do not create fake surgical simulation features.
+14. Do not claim surgical readiness or clinical certification.
+15. Do not use paid services as required runtime dependencies.
+16. Do not place enormous unprocessed anatomy datasets in the main repository.
+17. Do not introduce unnecessary dependencies.
+18. Do not push directly to the production branch or deploy without an explicit authorization.
+19. Do not force-push, reset, or discard existing user changes.
+20. Do not conceal blockers or claim unfinished work is complete.
+
+## When a task cannot be completed
+
+Use this decision process:
+
+- If the asset is available and licensed, integrate it.
+- If it is available but too large, implement the optional pack and reproducible import pipeline.
+- If it is licensed but unavailable in the current environment, implement the adapter, manifest and documented import instructions.
+- If the licence is unclear, do not redistribute it.
+- If geometry does not exist, mark the structure as missing rather than fabricate it.
+- If an anatomical claim needs expert review, mark it for review.
+- If hardware cannot render Ultra Detail, preserve a lower-detail fallback.
+- If browser testing is unavailable, report that clearly and continue all other testing.
+
+A blocked external asset must never block unrelated software improvements.
+
+---
+
+# 25. DEFINITION OF DONE
+
+The project is not finished simply because new files or controls have been added.
+
+The following outcomes define success:
+
+### Visual quality
+- Natural Anatomy is the default.
+- No random or rainbow-coloured body appearance.
+- Tissue-specific materials are supported.
+- Existing colour overlays are optional and reversible.
+- The renderer can display properly textured high-quality anatomical assets.
+- High-detail geometry can be loaded when available.
+
+### Geometry
+- Original source assets are preserved.
+- Geometry optimization is structure-aware.
+- LOD works.
+- Mesh validation works.
+- The asset pipeline supports multiple verified sources.
+
+### Anatomy
+- Existing body systems remain functional.
+- Coverage gaps are accurately recorded.
+- New source assets retain proper anatomical identity.
+- Actual spatial pathways are distinguished from illustrative connectors.
+
+### Education
+- Dissection, histology, radiology and surgical anatomy learning are connected to the core structure registry.
+- Students can move between gross anatomy, microscopic references, sectional anatomy and related structures.
+- Every important educational claim has an explicit evidence status.
+
+### Scalability
+- New anatomies can be registered.
+- New asset packs can be imported.
+- New materials and tissue classes can be added.
+- New regions can be introduced.
+- New learning modules can be added without a core architecture rewrite.
+
+### Reliability
+- Existing functionality is not silently lost.
+- Validation scripts pass where executable.
+- Production build passes where executable.
+- Every remaining limitation is documented honestly.
+
+---
+
+# 26. PERMANENT FUTURE-ENHANCEMENT ARCHITECTURE
+
+Do not design this as a one-time redesign.
+
+Build Anatomy 360 as an extensible anatomical platform.
+
+A future developer must be able to add:
+
+- A new atlas.
+- A new body reference.
+- A new organ.
+- A new muscle.
+- A new nerve.
+- A new vessel.
+- A new tissue material.
+- A new texture resolution.
+- A new anatomical variation.
+- A new regional dissection.
+- A new surgical anatomy module.
+- A new histology collection.
+- A new CT/MRI reference collection.
+- A new educational course.
+- A new assessment format.
+
+These additions must use existing registries, schemas, adapters, and documented extension points.
+
+Create migration-aware schemas and backward compatibility.
+
+Maintain a prioritized backlog with categories:
+
+- Scientific accuracy.
+- Geometry quality.
+- Texture quality.
+- Rendering quality.
+- Anatomical coverage.
+- Functional anatomy.
+- Dissection.
+- Histology.
+- Radiology.
+- Surgical education.
+- Performance.
+- Accessibility.
+- Learning experience.
+- Infrastructure.
+
+When a later enhancement is required, it should be possible to extend the relevant module rather than rebuilding the complete application.
+
+---
+
+# 27. FINAL EXECUTION INSTRUCTION
+
+Now execute this directive against the actual Anatomy 360 repository.
+
+Start with repository inspection, then implement the phases in order.
+
+Do not waste the execution on lengthy explanations before making changes.
+
+Prioritize actual anatomical fidelity over superficial UI changes.
+
+Prioritize accurate source geometry over visually convincing fabrication.
+
+Prioritize natural tissue appearance over arbitrary colour overlays.
+
+Prioritize anatomical completeness and verified spatial relationships over simply increasing feature counts.
+
+Prioritize future asset extensibility over hard-coded one-off additions.
+
+Make the biggest practical improvement possible within the current execution environment.
+
+If you cannot acquire an external dataset, continue with the architecture, import tools, validation and all other independent work.
+
+Before finishing:
+
+1. Run the available checks.
+2. Inspect the final changes.
+3. Update the implementation log.
+4. Update the remaining backlog.
+5. Report precisely what was actually implemented.
+6. Report which assets were actually integrated and their verified licences.
+7. Report which source datasets remain pending.
+8. Report which checks passed and which could not run.
+9. Report any anatomical expert-review requirements.
+10. Identify the next highest-priority improvement based on the actual remaining technical gaps.
+
+Do not call this project surgical-grade or clinically validated.
+
+The target is a substantially more realistic, anatomically detailed, scientifically grounded, high-quality educational anatomy platform with a scalable foundation for continuous future development.
+
+**BUILD THE PLATFORM. DO NOT JUST DESCRIBE THE PLATFORM.**

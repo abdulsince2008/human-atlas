@@ -1,13 +1,19 @@
 import type { Atlas, ClippingPlaneState, Part } from './anatomy';
+import {
+  resolveNaturalAnatomyColors,
+  resolveTissueClassificationColors,
+  type VisualizationMode,
+} from './tissue-materials';
 
 /**
  * Multi-Layer Visualization Color & Anatomical Pilot Registry
  *
  * Pure, deterministic module powering:
- *  1. Colorblind-safe Regional Brain Color Architecture (on by default, toggleable)
- *  2. 7 Anatomical Brain Viewing Presets (Anterior, Posterior, Left/Right Lateral, Superior, Inferior, Medial)
- *  3. Functional Muscle Role Visualization Pilots (Upper Limb: Elbow Flexion & Shoulder Abduction)
- *  4. Unified Per-Part GPU Color Override Resolver (for partColorTexture)
+ *  1. Natural Anatomy Default Material Layer (realistic per-tissue colors — NO rainbow brain by default)
+ *  2. Opt-in Colorblind-safe Regional Brain Color Overlay (disabled by default)
+ *  3. 7 Anatomical Brain Viewing Presets (Anterior, Posterior, Left/Right Lateral, Superior, Inferior, Medial)
+ *  4. Functional Muscle Role Visualization Pilots (Upper Limb: Elbow Flexion & Shoulder Abduction)
+ *  5. Unified Per-Part GPU Color Override Resolver (for partColorTexture)
  */
 
 export type BrainRegionId =
@@ -446,22 +452,40 @@ export function resolveMusclePilotColors(
 
 export interface ColorLayerInput {
   atlas: Atlas;
-  brainRegionalEnabled: boolean;
+  /** Visualization mode (defaults to 'natural' — Natural Anatomy Default) */
+  visualizationMode?: VisualizationMode;
+  /** Optional opt-in Regional Brain Overlay (false by default) */
+  brainRegionalEnabled?: boolean;
   activeMusclePilotId?: string | null;
   relationshipColors?: Record<string, string> | null;
 }
 
 /**
  * Resolves the final per-part hex color override map.
- * Priority (highest wins):
+ * Base layer:
+ *   - 'natural' (DEFAULT), 'dissection_layer', 'cross_section', 'regional_brain', 'functional_muscle', 'relationship_highlight':
+ *     starts with anatomically realistic per-tissue Natural Anatomy colors (natural grey/white brain matter,
+ *     ivory bone, red-brown muscle, pale fibrous tendon, muted vessels).
+ *   - 'tissue_classification': scientific tissue-class palette.
+ *   - 'system_highlight': empty base (uses canonical Three.js system materials).
+ *
+ * Educational overlay priority (highest wins, all cleanly reversible):
  *   1. Relationship role colors (3D Relationship Explorer)
  *   2. Active Functional Muscle Pilot role colors
- *   3. Regional Brain Palette (enabled by default, toggleable)
+ *   3. Opt-in Regional Brain Palette (ONLY when explicitly enabled or visualizationMode === 'regional_brain')
  */
 export function resolvePartColorOverrides(input: ColorLayerInput): Record<string, string> {
+  const mode: VisualizationMode = input.visualizationMode ?? 'natural';
   const out: Record<string, string> = {};
 
-  if (input.brainRegionalEnabled) {
+  if (mode === 'tissue_classification') {
+    Object.assign(out, resolveTissueClassificationColors(input.atlas));
+  } else if (mode !== 'system_highlight') {
+    Object.assign(out, resolveNaturalAnatomyColors(input.atlas));
+  }
+
+  const applyRegionalBrain = mode === 'regional_brain' || Boolean(input.brainRegionalEnabled);
+  if (applyRegionalBrain) {
     const brain = resolveBrainRegions(input.atlas);
     for (const [partId, spec] of brain.regionByPartId.entries()) {
       out[partId] = spec.color;

@@ -1,7 +1,7 @@
 # Brain Anatomy Asset Audit & Regional Color Architecture
 
 ## 1. Verified BodyParts3D 4.0 Brain Coverage
-All 10 regional divisions in `app/visualization-colors.ts` map strictly to verified meshes present in `public/models/atlas.json` (BodyParts3D 4.0, CC BY-SA 2.1 Japan):
+All 10 regional divisions in `app/visualization-colors.ts` map strictly to verified meshes present in `public/models/atlas.json` (BodyParts3D 4.0, CC BY 4.0 current DBCLS Archive; historically CC BY-SA 2.1 Japan):
 
 | Region ID | Display Label | Color (Colorblind-Safe) | Representative Verified Meshes |
 | :--- | :--- | :--- | :--- |

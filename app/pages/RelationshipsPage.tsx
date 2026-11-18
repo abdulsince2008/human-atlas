@@ -24,6 +24,7 @@ import {
   KNOWLEDGE_GRAPH_V2,
   type RelationshipType,
 } from '../knowledge-graph';
+import { resolveNaturalAnatomyColors } from '../tissue-materials';
 import { getPartCenter } from '../visualization-colors';
 import { useStudy } from '../components/StudyContext';
 import StudyResourceList from '../components/StudyResourceList';
@@ -93,7 +94,7 @@ export default function RelationshipsPage({
   const [systemFilter, setSystemFilter] = useState<CanonicalSystemId | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<RelationshipType | 'all'>('all');
   const [viewMode, setViewMode] = useState<'3d' | '2d'>('3d');
-  const [highlightMode, setHighlightMode] = useState<'center' | 'network'>('network');
+  const [highlightMode, setHighlightMode] = useState<'center' | 'network' | 'natural'>('network');
   const [showConnectors, setShowConnectors] = useState(true);
   const [showAllNodes, setShowAllNodes] = useState(false);
   const [focusRequest, setFocusRequest] = useState(1);
@@ -224,15 +225,17 @@ export default function RelationshipsPage({
     [allCombinedNodes],
   );
 
-  // Build role-based GPU color overrides + 3D spatial connector edges
+  // Build role-based GPU color overrides on top of Natural Anatomy base + illustrative spatial connectors
   const { sceneState, activeLegendRoles } = useMemo(() => {
     const selectedIds = new Set<string>(conceptPartsMap.get(selectedId) ?? []);
-    const colorOverrides: Record<string, string> = {};
+    const colorOverrides: Record<string, string> = atlas ? resolveNaturalAnatomyColors(atlas) : {};
     const edges: SceneRelationshipEdge[] = [];
     const legendMap = new Map<string, { label: string; color: string }>();
 
-    for (const pid of selectedIds) {
-      colorOverrides[pid] = CENTER_NODE_COLOR;
+    if (highlightMode !== 'natural') {
+      for (const pid of selectedIds) {
+        colorOverrides[pid] = CENTER_NODE_COLOR;
+      }
     }
 
     const centerPos = getConceptWorldCenter(selectedId, conceptPartsMap, partMap);
@@ -243,7 +246,7 @@ export default function RelationshipsPage({
         const partIds = conceptPartsMap.get(node.conceptId) ?? [];
         for (const el of partIds) {
           selectedIds.add(el);
-          if (!colorOverrides[el]) {
+          if (!conceptPartsMap.get(selectedId)?.includes(el)) {
             colorOverrides[el] = node.color;
           }
         }
@@ -272,11 +275,11 @@ export default function RelationshipsPage({
       suppressHoverTooltip: true,
       explode: 0,
       visible: DEFAULT_VISIBLE,
-      selected: Array.from(selectedIds),
+      selected: highlightMode === 'natural' ? [] : Array.from(selectedIds),
       isolate: false,
-      ghostSurroundings: selectedIds.size > 0,
+      ghostSurroundings: highlightMode !== 'natural' && selectedIds.size > 0,
       partColorOverrides: colorOverrides,
-      relationshipEdges: edges,
+      relationshipEdges: highlightMode === 'natural' ? [] : edges,
       interactionMode: 'orbit',
       view: activeRecord.visualization.preferredView,
       rotate: false,
@@ -289,6 +292,7 @@ export default function RelationshipsPage({
       activeLegendRoles: Array.from(legendMap.values()),
     };
   }, [
+    atlas,
     conceptPartsMap,
     partMap,
     selectedId,
@@ -473,11 +477,18 @@ export default function RelationshipsPage({
                   </button>
                   <button
                     type="button"
+                    className={`a360-filter-btn ${highlightMode === 'natural' ? 'active' : ''}`}
+                    onClick={() => setHighlightMode('natural')}
+                  >
+                    Natural Anatomy
+                  </button>
+                  <button
+                    type="button"
                     className={`a360-filter-btn ${showConnectors ? 'active' : ''}`}
                     aria-pressed={showConnectors}
                     onClick={() => setShowConnectors((v) => !v)}
                   >
-                    {showConnectors ? '3D Connectors: On' : '3D Connectors: Off'}
+                    {showConnectors ? 'Illustrative Connectors: On' : 'Illustrative Connectors: Off'}
                   </button>
                 </div>
               </div>
@@ -503,7 +514,7 @@ export default function RelationshipsPage({
                 )}
               </div>
 
-              {/* Dual-coded role color legend */}
+              {/* Dual-coded role color legend + scientific honesty disclosure */}
               <div className="a360-color-legend" aria-label="3D relationship color key">
                 <span className="a360-legend-item">
                   <span className="a360-swatch" style={{ backgroundColor: CENTER_NODE_COLOR }} />
@@ -516,6 +527,11 @@ export default function RelationshipsPage({
                   </span>
                 ))}
               </div>
+              <p className="a360-connector-note">
+                <strong>Spatial Representation Note:</strong> Highlighted organs are verified 3D
+                BodyParts3D meshes; curved arrows are <em>illustrative spatial connectors</em>{' '}
+                linking bounding-box centers (not anatomical vessel or nerve trajectories).
+              </p>
             </div>
           )}
 

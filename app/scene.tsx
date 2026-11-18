@@ -15,6 +15,7 @@ import { createExplosionLayout } from './explosion-layout';
 import { computeClipPlaneEquation } from './interaction-engine';
 import { decodeModelResponse } from './model-download';
 import { PointerTap } from './pointer-tap';
+import { RENDER_QUALITY_PRESETS } from './tissue-materials';
 import { hexToRgbBytes } from './visualization-colors';
 
 interface Props {
@@ -86,6 +87,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     let lastPinnedKey = '';
     let lastColorOverridesRef: Record<string, string> | undefined = undefined;
     let lastRelEdgesRef: SceneRelationshipEdge[] | undefined = undefined;
+    let lastQualityPreset = '';
 
     const isSoftwareGl = detectSoftwareWebGL();
     const abort = new AbortController();
@@ -106,9 +108,11 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       if (isSoftwareGl) {
         renderer.setPixelRatio(1);
       } else {
-        renderer.setPixelRatio(
-          Math.min(window.devicePixelRatio || 1, el.clientWidth < 768 || el.clientHeight < 600 ? 1.5 : 2),
-        );
+        const preset =
+          RENDER_QUALITY_PRESETS[latest.current.qualityPreset ?? 'balanced'] ??
+          RENDER_QUALITY_PRESETS.balanced;
+        const mobileCap = el.clientWidth < 768 || el.clientHeight < 600 ? Math.min(1.5, preset.pixelRatioCap) : preset.pixelRatioCap;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobileCap));
       }
     };
     updatePixelRatio();
@@ -944,6 +948,14 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       frame = requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
       const s = latest.current;
+      const presetKey = s.qualityPreset ?? 'balanced';
+      if (presetKey !== lastQualityPreset) {
+        lastQualityPreset = presetKey;
+        const preset = RENDER_QUALITY_PRESETS[presetKey] ?? RENDER_QUALITY_PRESETS.balanced;
+        renderer.toneMappingExposure = preset.exposure;
+        updatePixelRatio();
+        dirty = true;
+      }
 
       const ghostActive = Boolean(s.ghostSurroundings && s.selected.length > 0 && !s.isolate);
       const dimmedKey = (s.dimmedSystems ?? []).join(',');
@@ -1372,13 +1384,6 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         focusOnSelection(s.selected, s.inspectorOpen, s.embedded);
       }
 
-      if (s.focusBox && s.focusBox.request !== lastFocusBoxId) {
-        lastFocusBoxId = s.focusBox.request;
-        _boxTmp.min.set(s.focusBox.min[0], s.focusBox.min[1], s.focusBox.min[2]);
-        _boxTmp.max.set(s.focusBox.max[0], s.focusBox.max[1], s.focusBox.max[2]);
-        focusOnBox(_boxTmp, s.inspectorOpen, s.embedded, s.focusBox.viewDirection);
-      }
-
       const isolateKey = s.isolate
         ? s.selected.join(',') + ':' + s.reset + ':' + s.inspectorOpen + ':' + Boolean(s.embedded) + ':' + camera.aspect
         : '';
@@ -1390,6 +1395,13 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           fit(s.view, amount);
         }
         lastIsolate = isolateKey;
+      }
+
+      if (s.focusBox && s.focusBox.request !== lastFocusBoxId) {
+        lastFocusBoxId = s.focusBox.request;
+        _boxTmp.min.set(s.focusBox.min[0], s.focusBox.min[1], s.focusBox.min[2]);
+        _boxTmp.max.set(s.focusBox.max[0], s.focusBox.max[1], s.focusBox.max[2]);
+        focusOnBox(_boxTmp, s.inspectorOpen, s.embedded, s.focusBox.viewDirection);
       }
 
       if (camTransitionActive) {
