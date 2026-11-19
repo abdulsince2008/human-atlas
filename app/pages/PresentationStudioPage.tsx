@@ -2,11 +2,13 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Circle,
   Copy,
   Download,
   Edit3,
+  FileText,
   Film,
   Layers,
   Mic,
@@ -18,6 +20,7 @@ import {
   SkipBack,
   SkipForward,
   Square,
+  Stethoscope,
   Trash2,
   Upload,
   Video,
@@ -46,10 +49,12 @@ import {
   reorderSteps,
   saveCustomPresentations,
 } from '../presentation/presentation-engine';
-import type {
-  AnatomyPresentation,
-  PresentationCategory,
-  PresentationStep,
+import {
+  resolveStepCaption,
+  resolveStepNarration,
+  type AnatomyPresentation,
+  type PresentationCategory,
+  type PresentationStep,
 } from '../presentation/presentation-types';
 import {
   PresentationVideoRecorder,
@@ -62,13 +67,23 @@ import AnatomyScene from '../scene';
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
+  initialPresentationId?: string | null;
   onInspectConcept: (conceptId: string) => void;
+  onOpenClinical?: () => void;
 }
 
 const CATEGORY_LABELS: Record<PresentationCategory, string> = {
   anatomical: 'Anatomical & Dissection',
-  pathophysiology: 'Pathophysiology Concept',
+  pathophysiology: 'Clinical Mechanism',
   surgical_education: 'Surgical Education',
+};
+
+const REVIEW_STATUS_LABELS: Record<string, string> = {
+  source_reviewed: 'Source Reviewed',
+  draft: 'Draft',
+  automated_check_passed: 'Auto-Checked',
+  under_expert_review: 'Under Faculty Review',
+  expert_verified: 'Expert Verified',
 };
 
 const PLAYBACK_SPEEDS = [0.5, 1, 1.5, 2] as const;
@@ -83,7 +98,9 @@ function formatTime(totalSeconds: number): string {
 export default function PresentationStudioPage({
   atlas,
   atlasError,
+  initialPresentationId,
   onInspectConcept,
+  onOpenClinical,
 }: Props) {
   const [customPresentations, setCustomPresentations] = useState<
     AnatomyPresentation[]
@@ -98,10 +115,30 @@ export default function PresentationStudioPage({
     PresentationCategory | 'all'
   >('all');
   const [activePresentationId, setActivePresentationId] = useState<string>(
-    BUILTIN_PRESENTATIONS[0].id,
+    () => {
+      if (
+        initialPresentationId &&
+        BUILTIN_PRESENTATIONS.some((p) => p.id === initialPresentationId)
+      ) {
+        return initialPresentationId;
+      }
+      return BUILTIN_PRESENTATIONS[0].id;
+    },
   );
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [focusCounter, setFocusCounter] = useState<number>(1);
+
+  // Sync deep-linked presentation ID when navigating from ClinicalPage
+  useEffect(() => {
+    if (!initialPresentationId) return;
+    if (allPresentations.some((p) => p.id === initialPresentationId)) {
+      setActivePresentationId(initialPresentationId);
+      setActiveStepIndex(0);
+      setStepElapsedSec(0);
+      setIsPlaying(false);
+      setFocusCounter((c) => c + 1);
+    }
+  }, [initialPresentationId, allPresentations]);
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -112,7 +149,9 @@ export default function PresentationStudioPage({
   const [loadProgress, setLoadProgress] = useState<number>(0);
   const [sceneError, setSceneError] = useState<string>('');
 
-  // Editor & UI state
+  // Presenter Mode, Mechanism Guide & Editor state
+  const [presenterOpen, setPresenterOpen] = useState<boolean>(true);
+  const [mechanismOpen, setMechanismOpen] = useState<boolean>(false);
   const [editorOpen, setEditorOpen] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [importError, setImportError] = useState<string>('');
@@ -155,37 +194,43 @@ export default function PresentationStudioPage({
   );
   const activeStep: PresentationStep | undefined =
     activePresentation.steps[safeStepIndex];
+  const nextStep: PresentationStep | undefined =
+    activePresentation.steps[safeStepIndex + 1];
+
+  const activeCaption = activeStep ? resolveStepCaption(activeStep) : '';
+  const activeNarration = activeStep ? resolveStepNarration(activeStep) : '';
 
   const overlayRef = useRef<RecordingOverlayState>({
     presentationTitle: activePresentation.title,
     stepIndex: safeStepIndex,
     stepCount: activePresentation.steps.length,
     stepTitle: activeStep?.title ?? '',
-    explanation: activeStep?.explanation ?? '',
+    explanation: activeCaption,
     annotations: activeStep?.annotations ?? [],
     disclosureNote:
       activeStep?.disclosureNote ?? activePresentation.scientificDisclosure,
   });
 
+  // Video compositor always uses concise on-screen caption (never long teleprompter script)
   useEffect(() => {
     overlayRef.current = {
       presentationTitle: activePresentation.title,
       stepIndex: safeStepIndex,
       stepCount: activePresentation.steps.length,
       stepTitle: activeStep?.title ?? '',
-      explanation: activeStep?.explanation ?? '',
+      explanation: activeCaption,
       annotations: activeStep?.annotations ?? [],
       disclosureNote:
         activeStep?.disclosureNote ?? activePresentation.scientificDisclosure,
     };
-  }, [activePresentation, activeStep, safeStepIndex]);
+  }, [activePresentation, activeStep, activeCaption, safeStepIndex]);
 
   // Persist custom presentations whenever they change
   useEffect(() => {
     saveCustomPresentations(customPresentations);
   }, [customPresentations]);
 
-  // Cleanup recorder on unmount
+  // Cleanup recorder and media tracks on unmount
   useEffect(() => {
     return () => {
       recorderRef.current?.dispose();
@@ -248,6 +293,9 @@ export default function PresentationStudioPage({
     setFocusCounter((c) => c + 1);
     setStatusMessage('');
     setImportError('');
+    if (typeof window !== 'undefined') {
+      window.location.hash = `#/present?id=${encodeURIComponent(id)}`;
+    }
   }, []);
 
   const goToStep = useCallback((index: number) => {
@@ -261,6 +309,10 @@ export default function PresentationStudioPage({
     setStepElapsedSec(0);
     setFocusCounter((c) => c + 1);
     setIsPlaying(true);
+  }, []);
+
+  const handleRestoreStepView = useCallback(() => {
+    setFocusCounter((c) => c + 1);
   }, []);
 
   const updateCustomPresentation = useCallback(
@@ -450,7 +502,7 @@ export default function PresentationStudioPage({
     updateCustomPresentation,
   ]);
 
-  // Video recording handlers
+  // Synchronized Video Recording Handlers
   const handleStartRecording = useCallback(async () => {
     if (!recordingCap.supported) {
       setRecordingStatus('unsupported');
@@ -479,10 +531,9 @@ export default function PresentationStudioPage({
         setRecordingNotice(res.micWarning);
       } else {
         setRecordingNotice(
-          `Recording 1280×720 (${res.mimeType})${res.microphoneActive ? ' with microphone audio' : ' (video only)'}.`,
+          `Recording 1280×720 (${res.mimeType})${res.microphoneActive ? ' with microphone narration' : ' (video only)'}.`,
         );
       }
-      // Auto-start presentation playback if paused
       if (!isPlaying) {
         setIsPlaying(true);
       }
@@ -501,14 +552,17 @@ export default function PresentationStudioPage({
     if (recordingStatus === 'recording') {
       recorderRef.current.pause();
       setRecordingStatus('paused');
+      setIsPlaying(false);
     } else if (recordingStatus === 'paused') {
       recorderRef.current.resume();
       setRecordingStatus('recording');
+      setIsPlaying(true);
     }
   }, [recordingStatus]);
 
   const handleStopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
+    setIsPlaying(false);
     try {
       const result = await recorderRef.current.stop();
       setRecordingStatus('stopped');
@@ -574,21 +628,41 @@ export default function PresentationStudioPage({
             </div>
             <div>
               <h1 className="text-base font-semibold tracking-tight text-slate-900">
-                Guided 3D Presentation &amp; Video Studio
+                Clinical Mechanism &amp; 3D Presentation Studio
               </h1>
               <p className="text-xs text-slate-600">
-                Author deterministic 3D anatomical walkthroughs and record browser-local educational videos.
+                Guided 3D clinical explanations, presenter narration scripts, knowledge checks, and local video export.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {onOpenClinical && (
+              <button
+                type="button"
+                onClick={onOpenClinical}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-medium text-teal-900 hover:bg-teal-100"
+              >
+                <Stethoscope size={14} /> Clinical Library
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setPresenterOpen((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                presenterOpen
+                  ? 'bg-slate-900 text-white'
+                  : 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              <FileText size={14} /> {presenterOpen ? 'Hide Presenter Script' : 'Presenter Script'}
+            </button>
             <button
               type="button"
               onClick={handleCreateNew}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:bg-slate-50"
             >
-              <Plus size={14} /> New Presentation
+              <Plus size={14} /> New
             </button>
             <button
               type="button"
@@ -633,13 +707,13 @@ export default function PresentationStudioPage({
           </div>
         )}
 
-        {/* Main Studio Grid: Library (left) + 3D Stage & Timeline (right) */}
+        {/* Main Studio Grid */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-          {/* Left Panel: Presentation Library */}
+          {/* Left Panel: Clinical Mechanism & Presentation Library */}
           <aside className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs lg:col-span-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Presentations ({filteredPresentations.length})
+                Explainer Library ({filteredPresentations.length})
               </h2>
               <span className="text-[11px] text-slate-500">
                 {BUILTIN_PRESENTATIONS.length} Built-In · {customPresentations.length} Custom
@@ -651,8 +725,8 @@ export default function PresentationStudioPage({
               {(
                 [
                   ['all', 'All'],
+                  ['pathophysiology', 'Clinical Mechanisms'],
                   ['anatomical', 'Anatomical'],
-                  ['pathophysiology', 'Pathophysiology'],
                   ['surgical_education', 'Surgical Ed'],
                 ] as const
               ).map(([cat, label]) => (
@@ -672,9 +746,10 @@ export default function PresentationStudioPage({
             </div>
 
             {/* Presentation Cards */}
-            <div className="flex max-h-[460px] flex-col gap-2 overflow-y-auto pr-1">
+            <div className="flex max-h-[520px] flex-col gap-2 overflow-y-auto pr-1">
               {filteredPresentations.map((pres) => {
                 const isSelected = pres.id === activePresentation.id;
+                const isClinicalMech = Boolean(pres.mechanismProfile);
                 return (
                   <div
                     key={pres.id}
@@ -703,6 +778,24 @@ export default function PresentationStudioPage({
                       <p className="mt-1 line-clamp-2 text-xs text-slate-600">
                         {pres.subtitle}
                       </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700">
+                          {pres.region}
+                        </span>
+                        {pres.difficultyLevel && (
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5">
+                            {pres.difficultyLevel}
+                          </span>
+                        )}
+                        {isClinicalMech && (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-amber-900">
+                            Mechanism
+                          </span>
+                        )}
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5">
+                          {REVIEW_STATUS_LABELS[pres.reviewStatus] ?? pres.reviewStatus}
+                        </span>
+                      </div>
                     </button>
 
                     {!pres.isBuiltIn && (
@@ -725,29 +818,54 @@ export default function PresentationStudioPage({
               })}
             </div>
 
-            {/* Scientific Disclosure & Sources for Active Presentation */}
+            {/* Scientific Disclosure & Sources */}
             <div className="mt-auto rounded-lg border border-amber-200 bg-amber-50/70 p-2.5 text-xs text-amber-950">
-              <div className="mb-1 flex items-center gap-1.5 font-semibold">
-                <AlertTriangle size={13} className="shrink-0 text-amber-700" />
-                <span>Scientific Scope &amp; Disclosure</span>
+              <div className="mb-1 flex items-center justify-between gap-1.5 font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <AlertTriangle size={13} className="shrink-0 text-amber-700" />
+                  <span>Scientific Scope</span>
+                </span>
+                <span className="text-[10px] font-medium uppercase text-amber-800">
+                  {REVIEW_STATUS_LABELS[activePresentation.reviewStatus] ??
+                    activePresentation.reviewStatus}
+                </span>
               </div>
               <p className="leading-relaxed text-amber-900/90">
                 {activePresentation.scientificDisclosure}
               </p>
               <div className="mt-2 border-t border-amber-200/80 pt-1.5 text-[11px] text-amber-900">
-                <strong>Sources:</strong>{' '}
-                {activePresentation.sources.map((s) => s.source).join(' · ')}
+                <strong>Sources:</strong>
+                <ul className="mt-1 space-y-0.5">
+                  {activePresentation.sources.map((src) => (
+                    <li key={src.title}>
+                      {src.url ? (
+                        <a
+                          href={src.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline hover:text-teal-800"
+                        >
+                          {src.source}: {src.title}
+                        </a>
+                      ) : (
+                        <span>
+                          {src.source}: {src.title}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </aside>
 
-          {/* Main Right Workspace: 3D Stage + Controls + Recording + Timeline */}
+          {/* Main Right Workspace */}
           <section className="flex flex-col gap-3 lg:col-span-9">
             {/* 3D Stage Container */}
             <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-[#f4f6f8] shadow-xs">
               <div
                 ref={stageHostRef}
-                className="relative h-[460px] w-full sm:h-[520px]"
+                className="relative h-[440px] w-full sm:h-[500px]"
               >
                 {atlas && compiledSceneState ? (
                   <AnatomyScene
@@ -780,13 +898,19 @@ export default function PresentationStudioPage({
                 )}
 
                 {/* Top-Left Step Badge */}
-                <div className="pointer-events-none absolute left-3 top-3 max-w-[60%] rounded-lg bg-slate-900/85 px-3 py-2 text-white backdrop-blur-xs">
-                  <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-teal-300">
+                <div className="pointer-events-none absolute left-3 top-3 max-w-[60%] rounded-lg bg-slate-900/85 px-3 py-2 text-white backdrop-blur-none">
+                  <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-teal-300">
                     <span>{CATEGORY_LABELS[activePresentation.category]}</span>
                     <span>•</span>
                     <span>
                       Step {safeStepIndex + 1} / {activePresentation.steps.length}
                     </span>
+                    {activeStep?.isConceptualOverlay && (
+                      <>
+                        <span>•</span>
+                        <span className="text-amber-300">Conceptual Overlay</span>
+                      </>
+                    )}
                   </div>
                   <div className="mt-0.5 text-sm font-semibold leading-tight">
                     {activePresentation.title}
@@ -795,7 +919,7 @@ export default function PresentationStudioPage({
 
                 {/* Top-Right Educational Annotation Cards */}
                 {activeStep && activeStep.annotations.length > 0 && (
-                  <div className="absolute right-3 top-3 flex max-w-[270px] flex-col gap-2">
+                  <div className="absolute right-3 top-3 flex max-w-[280px] flex-col gap-2">
                     {activeStep.annotations.slice(0, 4).map((ann) => {
                       const borderTone =
                         ann.tone === 'vessel'
@@ -807,16 +931,17 @@ export default function PresentationStudioPage({
                               : ann.tone === 'warning'
                                 ? 'border-l-amber-400'
                                 : 'border-l-teal-400';
+                      const hasAnchor = Boolean(ann.anchorConceptId);
                       return (
                         <div
                           key={ann.id}
-                          className={`rounded-md border-l-4 ${borderTone} bg-slate-900/82 px-2.5 py-2 text-white shadow-sm backdrop-blur-xs`}
+                          className={`rounded-md border-l-4 ${borderTone} bg-slate-900/82 px-2.5 py-2 text-white shadow-sm backdrop-blur-none`}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-xs font-semibold leading-tight">
                               {ann.label}
                             </span>
-                            {ann.anchorConceptId && (
+                            {hasAnchor ? (
                               <button
                                 type="button"
                                 onClick={() =>
@@ -824,8 +949,12 @@ export default function PresentationStudioPage({
                                 }
                                 className="shrink-0 text-[10px] font-medium text-teal-300 underline hover:text-teal-200"
                               >
-                                Inspect
+                                Inspect 3D
                               </button>
+                            ) : (
+                              <span className="shrink-0 text-[10px] font-medium text-amber-300">
+                                Conceptual
+                              </span>
                             )}
                           </div>
                           {ann.detail && (
@@ -843,10 +972,7 @@ export default function PresentationStudioPage({
                 {(recordingStatus === 'recording' ||
                   recordingStatus === 'paused') && (
                   <div className="absolute left-3 top-[74px] inline-flex items-center gap-1.5 rounded-md bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                    <Circle
-                      size={9}
-                      className="fill-white text-white"
-                    />
+                    <Circle size={9} className="fill-white text-white" />
                     <span>
                       {recordingStatus === 'paused' ? 'PAUSED' : 'REC'}{' '}
                       {formatTime(recordingElapsedSec)}
@@ -854,9 +980,9 @@ export default function PresentationStudioPage({
                   </div>
                 )}
 
-                {/* Bottom Educational Caption Overlay */}
+                {/* Bottom On-Screen Caption Overlay (matches recorded video caption) */}
                 {activeStep && (
-                  <div className="absolute inset-x-3 bottom-3 rounded-lg bg-slate-900/86 px-4 py-3 text-white backdrop-blur-xs">
+                  <div className="absolute inset-x-3 bottom-3 rounded-lg bg-slate-900/86 px-4 py-3 text-white backdrop-blur-none">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <h2 className="text-sm font-semibold text-teal-300">
                         {activeStep.title}
@@ -868,7 +994,7 @@ export default function PresentationStudioPage({
                       )}
                     </div>
                     <p className="mt-1 text-xs leading-relaxed text-slate-100">
-                      {activeStep.explanation}
+                      {activeCaption}
                     </p>
                     {activeStep.disclosureNote && (
                       <p className="mt-1.5 text-[11px] font-medium text-amber-300">
@@ -879,7 +1005,7 @@ export default function PresentationStudioPage({
                 )}
               </div>
 
-              {/* Playback Transport + Video Recording Control Strip */}
+              {/* Playback Transport + Synchronized Video Recording Strip */}
               <div className="border-t border-slate-200 bg-white px-4 py-3">
                 {/* Step Progress Bar */}
                 <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
@@ -907,6 +1033,14 @@ export default function PresentationStudioPage({
                       title="Restart from Step 1"
                     >
                       <RotateCcw size={13} /> Restart
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRestoreStepView}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      title="Restore this step's camera framing"
+                    >
+                      Reframe
                     </button>
                     <button
                       type="button"
@@ -979,7 +1113,7 @@ export default function PresentationStudioPage({
                         onChange={(e) => setIncludeMic(e.target.checked)}
                       />
                       {includeMic ? <Mic size={13} /> : <MicOff size={13} />}
-                      <span>Mic</span>
+                      <span>Mic Narration</span>
                     </label>
 
                     {recordingStatus !== 'recording' &&
@@ -1001,11 +1135,11 @@ export default function PresentationStudioPage({
                         >
                           {recordingStatus === 'paused' ? (
                             <>
-                              <Play size={13} /> Resume Rec
+                              <Play size={13} /> Resume Rec + Play
                             </>
                           ) : (
                             <>
-                              <Pause size={13} /> Pause Rec
+                              <Pause size={13} /> Pause Rec + Play
                             </>
                           )}
                         </button>
@@ -1025,7 +1159,7 @@ export default function PresentationStudioPage({
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
                   <span>
                     {recordingCap.supported
-                      ? `Browser-local 2D+WebGL compositor ready (${recordingCap.preferredMimeType ?? 'video/webm'}). Composites 3D canvas + titles + captions + annotations locally.`
+                      ? `Browser-local 2D+WebGL compositor ready (${recordingCap.preferredMimeType ?? 'video/webm'}). Records 3D canvas + titles + concise captions + annotations locally (presenter script stays private).`
                       : recordingCap.reason ||
                         'Video recording is unavailable in this browser.'}
                   </span>
@@ -1069,6 +1203,126 @@ export default function PresentationStudioPage({
                 )}
               </div>
             </div>
+
+            {/* Presenter Mode / Teleprompter Panel */}
+            {presenterOpen && activeStep && (
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <FileText size={15} className="text-teal-700" />
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                      Presenter Teleprompter &amp; Teaching Notes
+                    </h3>
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                      Speaker View Only (Not Burned Into Video)
+                    </span>
+                  </div>
+                  {activePresentation.mechanismProfile && (
+                    <button
+                      type="button"
+                      onClick={() => setMechanismOpen((v) => !v)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-900 hover:bg-teal-100"
+                    >
+                      <BookOpen size={13} />
+                      {mechanismOpen ? 'Hide Mechanism Profile' : 'Clinical Mechanism Profile'}
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+                  {/* Spoken Script */}
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 md:col-span-8">
+                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                      Spoken Narration Script — Step {safeStepIndex + 1} ({activeStep.durationSec}s)
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-900">
+                      {activeNarration}
+                    </p>
+                    {activeStep.explanation !== activeCaption && (
+                      <div className="mt-2 border-t border-slate-200 pt-2 text-xs text-slate-600">
+                        <strong className="text-slate-800">Detailed Context:</strong>{' '}
+                        {activeStep.explanation}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Key Learning Point + Next-Step Preview */}
+                  <div className="flex flex-col gap-2.5 md:col-span-4">
+                    {activeStep.keyLearningPoint && (
+                      <div className="rounded-lg border border-teal-200 bg-teal-50/70 p-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-wider text-teal-800">
+                          Key Learning Takeaway
+                        </div>
+                        <p className="mt-1 text-xs font-medium leading-relaxed text-teal-950">
+                          {activeStep.keyLearningPoint}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                        {nextStep ? `Up Next — Step ${safeStepIndex + 2}` : 'Final Step'}
+                      </div>
+                      {nextStep ? (
+                        <button
+                          type="button"
+                          onClick={() => goToStep(safeStepIndex + 1)}
+                          className="mt-1 text-left text-xs font-semibold text-slate-900 hover:text-teal-700"
+                        >
+                          {nextStep.title} →
+                        </button>
+                      ) : (
+                        <p className="mt-1 text-xs text-slate-600">
+                          Complete the step knowledge check or stop recording to export video.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expandable Clinical Mechanism Profile */}
+                {mechanismOpen && activePresentation.mechanismProfile && (
+                  <div className="mt-3 grid grid-cols-1 gap-2.5 border-t border-slate-200 pt-3 text-xs md:grid-cols-3">
+                    <div className="rounded-lg bg-slate-50 p-2.5">
+                      <strong className="text-slate-900">Normal Anatomy</strong>
+                      <p className="mt-1 leading-relaxed text-slate-700">
+                        {activePresentation.mechanismProfile.normalAnatomy}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2.5">
+                      <strong className="text-slate-900">Initiating Mechanism</strong>
+                      <p className="mt-1 leading-relaxed text-slate-700">
+                        {activePresentation.mechanismProfile.mechanism}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2.5">
+                      <strong className="text-slate-900">Structural Consequences</strong>
+                      <p className="mt-1 leading-relaxed text-slate-700">
+                        {activePresentation.mechanismProfile.structuralConsequences}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2.5">
+                      <strong className="text-slate-900">Functional Consequences</strong>
+                      <p className="mt-1 leading-relaxed text-slate-700">
+                        {activePresentation.mechanismProfile.functionalConsequences}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 p-2.5">
+                      <strong className="text-slate-900">Clinical Correlation</strong>
+                      <p className="mt-1 leading-relaxed text-slate-700">
+                        {activePresentation.mechanismProfile.clinicalCorrelations}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-2.5">
+                      <strong className="text-amber-950">Dataset Limitations</strong>
+                      <p className="mt-1 leading-relaxed text-amber-900">
+                        {activePresentation.mechanismProfile.datasetLimitations}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Embedded Assessment Check (when present on active step) */}
             {activeStep?.assessmentCheck && (
@@ -1210,8 +1464,8 @@ export default function PresentationStudioPage({
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-500">
                         <span>{step.camera.view}</span>
-                        {step.scene.peeledLayerCount ? (
-                          <span>· peel {step.scene.peeledLayerCount}</span>
+                        {step.isConceptualOverlay ? (
+                          <span className="text-amber-700">· conceptual</span>
                         ) : null}
                         {step.scene.clipping?.enabled ? (
                           <span>· cutaway</span>
@@ -1228,7 +1482,7 @@ export default function PresentationStudioPage({
                   {activePresentation.isBuiltIn ? (
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-700">
                       <span>
-                        Built-in presentations are read-only reference sequences. Duplicate this presentation to customize steps, camera presets, layers, and annotations.
+                        Built-in presentations are read-only reference sequences. Duplicate this presentation to customize narration scripts, captions, camera presets, layers, and annotations.
                       </span>
                       <button
                         type="button"
@@ -1325,20 +1579,57 @@ export default function PresentationStudioPage({
                         </div>
                       </div>
 
-                      {/* Step Explanation */}
-                      <div className="md:col-span-2">
+                      {/* Concise On-Screen Caption */}
+                      <div>
                         <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                          Educational Explanation / Caption
+                          On-Screen Caption (Composited Into Video)
                         </label>
                         <textarea
                           rows={2}
-                          value={activeStep.explanation}
+                          value={activeStep.captionText ?? activeStep.explanation}
                           onChange={(e) =>
                             updateActiveStep((s) => ({
                               ...s,
-                              explanation: e.target.value,
+                              captionText: e.target.value,
                             }))
                           }
+                          className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900"
+                        />
+                      </div>
+
+                      {/* Presenter Narration Script */}
+                      <div>
+                        <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                          Presenter Narration Script (Teleprompter)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={activeStep.narrationText ?? activeStep.explanation}
+                          onChange={(e) =>
+                            updateActiveStep((s) => ({
+                              ...s,
+                              narrationText: e.target.value,
+                            }))
+                          }
+                          className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900"
+                        />
+                      </div>
+
+                      {/* Key Learning Point */}
+                      <div className="md:col-span-2">
+                        <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                          Key Learning Takeaway
+                        </label>
+                        <input
+                          type="text"
+                          value={activeStep.keyLearningPoint ?? ''}
+                          onChange={(e) =>
+                            updateActiveStep((s) => ({
+                              ...s,
+                              keyLearningPoint: e.target.value,
+                            }))
+                          }
+                          placeholder="Single high-yield educational takeaway for this step"
                           className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900"
                         />
                       </div>
@@ -1532,6 +1823,7 @@ export default function PresentationStudioPage({
                                     id: `ann-${Date.now()}`,
                                     label: newAnnLabel.trim(),
                                     detail: newAnnDetail.trim() || undefined,
+                                    isConceptual: true,
                                     tone: 'landmark',
                                   },
                                 ],

@@ -42,9 +42,20 @@ function parseRouteFromHash(): AppRoute {
   return 'home';
 }
 
+function parsePresentationIdFromHash(): string | null {
+  if (typeof window === 'undefined') return null;
+  const query = window.location.hash.split('?')[1];
+  if (!query) return null;
+  const params = new URLSearchParams(query);
+  return params.get('id');
+}
+
 export default function Home() {
   const [route, setRoute] = useState<AppRoute>(() =>
     typeof window !== 'undefined' ? parseRouteFromHash() : 'home',
+  );
+  const [presentationIdIntent, setPresentationIdIntent] = useState<string | null>(() =>
+    parsePresentationIdFromHash(),
   );
   const [atlas, setAtlas] = useState<Atlas | null>(null);
   const [atlasError, setAtlasError] = useState('');
@@ -74,7 +85,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => setRoute(parseRouteFromHash());
+    const onHash = () => {
+      setRoute(parseRouteFromHash());
+      const pid = parsePresentationIdFromHash();
+      if (pid) setPresentationIdIntent(pid);
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -177,6 +192,16 @@ export default function Home() {
     },
     [navigate],
   );
+
+  const openPresentation = useCallback((presentationId: string) => {
+    setPresentationIdIntent(presentationId);
+    const targetHash = `#/present?id=${encodeURIComponent(presentationId)}`;
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+    setRoute('present');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
 
   return (
     <StudyProvider>
@@ -296,6 +321,7 @@ export default function Home() {
             <ClinicalPage
               onInspectConcept={inspectConceptIn3D}
               onOpenLearnSystem={openSystemInLearn}
+              onOpenPresentation={openPresentation}
             />
           )}
 
@@ -315,7 +341,9 @@ export default function Home() {
               <PresentationStudioPage
                 atlas={atlas}
                 atlasError={atlasError}
+                initialPresentationId={presentationIdIntent}
                 onInspectConcept={inspectConceptIn3D}
+                onOpenClinical={() => navigate('clinical')}
               />
             </Suspense>
           )}

@@ -1,29 +1,44 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, CheckCircle2, Stethoscope, XCircle } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Film,
+  Info,
+  Stethoscope,
+  XCircle,
+} from 'lucide-react';
 import type { CanonicalSystemId } from '../anatomy-systems';
 import {
   CLINICAL_CASE_DISCLAIMER,
   CLINICAL_CASES,
   type ClinicalCategory,
 } from '../data/clinical-data';
+import { getClinicalCaseExplainerLink } from '../presentation/builtin-presentations';
 
 interface Props {
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
+  onOpenPresentation: (presentationId: string) => void;
 }
 
 const CATEGORIES: { id: ClinicalCategory | 'all'; label: string }[] = [
   { id: 'all', label: 'All Correlations' },
+  { id: 'cardiovascular', label: 'Cardiovascular' },
   { id: 'nerve-injury', label: 'Nerve Relationships' },
-  { id: 'joint-ligament', label: 'Joints & Tendons' },
   { id: 'vascular-supply', label: 'Blood Supply' },
+  { id: 'regional-anatomy', label: 'Regional & Cranial' },
   { id: 'respiratory', label: 'Respiratory' },
-  { id: 'regional-anatomy', label: 'Regional Cranial' },
+  { id: 'joint-ligament', label: 'Joints & Tendons' },
 ];
 
-export default function ClinicalPage({ onInspectConcept, onOpenLearnSystem }: Props) {
+export default function ClinicalPage({
+  onInspectConcept,
+  onOpenLearnSystem,
+  onOpenPresentation,
+}: Props) {
   const [cat, setCat] = useState<ClinicalCategory | 'all'>('all');
-  const [selectedCaseId, setSelectedCaseId] = useState(CLINICAL_CASES[0].id);
+  const [selectedCaseId, setSelectedCaseId] = useState('case-coronary-lad-septum');
   const [answersByCase, setAnswersByCase] = useState<Record<string, number>>({});
 
   const visibleCases = useMemo(
@@ -36,16 +51,21 @@ export default function ClinicalPage({ onInspectConcept, onOpenLearnSystem }: Pr
     [visibleCases, selectedCaseId],
   );
 
+  const activeExplainer = useMemo(
+    () => getClinicalCaseExplainerLink(active.id),
+    [active.id],
+  );
+
   const chosenAnswer = answersByCase[active.id];
 
   return (
     <div className="a360-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Applied Regional Anatomy</p>
-        <h1>Clinical Correlations & Educational Scenarios</h1>
+        <p className="a360-kicker">Applied Regional Anatomy &amp; Clinical Mechanisms</p>
+        <h1>Clinical Correlations &amp; Guided 3D Explanations</h1>
         <p className="a360-lead">
-          Connect 3D anatomical proximity, nerve courses, joint leverage, and vascular pathways to
-          classic curriculum scenarios.
+          Connect 3D anatomical proximity, vascular pathways, and neuroanatomy to classic curriculum
+          mechanisms. Launch synchronized 3D presentations where full anatomical coverage is verified.
         </p>
       </header>
 
@@ -68,17 +88,38 @@ export default function ClinicalPage({ onInspectConcept, onOpenLearnSystem }: Pr
 
       <div className="a360-split-layout">
         <aside className="a360-system-nav" aria-label="Case study scenarios">
-          {visibleCases.map((cs) => (
-            <button
-              key={cs.id}
-              type="button"
-              className={`a360-system-nav-item ${active.id === cs.id ? 'active' : ''}`}
-              onClick={() => setSelectedCaseId(cs.id)}
-            >
-              <Stethoscope size={15} />
-              <span className="a360-system-nav-label">{cs.title}</span>
-            </button>
-          ))}
+          {visibleCases.map((cs) => {
+            const link = getClinicalCaseExplainerLink(cs.id);
+            const has3D = link.status === 'guided_3d_available';
+            return (
+              <button
+                key={cs.id}
+                type="button"
+                className={`a360-system-nav-item ${active.id === cs.id ? 'active' : ''}`}
+                onClick={() => setSelectedCaseId(cs.id)}
+              >
+                <Stethoscope size={15} className="shrink-0" />
+                <span className="flex flex-1 flex-col items-start gap-0.5 text-left">
+                  <span className="a360-system-nav-label">{cs.title}</span>
+                  <span
+                    className={`text-[10px] font-semibold uppercase tracking-wide ${
+                      has3D
+                        ? 'text-teal-700'
+                        : link.status === 'requires_more_coverage'
+                          ? 'text-amber-700'
+                          : 'text-slate-500'
+                    }`}
+                  >
+                    {has3D
+                      ? '● Guided 3D Explanation'
+                      : link.status === 'requires_more_coverage'
+                        ? '○ Partial 3D Coverage'
+                        : '○ Case Study Only'}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </aside>
 
         <section className="a360-system-detail" aria-live="polite">
@@ -86,6 +127,45 @@ export default function ClinicalPage({ onInspectConcept, onOpenLearnSystem }: Pr
             {active.categoryLabel} · {active.level} · Curriculum Principle
           </p>
           <h2>{active.title}</h2>
+
+          {/* Guided 3D Explanation Callout Banner */}
+          {activeExplainer.status === 'guided_3d_available' &&
+          activeExplainer.presentationId ? (
+            <div className="my-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50/80 p-4">
+              <div className="max-w-xl">
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-teal-800">
+                  <Film size={14} />
+                  <span>{activeExplainer.label}</span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-teal-950">
+                  {activeExplainer.detail}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenPresentation(activeExplainer.presentationId!)
+                }
+                className="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-teal-800"
+              >
+                <Film size={15} />
+                Watch Guided 3D Explanation
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          ) : (
+            <div className="my-4 flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-700">
+              <Info size={15} className="mt-0.5 shrink-0 text-slate-500" />
+              <div>
+                <strong className="font-semibold text-slate-900">
+                  {activeExplainer.label}
+                </strong>
+                <p className="mt-0.5 leading-relaxed text-slate-600">
+                  {activeExplainer.detail}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="a360-subblock">
             <h3>Learning Objectives</h3>
@@ -158,9 +238,25 @@ export default function ClinicalPage({ onInspectConcept, onOpenLearnSystem }: Pr
           </div>
 
           <div className="a360-ref-footer-links">
+            {activeExplainer.status === 'guided_3d_available' &&
+              activeExplainer.presentationId && (
+                <button
+                  type="button"
+                  className="a360-btn-primary"
+                  onClick={() =>
+                    onOpenPresentation(activeExplainer.presentationId!)
+                  }
+                >
+                  <Film size={15} /> Watch Guided 3D Explanation
+                </button>
+              )}
             <button
               type="button"
-              className="a360-btn-primary"
+              className={
+                activeExplainer.status === 'guided_3d_available'
+                  ? 'a360-btn-secondary'
+                  : 'a360-btn-primary'
+              }
               onClick={() => onInspectConcept(active.relevantConcepts[0].conceptId)}
             >
               Inspect Primary Structure in 3D <ArrowRight size={15} />

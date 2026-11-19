@@ -2,32 +2,59 @@ import type { ClipAxis, SystemId, View } from '../anatomy';
 import type { ProvenanceReviewStatus } from '../data/provenance-registry';
 
 /**
- * Anatomy 360 — Guided 3D Presentation & Video Studio Schema
+ * Anatomy 360 — Clinical Mechanism & Guided 3D Presentation Schema
  *
  * Strongly typed, deterministic, JSON-serializable schema for guided 3D
- * anatomical, pathophysiology, and surgical education presentations.
+ * anatomical, clinical mechanism/pathophysiology, and surgical education
+ * presentations. All presenter and clinical-mechanism fields are optional
+ * for backward compatibility with older imported JSON presentations.
  */
 
-export const PRESENTATION_SCHEMA_VERSION = 1;
+export const PRESENTATION_SCHEMA_VERSION = 2;
 
 export type PresentationCategory =
   | 'anatomical'
   | 'pathophysiology'
   | 'surgical_education';
 
+export type MechanismDomain =
+  | 'anatomical_relationships'
+  | 'cardiovascular_pathophysiology'
+  | 'neurological_pathway'
+  | 'vascular_hemodynamics'
+  | 'surgical_regional';
+
+export type PresentationDifficulty =
+  | 'Foundational / Pre-Medical'
+  | 'MBBS / Allied Health'
+  | 'Advanced Regional';
+
+export type StepStageRole =
+  | 'normal_anatomy'
+  | 'supply_pathway'
+  | 'mechanism'
+  | 'affected_territory'
+  | 'functional_consequence'
+  | 'clinical_correlation'
+  | 'checkpoint';
+
 export interface PresentationSourceReference {
   title: string;
   source: string;
   url?: string;
   license?: string;
+  /** Which part of the explanation this reference supports */
+  supports?: string;
 }
 
 export interface PresentationAnnotation {
   id: string;
   label: string;
   detail?: string;
-  /** Optional FMA concept ID used to ground the annotation to a real 3D structure */
+  /** Optional FMA concept ID grounding the annotation to a real 3D mesh in atlas.json */
   anchorConceptId?: string;
+  /** Explicitly marks conceptual notes that do not point to a modeled mesh */
+  isConceptual?: boolean;
   /** Semantic accent category for visual distinction */
   tone?: 'landmark' | 'vessel' | 'nerve' | 'clinical' | 'warning';
 }
@@ -79,11 +106,30 @@ export interface PresentationAssessmentCheck {
   explanation: string;
 }
 
+export interface ClinicalMechanismProfile {
+  normalAnatomy: string;
+  mechanism: string;
+  structuralConsequences: string;
+  functionalConsequences: string;
+  clinicalCorrelations: string;
+  datasetLimitations: string;
+}
+
 export interface PresentationStep {
   id: string;
   title: string;
   subtitle?: string;
   explanation: string;
+  /** Full spoken teleprompter script for Presenter Mode (distinct from shorter captionText) */
+  narrationText?: string;
+  /** Concise on-screen caption rendered on stage and composited into recorded video */
+  captionText?: string;
+  /** Single high-yield educational takeaway for this step */
+  keyLearningPoint?: string;
+  /** Optional pedagogical stage role in clinical mechanism storytelling */
+  stageRole?: StepStageRole;
+  /** Marks steps whose 3D visuals include conceptual educational overlays */
+  isConceptualOverlay?: boolean;
   /** Display duration in seconds during automatic playback */
   durationSec: number;
   camera: PresentationCameraConfig;
@@ -91,6 +137,10 @@ export interface PresentationStep {
   annotations: PresentationAnnotation[];
   /** Optional clinical or scientific disclosure banner shown on this step */
   disclosureNote?: string;
+  /** Optional step-level supporting references */
+  sourceReferences?: PresentationSourceReference[];
+  /** Optional step-level scientific review status */
+  reviewStatus?: ProvenanceReviewStatus;
   /** Optional interactive self-check embedded at this step */
   assessmentCheck?: PresentationAssessmentCheck;
 }
@@ -101,9 +151,18 @@ export interface AnatomyPresentation {
   title: string;
   subtitle: string;
   category: PresentationCategory;
+  /** Domain classification for Clinical Mechanism Library filtering */
+  mechanismDomain?: MechanismDomain;
+  /** Stable link to CLINICAL_CASES[].id when paired with a clinical case */
+  relatedClinicalCaseId?: string;
   region: string;
+  targetSystems?: SystemId[];
+  difficultyLevel?: PresentationDifficulty;
   summary: string;
   learningObjectives: string[];
+  priorKnowledge?: string[];
+  /** Structured clinical mechanism breakdown for pathophysiology & clinical explainers */
+  mechanismProfile?: ClinicalMechanismProfile;
   /** Mandatory disclosure for conceptual pathophysiology or educational-only surgical demos */
   scientificDisclosure: string;
   reviewStatus: ProvenanceReviewStatus;
@@ -173,6 +232,15 @@ export function validatePresentationSchema(input: unknown): PresentationValidati
       if (typeof s.durationSec !== 'number' || !Number.isFinite(s.durationSec) || s.durationSec < 1 || s.durationSec > 120) {
         errors.push(`Step ${idx + 1} "durationSec" must be a number between 1 and 120.`);
       }
+      if (s.narrationText !== undefined && typeof s.narrationText !== 'string') {
+        errors.push(`Step ${idx + 1} "narrationText" must be a string when provided.`);
+      }
+      if (s.captionText !== undefined && typeof s.captionText !== 'string') {
+        errors.push(`Step ${idx + 1} "captionText" must be a string when provided.`);
+      }
+      if (s.keyLearningPoint !== undefined && typeof s.keyLearningPoint !== 'string') {
+        errors.push(`Step ${idx + 1} "keyLearningPoint" must be a string when provided.`);
+      }
       if (!s.camera || typeof s.camera !== 'object') {
         errors.push(`Step ${idx + 1} is missing "camera" configuration.`);
       } else {
@@ -208,4 +276,23 @@ export function validatePresentationSchema(input: unknown): PresentationValidati
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Helper resolving the concise on-screen caption text for a step,
+ * preserving backward compatibility with v1 presentations that only set `explanation`.
+ */
+export function resolveStepCaption(step: PresentationStep): string {
+  return step.captionText && step.captionText.trim().length > 0
+    ? step.captionText.trim()
+    : step.explanation;
+}
+
+/**
+ * Helper resolving the spoken presenter teleprompter script for a step.
+ */
+export function resolveStepNarration(step: PresentationStep): string {
+  return step.narrationText && step.narrationText.trim().length > 0
+    ? step.narrationText.trim()
+    : step.explanation;
 }

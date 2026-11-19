@@ -1,4 +1,5 @@
 import type { Atlas, SceneState } from '../anatomy';
+import { GEOMETRY_PROVENANCE } from '../data/provenance-registry';
 import {
   SURGICAL_ANATOMY_REGIONS,
   resolveSurgicalRegionLayers,
@@ -7,10 +8,23 @@ import {
   PRESENTATION_SCHEMA_VERSION,
   validatePresentationSchema,
   type AnatomyPresentation,
+  type PresentationSourceReference,
   type PresentationStep,
 } from './presentation-types';
 
 export const PRESENTATIONS_STORAGE_KEY = 'anatomy360.presentations.v1';
+
+/**
+ * Centralized, reconciled BodyParts3D 4.0 attribution sourced directly from
+ * GEOMETRY_PROVENANCE in app/data/provenance-registry.ts.
+ */
+export const AUTHORITATIVE_BP3D_SOURCE: PresentationSourceReference = {
+  title: `${GEOMETRY_PROVENANCE.name} ${GEOMETRY_PROVENANCE.version}`,
+  source: GEOMETRY_PROVENANCE.authority,
+  url: GEOMETRY_PROVENANCE.url,
+  license: GEOMETRY_PROVENANCE.license,
+  supports: '3D adult male anatomical reference surface meshes and FMA concept alignment',
+};
 
 /**
  * Resolves a list of FMA concept IDs into real mesh part IDs present in atlas.json.
@@ -209,6 +223,10 @@ export function createBlankStep(stepNumber: number): PresentationStep {
     title: `Scene ${stepNumber}: Anatomical Overview`,
     explanation:
       'Describe the anatomical structures, spatial relationships, or clinical correlation highlighted in this step.',
+    captionText: 'Overview of the highlighted anatomical structures in 3D context.',
+    narrationText:
+      'In this scene, orient your learners to the primary anatomical structures and their surrounding spatial landmarks.',
+    keyLearningPoint: 'Identify the primary anatomical landmarks in three-dimensional context.',
     durationSec: 8,
     camera: {
       view: 'three-quarter',
@@ -233,7 +251,9 @@ export function createNewCustomPresentation(title?: string): AnatomyPresentation
     title: title?.trim() || 'Untitled 3D Anatomy Presentation',
     subtitle: 'Custom Guided 3D Sequence',
     category: 'anatomical',
+    mechanismDomain: 'anatomical_relationships',
     region: 'Whole Body / Custom',
+    difficultyLevel: 'Foundational / Pre-Medical',
     summary: 'Author-created guided 3D anatomical sequence using BodyParts3D 4.0 meshes.',
     learningObjectives: [
       'Identify key 3D anatomical landmarks and spatial relationships.',
@@ -241,13 +261,7 @@ export function createNewCustomPresentation(title?: string): AnatomyPresentation
     scientificDisclosure:
       'Custom educational presentation created in Anatomy 360 using BodyParts3D 4.0 reference anatomy.',
     reviewStatus: 'draft',
-    sources: [
-      {
-        title: 'BodyParts3D 4.0 Anatomical Mesh Atlas',
-        source: 'DBCLS (Database Center for Life Science)',
-        license: 'CC BY-SA 2.1 JP',
-      },
-    ],
+    sources: [AUTHORITATIVE_BP3D_SOURCE],
     isBuiltIn: false,
     updatedAt: now,
     steps: [createBlankStep(1)],
@@ -266,6 +280,9 @@ export function exportPresentationToJson(
   return JSON.stringify(exportPayload, null, 2);
 }
 
+/**
+ * Imports and migrates v1 or v2 presentation JSON payloads safely.
+ */
 export function importPresentationFromJson(jsonText: string): {
   presentation: AnatomyPresentation | null;
   errors: string[];
