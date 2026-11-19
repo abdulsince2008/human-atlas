@@ -67,6 +67,7 @@ import AnatomyScene from '../scene';
 import {
   SURGICAL_ANATOMY_REGIONS,
   SURGICAL_EDUCATION_DISCLAIMER,
+  resolveSurgicalRegionLayers,
 } from '../data/surgical-anatomy';
 import {
   RENDER_QUALITY_PRESETS,
@@ -175,6 +176,8 @@ export default function ExplorerView({
   const [activeSurgicalRegionId, setActiveSurgicalRegionId] = useState<string>(
     SURGICAL_ANATOMY_REGIONS[0].id,
   );
+  const [surgicalLayerStep, setSurgicalLayerStep] = useState<number>(0);
+  const surgicalHiddenIdsRef = useRef<string[]>([]);
 
   const [progress, setProgress] = useState(0);
   const [sceneError, setSceneError] = useState('');
@@ -217,6 +220,55 @@ export default function ExplorerView({
   const brainRegions = useMemo(
     () => (atlas ? resolveBrainRegions(atlas) : null),
     [atlas],
+  );
+
+  const activeSurgicalRegion = useMemo(
+    () =>
+      SURGICAL_ANATOMY_REGIONS.find((r) => r.id === activeSurgicalRegionId) ??
+      SURGICAL_ANATOMY_REGIONS[0],
+    [activeSurgicalRegionId],
+  );
+
+  const resolvedSurgicalLayers = useMemo(
+    () => (atlas ? resolveSurgicalRegionLayers(activeSurgicalRegion, atlas) : []),
+    [atlas, activeSurgicalRegion],
+  );
+
+  const applySurgicalLayerStep = useCallback(
+    (nextStep: number, targetRegion = activeSurgicalRegion) => {
+      if (!atlas) return;
+      const layers = resolveSurgicalRegionLayers(targetRegion, atlas);
+      const clampedStep = Math.max(0, Math.min(layers.length, nextStep));
+      const prevSurgicalHidden = new Set(surgicalHiddenIdsRef.current);
+      const nextSurgicalHidden = new Set<string>();
+      for (let i = 0; i < clampedStep; i++) {
+        for (const pid of layers[i].partIds) {
+          nextSurgicalHidden.add(pid);
+        }
+      }
+      surgicalHiddenIdsRef.current = Array.from(nextSurgicalHidden);
+      setSurgicalLayerStep(clampedStep);
+      setVisualizationMode('natural');
+      setBrainRegionalColors(false);
+      setEngine((st) => {
+        const preservedHidden = st.hiddenPartIds.filter((id) => !prevSurgicalHidden.has(id));
+        const mergedHidden = Array.from(new Set([...preservedHidden, ...nextSurgicalHidden]));
+        return {
+          ...st,
+          visible: Array.from(new Set([...st.visible, ...targetRegion.highlightSystems])),
+          hiddenPartIds: mergedHidden,
+          isolate: false,
+          ghostSurroundings: false,
+          focusBox: {
+            min: targetRegion.focusBounds.min,
+            max: targetRegion.focusBounds.max,
+            viewDirection: targetRegion.recommendedViewDirection,
+            request: (st.focusBox?.request ?? 0) + 1,
+          },
+        };
+      });
+    },
+    [atlas, activeSurgicalRegion],
   );
 
   const partColorOverrides = useMemo(
@@ -1407,19 +1459,34 @@ export default function ExplorerView({
                   )}
 
                   {studioSubTab === 'surgical' && (() => {
-                    const region =
-                      SURGICAL_ANATOMY_REGIONS.find((r) => r.id === activeSurgicalRegionId) ??
-                      SURGICAL_ANATOMY_REGIONS[0];
+                    const region = activeSurgicalRegion;
+                    const totalLayers = resolvedSurgicalLayers.length;
+                    const totalRegionMeshes = resolvedSurgicalLayers.reduce(
+                      (acc, l) => acc + l.partIds.length,
+                      0,
+                    );
+                    const peeledMeshes = resolvedSurgicalLayers
+                      .slice(0, surgicalLayerStep)
+                      .reduce((acc, l) => acc + l.partIds.length, 0);
+
                     return (
                       <div className="studio-section" data-testid="surgical-studio-panel">
                         <div className="studio-field">
-                          <span className="studio-label">Surgical Learning Region</span>
+                          <span className="studio-label">
+                            Surgical Learning Region ({SURGICAL_ANATOMY_REGIONS.length} Regions)
+                          </span>
                           <select
                             aria-label="Select surgical anatomy region"
                             data-testid="surgical-region-select"
                             className="studio-select"
                             value={region.id}
-                            onChange={(e) => setActiveSurgicalRegionId(e.target.value)}
+                            onChange={(e) => {
+                              const nextRegion =
+                                SURGICAL_ANATOMY_REGIONS.find((r) => r.id === e.target.value) ??
+                                SURGICAL_ANATOMY_REGIONS[0];
+                              setActiveSurgicalRegionId(nextRegion.id);
+                              applySurgicalLayerStep(0, nextRegion);
+                            }}
                           >
                             {SURGICAL_ANATOMY_REGIONS.map((r) => (
                               <option key={r.id} value={r.id}>
@@ -1431,44 +1498,86 @@ export default function ExplorerView({
 
                         <p className="studio-hint">{region.summary}</p>
 
-                        <Button
-                          variant="ghost"
-                          data-testid="surgical-focus-btn"
-                          onClick={() => {
-                            setVisualizationMode('natural');
-                            setBrainRegionalColors(false);
-                            setEngine((st) => ({
-                              ...st,
-                              visible: Array.from(new Set([...st.visible, ...region.highlightSystems])),
-                              isolate: false,
-                              ghostSurroundings: false,
-                              focusBox: {
-                                min: region.focusBounds.min,
-                                max: region.focusBounds.max,
-                                viewDirection: region.recommendedViewDirection,
-                                request: (st.focusBox?.request ?? 0) + 1,
-                              },
-                            }));
-                          }}
-                        >
-                          <Focus size={14} /> Focus Region in Natural 3D
-                        </Button>
+                        <div className="studio-preset-grid">
+                          <Button
+                            variant="ghost"
+                            data-testid="surgical-focus-btn"
+                            onClick={() => applySurgicalLayerStep(surgicalLayerStep, region)}
+                          >
+                            <Focus size={14} /> Focus Region
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            data-testid="surgical-peel-btn"
+                            disabled={surgicalLayerStep >= totalLayers}
+                            onClick={() => applySurgicalLayerStep(surgicalLayerStep + 1, region)}
+                          >
+                            Peel Next Layer
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            data-testid="surgical-restore-btn"
+                            disabled={surgicalLayerStep === 0}
+                            onClick={() => applySurgicalLayerStep(surgicalLayerStep - 1, region)}
+                          >
+                            Restore Layer
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            data-testid="surgical-reset-layers-btn"
+                            disabled={surgicalLayerStep === 0}
+                            onClick={() => applySurgicalLayerStep(0, region)}
+                          >
+                            Restore All
+                          </Button>
+                        </div>
 
                         <div className="studio-field">
-                          <span className="studio-label">Superficial-to-Deep Tissue Layers</span>
+                          <div className="studio-row-between">
+                            <span className="studio-label">Progressive Mesh Dissection Layers</span>
+                            <output className="studio-val" data-testid="surgical-layer-counter">
+                              {peeledMeshes} / {totalRegionMeshes} meshes peeled
+                            </output>
+                          </div>
                           <div className="surgical-layer-list">
-                            <div className="surgical-layer-card">
-                              <strong>1. Superficial Layers</strong>
-                              <p>{region.superficialLayers.join(' · ')}</p>
-                            </div>
-                            <div className="surgical-layer-card">
-                              <strong>2. Deep Structures</strong>
-                              <p>{region.deepLayers.join(' · ')}</p>
-                            </div>
-                            <div className="surgical-layer-card">
-                              <strong>3. Fascial Planes</strong>
-                              <p>{region.fascialPlanes.join(' · ')}</p>
-                            </div>
+                            {resolvedSurgicalLayers.map((layer, idx) => {
+                              const isPeeled = idx < surgicalLayerStep;
+                              const isCurrent = idx === surgicalLayerStep;
+                              return (
+                                <button
+                                  key={layer.id}
+                                  type="button"
+                                  data-testid={`surgical-layer-${idx}`}
+                                  className={`surgical-layer-card text-left w-full cursor-pointer transition-colors ${
+                                    isPeeled
+                                      ? 'opacity-60 border-dashed'
+                                      : isCurrent
+                                        ? 'ring-1 ring-sky-500/60'
+                                        : ''
+                                  }`}
+                                  onClick={() =>
+                                    applySurgicalLayerStep(isPeeled ? idx : idx + 1, region)
+                                  }
+                                >
+                                  <div className="studio-row-between">
+                                    <strong>
+                                      {idx + 1}. {layer.label}
+                                    </strong>
+                                    <span className="studio-val">
+                                      {layer.partIds.length > 0
+                                        ? isPeeled
+                                          ? `Peeled (${layer.partIds.length})`
+                                          : `${layer.partIds.length} meshes`
+                                        : 'Conceptual'}
+                                    </span>
+                                  </div>
+                                  <p>{layer.educationalNote}</p>
+                                  {layer.missingAssetNote && (
+                                    <p className="opacity-75">{layer.missingAssetNote}</p>
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
 
@@ -1485,10 +1594,30 @@ export default function ExplorerView({
                               <strong>Landmarks:</strong> {region.criticalLandmarks.join(', ')}
                             </div>
                             <div>
+                              <strong>Fascial Planes:</strong> {region.fascialPlanes.join(' · ')}
+                            </div>
+                            <div>
                               <strong>Cross-Section:</strong> {region.crossSectionNote}
                             </div>
                           </div>
                         </div>
+
+                        {region.variations.length > 0 && (
+                          <div className="studio-field">
+                            <span className="studio-label">
+                              Anatomical Variations (Concept-Only · No 3D Variant Mesh)
+                            </span>
+                            <div className="surgical-layer-list">
+                              {region.variations.map((v) => (
+                                <div key={v.id} className="surgical-layer-card">
+                                  <strong>{v.name}</strong>
+                                  <p>{v.variantAnatomy}</p>
+                                  <p className="opacity-80">{v.clinicalRelevance}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="honest-asset-box" role="note" data-testid="surgical-disclaimer">
                           <strong>Educational Scope Only</strong>
@@ -1665,6 +1794,68 @@ export default function ExplorerView({
                             );
                           }}
                         />
+                      </div>
+
+                      <div className="studio-field">
+                        <span className="studio-label">Multiplanar Radiological Cutaway Presets</span>
+                        <div className="studio-preset-grid">
+                          {[
+                            {
+                              id: 'midsagittal-cranial',
+                              label: 'Midsagittal Head (X 50%)',
+                              axis: 'x' as ClipAxis,
+                              offset: 0.5,
+                              inverted: false,
+                            },
+                            {
+                              id: 'axial-mediastinum',
+                              label: 'Axial T4–T5 Thorax (Y 76%)',
+                              axis: 'y' as ClipAxis,
+                              offset: 0.76,
+                              inverted: false,
+                            },
+                            {
+                              id: 'axial-transpyloric',
+                              label: 'Axial L1 Abdomen (Y 60%)',
+                              axis: 'y' as ClipAxis,
+                              offset: 0.6,
+                              inverted: false,
+                            },
+                            {
+                              id: 'coronal-torso',
+                              label: 'Coronal Torso (Z 52%)',
+                              axis: 'z' as ClipAxis,
+                              offset: 0.52,
+                              inverted: false,
+                            },
+                          ].map((preset) => (
+                            <Button
+                              key={preset.id}
+                              variant="ghost"
+                              data-testid={`cutaway-preset-${preset.id}`}
+                              onClick={() =>
+                                setEngine((st) =>
+                                  setClippingState(
+                                    st,
+                                    {
+                                      enabled: true,
+                                      axis: preset.axis,
+                                      offset: preset.offset,
+                                      inverted: preset.inverted,
+                                    },
+                                    true,
+                                  ),
+                                )
+                              }
+                            >
+                              {preset.label}
+                            </Button>
+                          ))}
+                        </div>
+                        <p className="studio-hint">
+                          3D surface-mesh anatomical cross-section planes only — not registered clinical
+                          CT or MRI DICOM volumes.
+                        </p>
                       </div>
 
                       <div className="studio-preset-grid">

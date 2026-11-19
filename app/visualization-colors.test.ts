@@ -83,7 +83,7 @@ test('provenance registry and curated study resources pass strict integrity chec
   const prov = validateProvenanceIntegrity();
   assert.equal(prov.valid, true, prov.errors.join('; '));
   assert.equal(normalizeReviewStatus('unverified'), 'needs_evidence');
-  assert.equal(getReviewStatusLabel('under_review'), 'Under Review');
+  assert.equal(getReviewStatusLabel('under_review'), 'Under Expert Review');
 
   const resCheck = validateStudyResources();
   assert.equal(resCheck.valid, true, resCheck.errors.join('; '));

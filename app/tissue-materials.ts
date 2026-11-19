@@ -487,6 +487,39 @@ export function resolveTissueClassificationColors(atlas: Atlas): Record<string, 
   return out;
 }
 
+export interface PartPbrMaterialValues {
+  roughness: number;
+  metalness: number;
+  /** Subtle procedural micro-detail contrast [0..1] (e.g., fibrous muscle/tendon vs smooth cartilage) */
+  microDetail: number;
+}
+
+/**
+ * Resolves physically based per-part roughness, metalness, and restrained micro-detail
+ * strength for the GPU partMaterialTexture in app/scene.tsx.
+ * Biological metalness stays physically near zero (<= 0.05).
+ */
+export function resolvePartMaterialProps(atlas: Atlas): Record<string, PartPbrMaterialValues> {
+  const out: Record<string, PartPbrMaterialValues> = {};
+  for (const p of atlas.parts) {
+    const tissue = classifyPartTissue(p);
+    const preset = TISSUE_MATERIAL_PRESETS[tissue];
+    let microDetail = 0.2;
+    if (tissue === 'skeletal_muscle' || tissue === 'cardiac_muscle') microDetail = 0.65;
+    else if (tissue === 'tendon' || tissue === 'ligament' || tissue === 'fascia_membrane') microDetail = 0.45;
+    else if (tissue === 'compact_bone') microDetail = 0.35;
+    else if (tissue === 'brain_grey_matter' || tissue === 'brain_cerebellum') microDetail = 0.3;
+    else if (tissue === 'cartilage' || tissue === 'ocular_sensory' || tissue === 'ventricle_csf') microDetail = 0.08;
+
+    out[p.id] = {
+      roughness: preset.roughness,
+      metalness: Math.min(0.05, preset.metalness),
+      microDetail,
+    };
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // Hardware-Aware Rendering Quality Presets
 // ---------------------------------------------------------------------------
@@ -501,6 +534,8 @@ export interface RenderQualityPresetSpec {
   preferredLod: 0 | 1 | 2 | 3;
   memoryBudgetMb: number;
   exposure: number;
+  envMapIntensity: number;
+  microDetailStrength: number;
   description: string;
 }
 
@@ -513,7 +548,9 @@ export const RENDER_QUALITY_PRESETS: Record<RenderQualityPresetId, RenderQuality
     preferredLod: 3,
     memoryBudgetMb: 128,
     exposure: 1.06,
-    description: 'Lowest GPU memory footprint (1.0x pixel ratio, LOD 3 fallback when available) for mobile or integrated GPUs.',
+    envMapIntensity: 0.72,
+    microDetailStrength: 0.0,
+    description: 'Lowest GPU workload (1.0x pixel ratio, minimal shading overhead) for mobile or integrated GPUs.',
   },
   balanced: {
     id: 'balanced',
@@ -523,7 +560,9 @@ export const RENDER_QUALITY_PRESETS: Record<RenderQualityPresetId, RenderQuality
     preferredLod: 2,
     memoryBudgetMb: 256,
     exposure: 1.08,
-    description: 'Recommended default balancing crisp anatomical contours and responsive frame pacing.',
+    envMapIntensity: 0.92,
+    microDetailStrength: 0.55,
+    description: 'Recommended default balancing per-tissue PBR response, crisp contours, and responsive frame pacing.',
   },
   high: {
     id: 'high',
@@ -533,7 +572,9 @@ export const RENDER_QUALITY_PRESETS: Record<RenderQualityPresetId, RenderQuality
     preferredLod: 1,
     memoryBudgetMb: 512,
     exposure: 1.1,
-    description: 'Full retina pixel ratio (up to 2.0x) and LOD 1 high-detail geometry when loaded.',
+    envMapIntensity: 1.05,
+    microDetailStrength: 0.85,
+    description: 'Full retina pixel ratio (up to 2.0x), enhanced studio IBL reflections, and full per-tissue PBR micro-detail.',
   },
   ultra: {
     id: 'ultra',
@@ -543,7 +584,9 @@ export const RENDER_QUALITY_PRESETS: Record<RenderQualityPresetId, RenderQuality
     preferredLod: 0,
     memoryBudgetMb: 1024,
     exposure: 1.12,
-    description: 'Targets LOD 0 unsimplified source meshes & 4K–8K PBR maps when installed; falls back cleanly to bundled BP3D 4.0 chunks.',
+    envMapIntensity: 1.15,
+    microDetailStrength: 1.0,
+    description: 'Maximum PBR fidelity and studio lighting response; targets LOD 0 source packs when installed and falls back cleanly to bundled BP3D 4.0 chunks.',
   },
 };
 

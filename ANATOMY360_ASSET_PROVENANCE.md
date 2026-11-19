@@ -5,7 +5,8 @@ All external datasets and reference benchmarks are cataloged in `app/data/asset-
 | Source | Authority | License | Integration Status | Notes |
 | --- | --- | --- | --- | --- |
 | **BodyParts3D / Anatomography 4.0** | DBCLS, Japan | **CC BY 4.0** (current DBCLS Archive; historically released under CC BY-SA 2.1 Japan) | **Active Production Geometry** | 2,234 adult male meshes across 15 system groups. |
-| **Foundational Model of Anatomy (FMA)** | University of Washington | **CC BY 4.0** | **Active Ontology** | Canonical FMA concept IDs (`FMA7088`, `FMA50801`, etc.). |
+| **Foundational Model of Anatomy (FMA)** | University of Washington | **CUSTOM** (OBO Foundry: `https://obofoundry.org/ontology/fma.html`) | **Active Ontology** | Canonical FMA concept IDs (`FMA7088`, `FMA50801`, etc.). |
+| **Terminologia Anatomica (TA2) / TNA** | IFAA / FIPAT | **CC BY-ND 4.0** | **Active Terminology Reference** | Unmodified official anatomical naming alignment. |
 | **Human Atlas Web Runtime** | Open-source repository | **MIT** | **Active Codebase** | Rendering engine, UI, and interaction layer. |
 | **OpenStax Anatomy & Physiology 2e / NCBI StatPearls** | Rice University / NLM | **CC BY 4.0** | **Active Educational References** | Curated open-access educational citations and external links. |
 | **Z-Anatomy** | Z-Anatomy Contributors | **CC BY-SA 4.0** | **Excluded** | Not mixed into MIT/CC-BY core bundle; requires isolated optional pack architecture if ever adopted. |

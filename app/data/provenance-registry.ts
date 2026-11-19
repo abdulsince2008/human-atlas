@@ -3,26 +3,36 @@
  *
  * Strictly separates:
  *  1. Geometry provenance (BodyParts3D 4.0 mesh attribution)
- *  2. Anatomical ontology provenance (FMA concept IDs)
+ *  2. Anatomical ontology & terminology provenance (FMA CUSTOM license; IFAA/FIPAT TA2 CC BY-ND 4.0)
  *  3. Educational evidence provenance (per-structure / per-relationship claims)
  *  4. External study resource provenance (curated open links in study-resources.ts)
+ *
+ * Governance rule:
+ *  - `automated_check_passed`, `source_reviewed`, and `expert_verified` are strictly distinct.
+ *  - No record may carry `expert_verified` unless an actual qualified human reviewer
+ *    (`reviewerName` and `reviewerRole`) has personally reviewed it.
  */
 
-export const PROVENANCE_SCHEMA_VERSION = 1;
+export const PROVENANCE_SCHEMA_VERSION = 2;
 
 export type ProvenanceReviewStatus =
   | 'draft'
   | 'needs_evidence'
-  | 'under_review'
-  | 'verified'
+  | 'automated_check_passed'
+  | 'source_reviewed'
+  | 'under_expert_review'
+  | 'expert_verified'
   | 'needs_revision'
   | 'deprecated';
 
 export type ProvenanceLayer =
   | 'geometry'
   | 'ontology'
+  | 'terminology'
   | 'educational_evidence'
   | 'external_resource';
+
+export type EvidenceConfidence = 'high_textbook_consensus' | 'moderate_regional_variation' | 'conceptual_only';
 
 export interface ProvenanceLayerRecord {
   layer: ProvenanceLayer;
@@ -31,6 +41,7 @@ export interface ProvenanceLayerRecord {
   version: string;
   authority: string;
   license: string;
+  licenseUrl: string;
   url: string;
   scope: string;
   limitations: string;
@@ -40,12 +51,24 @@ export interface ProvenanceLayerRecord {
 
 export interface EducationalEvidenceRecord {
   id: string;
-  targetType: 'structure' | 'relationship' | 'brain_region' | 'muscle_pilot' | 'radiology_plane';
+  targetType:
+    | 'structure'
+    | 'relationship'
+    | 'brain_region'
+    | 'muscle_pilot'
+    | 'radiology_plane'
+    | 'surgical_region'
+    | 'variation';
   targetId: string;
   claimSummary: string;
   sourceReference: string;
   sourceUrl?: string;
+  dateAccessed: string;
+  evidenceConfidence: EvidenceConfidence;
+  limitations?: string;
   reviewStatus: ProvenanceReviewStatus;
+  reviewerName?: string;
+  reviewerRole?: string;
   lastReviewed: string;
 }
 
@@ -56,11 +79,12 @@ export const GEOMETRY_PROVENANCE: ProvenanceLayerRecord = {
   version: '4.0 (2013 release; DBCLS Archive)',
   authority: 'Database Center for Life Science (DBCLS), Japan',
   license: 'CC BY 4.0 (DBCLS Archive; historically CC BY-SA 2.1 Japan)',
-  url: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html',
+  licenseUrl: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html',
+  url: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html',
   scope: '2,234 adult male 3D anatomical surface meshes across 15 mesh system groups.',
   limitations:
     'Adult male reference model only; does not contain female reproductive anatomy, microscopic histology geometry, arachnoid/pia mater sheets, or deformable soft-tissue muscle rigs.',
-  reviewStatus: 'verified',
+  reviewStatus: 'source_reviewed',
   lastAudited: '2026-11-18',
 };
 
@@ -70,33 +94,52 @@ export const ONTOLOGY_PROVENANCE: ProvenanceLayerRecord = {
   name: 'Foundational Model of Anatomy (FMA)',
   version: 'FMA 4.x / BodyParts3D Concept Alignment',
   authority: 'Structural Informatics Group, University of Washington',
-  license: 'CC BY 4.0',
-  url: 'https://si.washington.edu/projects/fma',
-  scope: 'Canonical FMA concept identifiers (e.g., FMA7088 Heart, FMA50801 Brain) linking meshes to educational curriculum.',
+  license: 'CUSTOM (OBO Foundry records FMA license as CUSTOM — verify official University of Washington terms before derivative ontology redistribution)',
+  licenseUrl: 'https://obofoundry.org/ontology/fma.html',
+  url: 'https://obofoundry.org/ontology/fma.html',
+  scope: 'Canonical FMA concept identifiers (e.g., FMA7088 Heart, FMA50801 Brain) carried in BodyParts3D metadata to link meshes to curriculum.',
   limitations:
-    'Concept-only structures without matching BodyParts3D meshes are explicitly flagged as ontology-only rather than fabricated in 3D.',
-  reviewStatus: 'verified',
-  lastAudited: '2026-11-17',
+    'FMA is NOT declared CC BY 4.0; only canonical concept IDs and standard anatomical names aligned with BodyParts3D are referenced here. Concept-only structures without meshes are explicitly flagged.',
+  reviewStatus: 'source_reviewed',
+  lastAudited: '2026-11-18',
+};
+
+export const TERMINOLOGY_PROVENANCE: ProvenanceLayerRecord = {
+  layer: 'terminology',
+  id: 'ifaa-fipat-ta2',
+  name: 'Terminologia Anatomica (TA2) & Terminologia Neuroanatomica (TNA)',
+  version: 'TA2 (2019) / TNA (2017)',
+  authority: 'Federative International Programme for Anatomical Terminology (FIPAT / IFAA)',
+  license: 'CC BY-ND 4.0 (NoDerivatives — attribution required; do not redistribute modified TA2 tables under incompatible licenses)',
+  licenseUrl: 'https://ifaa.net/committees/anatomical-terminology-fipat/fipat-ifaa-terminologies/',
+  url: 'https://ifaa.net/committees/anatomical-terminology-fipat/',
+  scope: 'Authoritative international standard for English and Latin anatomical nomenclature and hierarchical naming conventions.',
+  limitations:
+    'Referenced as an authoritative terminology standard without redistributing modified TA2 source tables.',
+  reviewStatus: 'source_reviewed',
+  lastAudited: '2026-11-18',
 };
 
 export const EDUCATIONAL_CURRICULUM_PROVENANCE: ProvenanceLayerRecord = {
   layer: 'educational_evidence',
-  id: 'anatomy360-curriculum-v2',
+  id: 'anatomy360-curriculum-v3',
   name: 'Anatomy 360 Curated Educational Corpus',
-  version: '2.1',
-  authority: 'OpenStax Anatomy & Physiology 2e / NCBI StatPearls / Terminologia Anatomica alignment',
-  license: 'CC BY 4.0',
+  version: '3.0',
+  authority: 'OpenStax Anatomy & Physiology 2e / NCBI StatPearls / TA2 nomenclature alignment',
+  license: 'CC BY 4.0 (original Anatomy 360 educational summaries; external links remain under publisher terms)',
+  licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
   url: 'https://openstax.org/details/books/anatomy-and-physiology-2e',
-  scope: 'Foundational, Intermediate, and Advanced anatomical summaries, relationships, regional brain mappings, and rigid-body functional pilots.',
+  scope: 'Foundational, Intermediate, and Advanced anatomical summaries, relationships, regional brain mappings, surgical-region study guides, and rigid-body functional pilots.',
   limitations:
-    'Educational reference only; not intended for clinical diagnosis, surgical planning, or patient management.',
-  reviewStatus: 'verified',
-  lastAudited: '2026-11-17',
+    'Source-reviewed educational reference only; has not undergone formal clinical or surgical board expert certification and is not intended for diagnosis or operative planning.',
+  reviewStatus: 'source_reviewed',
+  lastAudited: '2026-11-18',
 };
 
 export const PROVENANCE_LAYERS: ProvenanceLayerRecord[] = [
   GEOMETRY_PROVENANCE,
   ONTOLOGY_PROVENANCE,
+  TERMINOLOGY_PROVENANCE,
   EDUCATIONAL_CURRICULUM_PROVENANCE,
 ];
 
@@ -106,11 +149,14 @@ export const EDUCATIONAL_EVIDENCE_RECORDS: EducationalEvidenceRecord[] = [
     targetType: 'brain_region',
     targetId: 'brain-regional-palette',
     claimSummary:
-      'Cortical lobes (frontal, parietal, temporal, occipital), limbic/insular structures, diencephalon/basal nuclei, cerebellum, brainstem, and ventricular system mapped to verified BodyParts3D FJ-series meshes.',
+      'Cortical lobes (frontal, parietal, temporal, occipital), limbic/insular structures, diencephalon/basal nuclei, cerebellum, brainstem, and ventricular system mapped to BodyParts3D FJ-series meshes.',
     sourceReference: 'OpenStax Anatomy & Physiology 2e (Ch. 13 Central Nervous System) & BodyParts3D 4.0 FMA mapping',
     sourceUrl: 'https://openstax.org/books/anatomy-and-physiology-2e/pages/13-2-the-central-nervous-system',
-    reviewStatus: 'verified',
-    lastReviewed: '2026-11-17',
+    dateAccessed: '2026-11-18',
+    evidenceConfidence: 'high_textbook_consensus',
+    limitations: 'Falx cerebri, arachnoid/pia mater, and lower cranial nerve cisterns are not individually meshed in BodyParts3D 4.0.',
+    reviewStatus: 'source_reviewed',
+    lastReviewed: '2026-11-18',
   },
   {
     id: 'ev-muscle-elbow',
@@ -120,8 +166,11 @@ export const EDUCATIONAL_EVIDENCE_RECORDS: EducationalEvidenceRecord[] = [
       'Elbow flexion prime movers (brachialis, biceps brachii) oppose triceps brachii (antagonist) across the humeroulnar hinge axis.',
     sourceReference: 'OpenStax Anatomy & Physiology 2e (Ch. 11.5 Muscles of the Pectoral Girdle and Upper Limbs)',
     sourceUrl: 'https://openstax.org/books/anatomy-and-physiology-2e/pages/11-5-muscles-of-the-pectoral-girdle-and-upper-limbs',
-    reviewStatus: 'verified',
-    lastReviewed: '2026-11-17',
+    dateAccessed: '2026-11-18',
+    evidenceConfidence: 'high_textbook_consensus',
+    limitations: 'Rigid-body kinematic pilot; does not deform muscle bellies.',
+    reviewStatus: 'source_reviewed',
+    lastReviewed: '2026-11-18',
   },
   {
     id: 'ev-muscle-shoulder',
@@ -131,8 +180,11 @@ export const EDUCATIONAL_EVIDENCE_RECORDS: EducationalEvidenceRecord[] = [
       'Glenohumeral abduction initiated by supraspinatus and driven by acromial deltoid, balanced by pectoralis major/teres major adductors and rotator cuff stabilizers.',
     sourceReference: 'NCBI StatPearls — Anatomy, Shoulder and Upper Limb, Deltoid Muscle',
     sourceUrl: 'https://www.ncbi.nlm.nih.gov/books/NBK537056/',
-    reviewStatus: 'verified',
-    lastReviewed: '2026-11-17',
+    dateAccessed: '2026-11-18',
+    evidenceConfidence: 'high_textbook_consensus',
+    limitations: 'Role visualization on static BodyParts3D shoulder musculature; full scapulohumeral rhythm rigging not yet bundled.',
+    reviewStatus: 'source_reviewed',
+    lastReviewed: '2026-11-18',
   },
   {
     id: 'ev-radiology-planes',
@@ -142,16 +194,35 @@ export const EDUCATIONAL_EVIDENCE_RECORDS: EducationalEvidenceRecord[] = [
       'Sagittal (X), Axial/Transverse (Y), and Coronal/Frontal (Z) clipping planes correspond to standard anatomical sectioning orientations.',
     sourceReference: 'OpenStax Anatomy & Physiology 2e (Ch. 1.6 Anatomical Terminology)',
     sourceUrl: 'https://openstax.org/books/anatomy-and-physiology-2e/pages/1-6-anatomical-terminology',
-    reviewStatus: 'verified',
-    lastReviewed: '2026-11-17',
+    dateAccessed: '2026-11-18',
+    evidenceConfidence: 'high_textbook_consensus',
+    limitations: '3D surface-mesh cross-sectioning only; not spatially registered to clinical patient DICOM CT/MRI volumes.',
+    reviewStatus: 'source_reviewed',
+    lastReviewed: '2026-11-18',
+  },
+  {
+    id: 'ev-surgical-regions',
+    targetType: 'surgical_region',
+    targetId: 'surgical-anatomy-curriculum',
+    claimSummary:
+      'Regional superficial-to-deep anatomical layers, neurovascular relations, and fascial boundaries mapped to existing BodyParts3D meshes with explicit conceptual-only disclosures for unmodeled fascia.',
+    sourceReference: 'OpenStax Anatomy & Physiology 2e & Terminologia Anatomica (TA2) regional taxonomy',
+    sourceUrl: 'https://openstax.org/details/books/anatomy-and-physiology-2e',
+    dateAccessed: '2026-11-18',
+    evidenceConfidence: 'high_textbook_consensus',
+    limitations: 'Educational regional anatomy study aid only; requires formal anatomist/surgeon review before any expert_verified status.',
+    reviewStatus: 'source_reviewed',
+    lastReviewed: '2026-11-18',
   },
 ];
 
 export const REVIEW_STATUS_LABELS: Record<ProvenanceReviewStatus, string> = {
   draft: 'Draft',
   needs_evidence: 'Needs Evidence',
-  under_review: 'Under Review',
-  verified: 'Verified',
+  automated_check_passed: 'Automated Check Passed',
+  source_reviewed: 'Source Reviewed',
+  under_expert_review: 'Under Expert Review',
+  expert_verified: 'Expert Verified',
   needs_revision: 'Needs Revision',
   deprecated: 'Deprecated',
 };
@@ -160,15 +231,20 @@ export function normalizeReviewStatus(status: string | undefined): ProvenanceRev
   if (
     status === 'draft' ||
     status === 'needs_evidence' ||
-    status === 'under_review' ||
-    status === 'verified' ||
+    status === 'automated_check_passed' ||
+    status === 'source_reviewed' ||
+    status === 'under_expert_review' ||
+    status === 'expert_verified' ||
     status === 'needs_revision' ||
     status === 'deprecated'
   ) {
     return status;
   }
+  // Legacy 'verified' from v1 schema maps honestly to 'source_reviewed' (never falsely promoted to 'expert_verified')
+  if (status === 'verified') return 'source_reviewed';
   if (status === 'unverified') return 'needs_evidence';
-  return 'under_review';
+  if (status === 'under_review') return 'under_expert_review';
+  return 'needs_evidence';
 }
 
 export function getReviewStatusLabel(status: string | undefined): string {
@@ -181,10 +257,20 @@ export function validateProvenanceIntegrity(): { valid: boolean; errors: string[
     if (!layer.authority.trim()) errors.push(`Layer ${layer.id}: missing authority`);
     if (!layer.license.trim()) errors.push(`Layer ${layer.id}: missing license`);
     if (!/^https:\/\//i.test(layer.url)) errors.push(`Layer ${layer.id}: url must use HTTPS`);
+    if (!/^https:\/\//i.test(layer.licenseUrl)) errors.push(`Layer ${layer.id}: licenseUrl must use HTTPS`);
+    if (layer.id === 'fma-ontology' && /\bCC BY 4\.0\b/i.test(layer.license) && !/CUSTOM/i.test(layer.license)) {
+      errors.push('FMA ontology must not be mislabeled as CC BY 4.0 (OBO Foundry records CUSTOM license)');
+    }
+    if (layer.reviewStatus === 'expert_verified') {
+      errors.push(`Layer ${layer.id}: cannot mark expert_verified without documented human expert sign-off`);
+    }
   }
   for (const rec of EDUCATIONAL_EVIDENCE_RECORDS) {
-    if (rec.reviewStatus === 'verified' && !rec.sourceReference.trim()) {
-      errors.push(`Evidence ${rec.id}: verified record missing sourceReference`);
+    if ((rec.reviewStatus === 'source_reviewed' || rec.reviewStatus === 'expert_verified') && !rec.sourceReference.trim()) {
+      errors.push(`Evidence ${rec.id}: reviewed record missing sourceReference`);
+    }
+    if (rec.reviewStatus === 'expert_verified' && (!rec.reviewerName?.trim() || !rec.reviewerRole?.trim())) {
+      errors.push(`Evidence ${rec.id}: expert_verified requires actual reviewerName and reviewerRole`);
     }
     if (rec.sourceUrl && !/^https:\/\//i.test(rec.sourceUrl)) {
       errors.push(`Evidence ${rec.id}: sourceUrl must use HTTPS`);

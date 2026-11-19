@@ -15,6 +15,7 @@ interface Props {
 
 export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: Props) {
   const [catFilter, setCatFilter] = useState<HistologyCategory | 'all'>('all');
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
 
   const filtered = useMemo(
     () =>
@@ -27,11 +28,12 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
   return (
     <div className="a360-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Microanatomy & Cellular Architecture</p>
-        <h1>Histology & Microanatomy Library</h1>
+        <p className="a360-kicker">Microanatomy &amp; Cellular Architecture</p>
+        <h1>Histology &amp; Microanatomy Library</h1>
         <p className="a360-lead">
           Structured cellular and organ microanatomy notes covering epithelial, connective, muscle,
-          and nervous tissues—connected to gross 3D organs with import-ready specimen micrograph slots.
+          and nervous tissues—connected to gross 3D organs with interactive self-checks and
+          import-ready specimen micrograph slots.
         </p>
       </header>
 
@@ -54,7 +56,7 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
           className={`a360-filter-btn ${catFilter === 'all' ? 'active' : ''}`}
           onClick={() => setCatFilter('all')}
         >
-          All Tissues & Organs ({HISTOLOGY_ENTRIES.length})
+          All Tissues &amp; Organs ({HISTOLOGY_ENTRIES.length})
         </button>
         {HISTOLOGY_CATEGORIES.map((c) => (
           <button
@@ -69,70 +71,114 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
       </section>
 
       <div className="a360-histology-grid">
-        {filtered.map((entry) => (
-          <article key={entry.id} className="a360-knowledge-card">
-            <p className="a360-kicker">
-              {HISTOLOGY_CATEGORIES.find((c) => c.id === entry.category)?.label} ·{' '}
-              {entry.kind === 'tissue-class' ? 'Tissue Class' : 'Organ Microanatomy'} ·{' '}
-              Text Curriculum
-            </p>
-            <h2>{entry.title}</h2>
-            <p className="a360-card-detail">{entry.summary}</p>
+        {filtered.map((entry) => {
+          const picked = selectedAnswers[entry.id];
+          const answered = typeof picked === 'number';
+          const isCorrect = answered && entry.selfCheck && picked === entry.selfCheck.correctIndex;
 
-            <div className="a360-subblock">
-              <h3>Microscopic Landmarks</h3>
-              <ul className="a360-fact-list">
-                {entry.microscopicStructures.map((ms) => (
-                  <li key={ms}>{ms}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="a360-subblock">
-              <h3>Diagnostic Microanatomy Points</h3>
-              <ul className="a360-fact-list">
-                {entry.diagnosticFeatures.map((df) => (
-                  <li key={df}>{df}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="a360-specimen-slot">
-              <div className="a360-specimen-head">
-                <Microscope size={15} />
-                <strong>{entry.specimenSlot.title}</strong>
-              </div>
-              <p className="a360-muted">
-                Stain: {entry.specimenSlot.stainProtocol} · Expected Magnification:{' '}
-                {entry.specimenSlot.expectedMagnification} · Status: Import-Ready Text Slot
+          return (
+            <article key={entry.id} className="a360-knowledge-card" data-testid={`histology-card-${entry.id}`}>
+              <p className="a360-kicker">
+                {HISTOLOGY_CATEGORIES.find((c) => c.id === entry.category)?.label} ·{' '}
+                {entry.kind === 'tissue-class' ? 'Tissue Class' : 'Organ Microanatomy'} ·{' '}
+                Text Curriculum
               </p>
-              <p className="a360-muted">{entry.specimenSlot.attributionRequirement}</p>
-            </div>
+              <h2>{entry.title}</h2>
+              <p className="a360-card-detail">{entry.summary}</p>
 
-            <div className="a360-card-footer">
-              <div className="a360-card-actions">
-                {entry.linkedConceptIds[0] && (
-                  <button
-                    type="button"
-                    className="a360-card-btn"
-                    onClick={() => onInspectConcept(entry.linkedConceptIds[0])}
-                  >
-                    Inspect Gross Organ in 3D <ArrowRight size={14} />
-                  </button>
-                )}
-                {entry.canonicalSystem && (
-                  <button
-                    type="button"
-                    className="a360-btn-secondary"
-                    onClick={() => onOpenLearnSystem(entry.canonicalSystem!)}
-                  >
-                    <BookOpen size={14} /> Open System Lesson
-                  </button>
-                )}
+              <div className="a360-subblock">
+                <h3>Microscopic Landmarks</h3>
+                <ul className="a360-fact-list">
+                  {entry.microscopicStructures.map((ms) => (
+                    <li key={ms}>{ms}</li>
+                  ))}
+                </ul>
               </div>
-            </div>
-          </article>
-        ))}
+
+              <div className="a360-subblock">
+                <h3>Diagnostic Microanatomy Points</h3>
+                <ul className="a360-fact-list">
+                  {entry.diagnosticFeatures.map((df) => (
+                    <li key={df}>{df}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {entry.selfCheck && (
+                <div className="a360-subblock" data-testid={`histology-check-${entry.id}`}>
+                  <h3>Microanatomy Self-Check</h3>
+                  <p className="a360-card-detail">{entry.selfCheck.prompt}</p>
+                  <div className="flex flex-col gap-1.5 mt-2">
+                    {entry.selfCheck.options.map((opt, idx) => {
+                      const isSelected = picked === idx;
+                      const isRightOption = answered && idx === entry.selfCheck!.correctIndex;
+                      const isWrongPick = answered && isSelected && !isRightOption;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          className={`a360-filter-btn text-left ${
+                            isRightOption
+                              ? 'active'
+                              : isWrongPick
+                                ? 'opacity-70 line-through'
+                                : ''
+                          }`}
+                          onClick={() =>
+                            setSelectedAnswers((prev) => ({ ...prev, [entry.id]: idx }))
+                          }
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {answered && (
+                    <p className="a360-muted mt-2" role="status">
+                      <strong>{isCorrect ? 'Correct:' : 'Review:'}</strong>{' '}
+                      {entry.selfCheck.rationale}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="a360-specimen-slot">
+                <div className="a360-specimen-head">
+                  <Microscope size={15} />
+                  <strong>{entry.specimenSlot.title}</strong>
+                </div>
+                <p className="a360-muted">
+                  Stain: {entry.specimenSlot.stainProtocol} · Expected Magnification:{' '}
+                  {entry.specimenSlot.expectedMagnification} · Status: Import-Ready Text Slot
+                </p>
+                <p className="a360-muted">{entry.specimenSlot.attributionRequirement}</p>
+              </div>
+
+              <div className="a360-card-footer">
+                <div className="a360-card-actions">
+                  {entry.linkedConceptIds[0] && (
+                    <button
+                      type="button"
+                      className="a360-card-btn"
+                      onClick={() => onInspectConcept(entry.linkedConceptIds[0])}
+                    >
+                      Inspect Gross Organ in 3D <ArrowRight size={14} />
+                    </button>
+                  )}
+                  {entry.canonicalSystem && (
+                    <button
+                      type="button"
+                      className="a360-btn-secondary"
+                      onClick={() => onOpenLearnSystem(entry.canonicalSystem!)}
+                    >
+                      <BookOpen size={14} /> Open System Lesson
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   );

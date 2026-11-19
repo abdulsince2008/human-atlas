@@ -15,7 +15,7 @@ import { createExplosionLayout } from './explosion-layout';
 import { computeClipPlaneEquation } from './interaction-engine';
 import { decodeModelResponse } from './model-download';
 import { PointerTap } from './pointer-tap';
-import { RENDER_QUALITY_PRESETS } from './tissue-materials';
+import { RENDER_QUALITY_PRESETS, resolvePartMaterialProps } from './tissue-materials';
 import { hexToRgbBytes } from './visualization-colors';
 
 interface Props {
@@ -254,6 +254,21 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     const partColorTexture = new T.DataTexture(partColorData, width, 1);
     partColorTexture.needsUpdate = true;
 
+    // Per-part physically based tissue properties (r = roughness, g = metalness, b = microDetail, a = active)
+    const partMaterialData = new Uint8Array(width * 4);
+    const resolvedPbr = resolvePartMaterialProps(atlas);
+    atlas.parts.forEach((p, idx) => {
+      const matProps = resolvedPbr[p.id];
+      if (!matProps) return;
+      partMaterialData[idx * 4] = Math.round(T.MathUtils.clamp(matProps.roughness, 0.08, 0.96) * 255);
+      partMaterialData[idx * 4 + 1] = Math.round(T.MathUtils.clamp(matProps.metalness, 0, 0.08) * 255);
+      partMaterialData[idx * 4 + 2] = Math.round(T.MathUtils.clamp(matProps.microDetail, 0, 1) * 255);
+      partMaterialData[idx * 4 + 3] = 255;
+    });
+    const partMaterialTexture = new T.DataTexture(partMaterialData, width, 1);
+    partMaterialTexture.needsUpdate = true;
+    const microDetailUniform = { value: RENDER_QUALITY_PRESETS.balanced.microDetailStrength };
+
     const materials: T.MeshStandardMaterial[] = [];
     const geometries: T.BufferGeometry[] = [];
     const pickers: (T.Mesh | undefined)[] = [];
@@ -459,18 +474,21 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       });
       m.userData.baseSystem = system;
       m.userData.systemOpacity = system === 'integumentary' ? 0.1 : 1.0;
+      m.envMapIntensity = RENDER_QUALITY_PRESETS.balanced.envMapIntensity;
       m.onBeforeCompile = (shader) => {
         shader.uniforms.partState = { value: partTexture };
         shader.uniforms.partRot = { value: partRotTexture };
         shader.uniforms.partPivot = { value: partPivotTexture };
         shader.uniforms.selectionState = { value: selectionTexture };
         shader.uniforms.partColor = { value: partColorTexture };
+        shader.uniforms.partMaterial = { value: partMaterialTexture };
+        shader.uniforms.microDetailStrength = microDetailUniform;
         shader.uniforms.stateWidth = { value: width };
         shader.uniforms.systemOpacity = { value: m.userData.systemOpacity };
         m.userData.shader = shader;
 
         shader.vertexShader =
-          'attribute float partIndex;\nuniform sampler2D partState;\nuniform sampler2D partRot;\nuniform sampler2D partPivot;\nuniform sampler2D selectionState;\nuniform sampler2D partColor;\nuniform float stateWidth;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvarying vec4 partColorOverride;\nvec3 a360RotateQuat(vec3 v, vec4 q) {\n  return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n}\n' +
+          'attribute float partIndex;\nuniform sampler2D partState;\nuniform sampler2D partRot;\nuniform sampler2D partPivot;\nuniform sampler2D selectionState;\nuniform sampler2D partColor;\nuniform sampler2D partMaterial;\nuniform float stateWidth;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvarying vec4 partColorOverride;\nvarying vec4 partPbrProps;\nvarying vec3 a360LocalPos;\nvec3 a360RotateQuat(vec3 v, vec4 q) {\n  return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n}\n' +
           shader.vertexShader;
 
         shader.vertexShader = shader.vertexShader.replace(
@@ -484,6 +502,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         shader.vertexShader = shader.vertexShader.replace(
           '#include <begin_vertex>',
           `#include <begin_vertex>
+          a360LocalPos = position;
           vec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5);
           vec4 state = texture2D(partState, stateUv);
           vec4 selState = texture2D(selectionState, stateUv);
@@ -494,11 +513,12 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           partSelected = selState.r;
           partDimmed = selState.g;
           partPinned = selState.b;
-          partColorOverride = texture2D(partColor, stateUv);`,
+          partColorOverride = texture2D(partColor, stateUv);
+          partPbrProps = texture2D(partMaterial, stateUv);`,
         );
 
         shader.fragmentShader =
-          'uniform float systemOpacity;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvarying vec4 partColorOverride;\n' +
+          'uniform float systemOpacity;\nuniform float microDetailStrength;\nvarying float partVisible;\nvarying float partSelected;\nvarying float partDimmed;\nvarying float partPinned;\nvarying vec4 partColorOverride;\nvarying vec4 partPbrProps;\nvarying vec3 a360LocalPos;\n' +
           shader.fragmentShader;
 
         shader.fragmentShader = shader.fragmentShader.replace(
@@ -521,6 +541,24 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
             diffuseColor.a *= min(0.14, systemOpacity);
           } else if (systemOpacity < 0.995) {
             diffuseColor.a *= systemOpacity;
+          }`,
+        );
+
+        shader.fragmentShader = shader.fragmentShader.replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
+          if (partPbrProps.a > 0.5) {
+            float microWave = sin(a360LocalPos.x * 180.0 + a360LocalPos.z * 140.0) * sin(a360LocalPos.y * 120.0);
+            float microShift = microWave * 0.045 * partPbrProps.b * microDetailStrength;
+            roughnessFactor = clamp(partPbrProps.r + microShift, 0.14, 0.95);
+          }`,
+        );
+
+        shader.fragmentShader = shader.fragmentShader.replace(
+          '#include <metalnessmap_fragment>',
+          `#include <metalnessmap_fragment>
+          if (partPbrProps.a > 0.5) {
+            metalnessFactor = clamp(partPbrProps.g, 0.0, 0.08);
           }`,
         );
       };
@@ -953,6 +991,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         lastQualityPreset = presetKey;
         const preset = RENDER_QUALITY_PRESETS[presetKey] ?? RENDER_QUALITY_PRESETS.balanced;
         renderer.toneMappingExposure = preset.exposure;
+        microDetailUniform.value = preset.microDetailStrength;
+        materials.forEach((m) => {
+          m.envMapIntensity = preset.envMapIntensity;
+        });
         updatePixelRatio();
         dirty = true;
       }
@@ -1523,6 +1565,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       partPivotTexture.dispose();
       selectionTexture.dispose();
       partColorTexture.dispose();
+      partMaterialTexture.dispose();
       markerGeometry.dispose();
       markerMaterial.dispose();
       hover.remove();

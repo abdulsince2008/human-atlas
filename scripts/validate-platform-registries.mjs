@@ -69,6 +69,7 @@ function validateMaterials() {
   const errors = [];
   const tissueSrc = fs.readFileSync(path.resolve('app/tissue-materials.ts'), 'utf8');
   const explorerSrc = fs.readFileSync(path.resolve('app/components/ExplorerView.tsx'), 'utf8');
+  const sceneSrc = fs.readFileSync(path.resolve('app/scene.tsx'), 'utf8');
 
   if (!tissueSrc.includes("id: 'natural'")) {
     errors.push('tissue-materials.ts must define Natural Anatomy mode');
@@ -82,8 +83,11 @@ function validateMaterials() {
   if (!explorerSrc.includes('useState(false)') || explorerSrc.includes('setBrainRegionalColors] = useState(true)')) {
     errors.push('ExplorerView.tsx must default brainRegionalColors to false (NO rainbow brain by default)');
   }
+  if (!sceneSrc.includes('partMaterialTexture') || !sceneSrc.includes('roughnessmap_fragment')) {
+    errors.push('scene.tsx must bind per-part PBR roughness/metalness texture via partMaterialTexture');
+  }
   if (errors.length > 0) fail('materials', errors);
-  pass('materials', 'Natural Anatomy default verified; opt-in Regional Brain overlay is OFF by default');
+  pass('materials', 'Natural Anatomy default, opt-in Regional Brain OFF, and per-part PBR roughness/metalness verified');
 }
 
 function validateLicenses() {
@@ -95,6 +99,12 @@ function validateLicenses() {
   if (!regSrc.includes('CC BY 4.0') || !provSrc.includes('CC BY 4.0') || !thirdPartySrc.includes('CC BY 4.0')) {
     errors.push('BodyParts3D 4.0 license must consistently cite CC BY 4.0 (DBCLS current archive)');
   }
+  if (!provSrc.includes("license: 'CUSTOM") || !regSrc.includes('fma-ontology')) {
+    errors.push('FMA ontology must be recorded under its official CUSTOM OBO Foundry license (not CC BY 4.0)');
+  }
+  if (!provSrc.includes('CC BY-ND 4.0') || !regSrc.includes('ifaa-ta2-terminology')) {
+    errors.push('IFAA/FIPAT Terminologia Anatomica (TA2) must be recorded with CC BY-ND 4.0 license');
+  }
   if (!regSrc.includes('z-anatomy-models') || !regSrc.includes("integrationStatus: 'excluded_license_review'")) {
     errors.push('Z-Anatomy CC BY-SA 4.0 must be explicitly marked excluded_license_review pending isolated asset-pack architecture');
   }
@@ -102,7 +112,7 @@ function validateLicenses() {
     errors.push('3D Neurosurgical Atlas must be explicitly marked benchmark_only (never imported)');
   }
   if (errors.length > 0) fail('licenses', errors);
-  pass('licenses', 'Unified BodyParts3D CC BY 4.0 attribution and source license boundaries verified');
+  pass('licenses', 'Unified BodyParts3D CC BY 4.0, FMA CUSTOM, TA2 CC BY-ND 4.0, and source license boundaries verified');
 }
 
 function validateAnatomy() {
@@ -112,6 +122,9 @@ function validateAnatomy() {
 
   if (!surgicalSrc.includes('not a certified surgical simulator')) {
     errors.push('Surgical anatomy module must include an explicit non-clinical safety disclaimer');
+  }
+  if (!surgicalSrc.includes('resolveSurgicalRegionLayers')) {
+    errors.push('Surgical anatomy module must export resolveSurgicalRegionLayers for real mesh-mapped peeling');
   }
   if (!relSrc.includes('illustrative spatial connectors')) {
     errors.push('RelationshipsPage.tsx must explicitly label 3D arrows as illustrative spatial connectors');
@@ -124,7 +137,7 @@ function validateAnatomy() {
     }
   }
   if (errors.length > 0) fail('anatomy', errors);
-  pass('anatomy', 'Core FMA concepts, surgical disclaimer, and spatial connector honesty verified');
+  pass('anatomy', 'Core FMA concepts, mesh-mapped surgical dissection, disclaimer, and spatial connector honesty verified');
 }
 
 function validateLod() {
