@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Microscope } from 'lucide-react';
+import { ArrowRight, BookOpen, Microscope, X, ZoomIn, ZoomOut } from 'lucide-react';
 import type { CanonicalSystemId } from '../anatomy-systems';
 import {
   HISTOLOGY_CATEGORIES,
   HISTOLOGY_ENTRIES,
   type HistologyCategory,
+  type HistologyEntry,
 } from '../data/histology-data';
 import StudyResourceList from '../components/StudyResourceList';
 
@@ -16,6 +17,8 @@ interface Props {
 export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: Props) {
   const [catFilter, setCatFilter] = useState<HistologyCategory | 'all'>('all');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  const [activeSpecimen, setActiveSpecimen] = useState<HistologyEntry | null>(null);
+  const [zoom, setZoom] = useState<number>(1);
 
   const filtered = useMemo(
     () =>
@@ -149,9 +152,21 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
                 </div>
                 <p className="a360-muted">
                   Stain: {entry.specimenSlot.stainProtocol} · Expected Magnification:{' '}
-                  {entry.specimenSlot.expectedMagnification} · Status: Import-Ready Text Slot
+                  {entry.specimenSlot.expectedMagnification} · Status:{' '}
+                  {entry.specimenSlot.imageUrl ? 'Licensed Micrograph Loaded' : 'Import-Ready Text Slot'}
                 </p>
                 <p className="a360-muted">{entry.specimenSlot.attributionRequirement}</p>
+                <button
+                  type="button"
+                  className="a360-btn-secondary mt-2"
+                  data-testid={`open-specimen-${entry.id}`}
+                  onClick={() => {
+                    setActiveSpecimen(entry);
+                    setZoom(1);
+                  }}
+                >
+                  <ZoomIn size={14} /> Open Specimen Viewer
+                </button>
               </div>
 
               <div className="a360-card-footer">
@@ -180,6 +195,92 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
           );
         })}
       </div>
+
+      {activeSpecimen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Microscopy specimen viewer: ${activeSpecimen.specimenSlot.title}`}
+          data-testid="histology-specimen-modal"
+        >
+          <div className="w-full max-w-2xl rounded-xl bg-white p-5 shadow-2xl border border-slate-200">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
+              <div>
+                <p className="a360-kicker">
+                  {activeSpecimen.specimenSlot.stainProtocol} · {activeSpecimen.specimenSlot.expectedMagnification}
+                </p>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {activeSpecimen.specimenSlot.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Close specimen viewer"
+                className="a360-btn-secondary"
+                onClick={() => setActiveSpecimen(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="my-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 min-h-[240px] flex items-center justify-center p-6">
+              {activeSpecimen.specimenSlot.imageUrl ? (
+                <img
+                  src={activeSpecimen.specimenSlot.imageUrl}
+                  alt={activeSpecimen.specimenSlot.title}
+                  style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
+                  className="max-h-[380px] transition-transform duration-150"
+                />
+              ) : (
+                <div className="text-center max-w-md space-y-2">
+                  <Microscope size={32} className="mx-auto text-slate-400" />
+                  <p className="font-medium text-slate-800">
+                    No Bundled Microscopy Image (Import-Ready Slot: {activeSpecimen.specimenSlot.slotId})
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    {activeSpecimen.specimenSlot.attributionRequirement}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    No synthetic or AI-generated micrograph is displayed. Drop a verified CC BY 4.0 / CC0
+                    high-resolution image URL into <code>specimenSlot.imageUrl</code> to enable live
+                    zoomable inspection here.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="a360-btn-secondary"
+                  disabled={zoom <= 1}
+                  onClick={() => setZoom((z) => Math.max(1, Number((z - 0.5).toFixed(1))))}
+                >
+                  <ZoomOut size={14} /> Zoom Out
+                </button>
+                <span className="text-xs font-medium text-slate-700">{zoom.toFixed(1)}×</span>
+                <button
+                  type="button"
+                  className="a360-btn-secondary"
+                  disabled={zoom >= 4}
+                  onClick={() => setZoom((z) => Math.min(4, Number((z + 0.5).toFixed(1))))}
+                >
+                  <ZoomIn size={14} /> Zoom In
+                </button>
+              </div>
+              <button
+                type="button"
+                className="a360-card-btn"
+                onClick={() => setActiveSpecimen(null)}
+              >
+                Close Viewer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

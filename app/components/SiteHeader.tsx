@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 export type AppRoute =
   | 'home'
   | 'explorer'
+  | 'present'
   | 'systems'
   | 'relationships'
   | 'learn'
@@ -28,6 +29,7 @@ interface Props {
 const CORE_LINKS: { id: AppRoute; label: string }[] = [
   { id: 'home', label: 'Home' },
   { id: 'explorer', label: '3D Anatomy' },
+  { id: 'present', label: 'Present' },
   { id: 'systems', label: 'Reference' },
   { id: 'learn', label: 'Learn' },
   { id: 'practical-lab', label: 'Practical Lab' },

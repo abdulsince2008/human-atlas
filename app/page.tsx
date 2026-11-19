@@ -19,10 +19,12 @@ import SearchPage from './pages/SearchPage';
 import SystemsPage from './pages/SystemsPage';
 
 const ExplorerView = lazy(() => import('./components/ExplorerView'));
+const PresentationStudioPage = lazy(() => import('./pages/PresentationStudioPage'));
 
 function parseRouteFromHash(): AppRoute {
   const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].toLowerCase();
   if (hash === 'explorer' || hash === '3d') return 'explorer';
+  if (hash === 'present' || hash === 'presentation' || hash === 'studio') return 'present';
   if (hash === 'systems' || hash === 'reference') return 'systems';
   if (hash === 'relationships') return 'relationships';
   if (hash === 'learn') return 'learn';
@@ -300,6 +302,23 @@ export default function Home() {
           {route === 'atlases' && <AtlasManagerPage />}
 
           {route === 'about' && <AboutPage onExplore={() => navigate('explorer')} />}
+
+          {route === 'present' && (
+            <Suspense
+              fallback={
+                <div className="a360-explorer-fallback" role="status">
+                  <strong>Loading Guided 3D Presentation Studio…</strong>
+                  <span>Initializing shared 3D anatomy viewport</span>
+                </div>
+              }
+            >
+              <PresentationStudioPage
+                atlas={atlas}
+                atlasError={atlasError}
+                onInspectConcept={inspectConceptIn3D}
+              />
+            </Suspense>
+          )}
 
           {route === 'explorer' && (
             <Suspense

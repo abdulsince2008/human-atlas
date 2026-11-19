@@ -2,19 +2,26 @@
 
 > Only features that have been implemented and verified are listed here.
 
-- [x] **Repository Migration & Cloudflare Pages Build:** Removed `bun.lock`, stripped `@cloudflare/workers-types`, configured `vite.config.ts` (`0.0.0.0:3000`, `allowedHosts: true`), verified static `dist/` production output.
-- [x] **Anatomy 360 Branding & Design System:** Updated `web/index.html`, `app/globals.css`, and `app/components/SiteHeader.tsx` with `Plus Jakarta Sans`, `DM Sans`, `IBM Plex Mono`, 3-zone header, and responsive mobile drawer.
-- [x] **Enhanced 3D Anatomy Explorer (`app/scene.tsx`, `app/components/ExplorerView.tsx`):**
-  - Orbit, Pan (with Orbit/Pan mode switch), Wheel/Pinch Zoom, and Zoom In/Out controls
-  - 5 anatomical views (`¾`, `Front`, `Back`, `Left`, `Right` verified against `+X` left / `-X` right coordinates)
-  - Structure selection via raycasting + `PointerTap` tap-vs-drag disambiguation
-  - Focus Selection, Isolate Structure, Transparent Surroundings (ghost mode with solid highlight overlay), Explode Anatomy (`0–100%`), Auto-Rotate, Reset Camera, Fullscreen, and Collapsible HUD (`H`)
-  - Software WebGL detection and `webglcontextlost` / `webglcontextrestored` handling
-- [x] **12 Canonical Anatomical Systems (`app/anatomy-systems.ts`, `app/pages/SystemsPage.tsx`):** Mapped all 12 systems to the 15 mesh layers with honest coverage statuses, planned structure notes, and clickable mesh directories.
-- [x] **Verified Educational Knowledge & Localization Schema (`app/anatomy-knowledge.ts`):** Authoritative FSc/MDCAT/MBBS structure notes, synonyms, terminology, clickable related structures, honest uncurated fallbacks, and `LocalizedText` (`en`/`ur`) architecture.
-- [x] **Synchronized 12-System Learning Experience (`app/learning-data.ts`, `app/components/SystemLearnWorkspace.tsx`, `app/pages/LearnPage.tsx`):**
-  - Separated mixed lessons (Digestive vs. Urinary, Endocrine vs. Sensory) and authored full chapters, learning objectives, explanations, anatomical relationships, key facts, terminology, levels (`Foundational`, `FSc / MDCAT`, `MBBS / Nursing`), and non-modeled disclosures across all 12 canonical systems
-  - Embedded `AnatomyScene` (`SceneState.embedded`) directly beside lessons without remounting on system/topic switches
-  - Added automatic multi-concept focus/highlighting, inline "Inspect in 3D" actions, direct 3D click-to-inspect structure card, Body Context / System Only / Isolate toggles, Orbit/Pan + Zoom + View presets, Previous/Next navigation, and `localStorage` completion tracking
-- [x] **Full Application Pages (`Home`, `Systems`, `Learn`, `Search`, `Quizzes`, `About`):** All 6+ views implemented and wired to 3D Explorer inspection, with lazy-loaded 3D chunking via `React.lazy`.
-- [x] **Validation Suite Passed:** `npm run check`, `npm run lint` (0 errors, 0 warnings), `node scripts/validate-atlas.mjs`, `node scripts/validate-interactions.mjs`, FMA concept ID cross-check (0 missing across all 12 systems), and `npm run build`.
+- [x] **Repository Migration & Static Production Build:** Configured `vite.config.ts` (`0.0.0.0:3000`, `allowedHosts: true`), verified static `dist/` production output with lazy-loaded 3D chunks (`ExplorerView`, `PresentationStudioPage`, `scene`).
+- [x] **3D Graphics, PBR, UV, Shadows & Runtime LOD Pipeline (`app/graphics/`, `app/scene.tsx`, `app/tissue-materials.ts`):**
+  - Natural Anatomy default visualization mode with 27 physically grounded tissue presets and per-part GPU roughness/metalness (`partMaterialTexture`)
+  - Triplanar UV generation (`ensureAnatomicalUVs`) and geometry validation (`validateAnatomicalGeometry`)
+  - 6 linear-space procedural PBR micro-detail texture archetypes (`normalMap`, `roughnessMap`, `aoMap`) with GPU disposal
+  - `PCFSoftShadowMap` + cavity fill lighting and hardware quality presets (`performance`, `balanced`, `high`, `ultra`)
+  - Real runtime LOD 0 (`2,288,268` tris) ↔ LOD 3 (`1,684,412` tris) switching backed by `public/models/atlas.lod3.json` and `body-lod3-0..11.bin` preserving all 2,234 selectable parts
+- [x] **Guided 3D Presentation & Browser-Native Video Studio (`#/present`, `app/presentation/`, `app/pages/PresentationStudioPage.tsx`):**
+  - Reuses the single `AnatomyScene` WebGL renderer (no duplicate 3D engine)
+  - Strongly typed `AnatomyPresentation` / `PresentationStep` schema and deterministic `compileStepToSceneState` compiler supporting camera views, focus bounds, progressive surgical layer peeling, ghost surroundings, isolate, cutaway clipping planes, explode, and concept color overrides
+  - 3 complete built-in presentations grounded in verified `atlas.json` FMA concept IDs:
+    1. *Cranial Anatomy & Progressive Dissection* (`anatomical`)
+    2. *Thoracic Anatomy & Coronary Ischemia Mechanism* (`pathophysiology`, with explicit healthy-mesh conceptual disclosure & step knowledge check)
+    3. *Shoulder, Humeral Compartments & Upper-Limb Vascular Relations* (`surgical_education`, with explicit non-operative-simulator & dataset boundary disclosures)
+  - Automatic playback engine (`Play`, `Pause`, `Restart`, `Previous`, `Next`, speed `0.5×–2×`, step progress bar)
+  - Visual timeline authoring (`New`, `Duplicate to Edit`, `Add Step`, `Duplicate Step`, `Reorder`, `Delete`, edit title/explanation/duration/camera/systems/peel/clipping/annotations)
+  - Browser-local `localStorage` persistence (`anatomy360.presentations.v1`) and validated JSON export/import
+  - Browser-native video recording (`HTMLCanvasElement.captureStream()` + `MediaRecorder` + 2D composition canvas compositing live WebGL frames, header, step captions, annotations, and disclosures + optional microphone audio + local preview, download, and discard)
+- [x] **Enhanced 3D Anatomy Explorer & 10-Region Surgical Dissection (`app/components/ExplorerView.tsx`, `app/data/surgical-anatomy.ts`):**
+  - Orbit/Pan/Zoom, 5 anatomical views, Focus, Isolate, Transparent Surroundings, Explode, Group Explosion, Cutaway Planes, and 10 anti-bleed validated surgical dissection regions with non-clinical disclaimers
+- [x] **12 Canonical Systems, Knowledge Graph, Practical Lab, Study Analytics & Educational Labs:**
+  - 12-system Reference Library, Relationship Explorer (3D spatial network + 2D radial map), Learn workspace, Practical Spotter Lab, SM-2 Flashcards, 10 Clinical Correlations, 10 Histology entries with zoomable `1×–4×` specimen viewer, Physiology simulations, and Atlas & Pack Manager
+- [x] **Automated Validation & Test Suite:** `npm run validate:all` PASS, `33/33` unit tests PASS across 7 suites, `oxlint` 0 warnings/0 errors across 71 files, and `npm run build` PASS.

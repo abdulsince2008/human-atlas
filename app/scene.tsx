@@ -17,6 +17,9 @@ import { decodeModelResponse } from './model-download';
 import { PointerTap } from './pointer-tap';
 import { RENDER_QUALITY_PRESETS, resolvePartMaterialProps } from './tissue-materials';
 import { hexToRgbBytes } from './visualization-colors';
+import { ensureAnatomicalUVs } from './graphics/uv-generator';
+import { createTissueTextureLibrary } from './graphics/tissue-textures';
+import { AnatomicalLodManager } from './graphics/lod-manager';
 
 interface Props {
   atlas: Atlas;
@@ -98,6 +101,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         antialias: !isSoftwareGl,
         alpha: false,
         powerPreference: 'high-performance',
+        preserveDrawingBuffer: true,
       });
     } catch {
       onError('This browser could not start the 3D viewer. Please enable WebGL and reload.');
@@ -121,6 +125,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     renderer.localClippingEnabled = true;
+    renderer.shadowMap.enabled = !isSoftwareGl;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
     el.appendChild(renderer.domElement);
     renderer.domElement.setAttribute(
       'aria-label',
@@ -161,13 +167,29 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     room.dispose();
     pmrem.dispose();
 
-    scene.add(new T.HemisphereLight(0xffffff, 0xa7acb2, 1.05));
-    const key = new T.DirectionalLight(0xfffaf4, 2.3);
+    scene.add(new T.HemisphereLight(0xffffff, 0xa7acb2, 1.0));
+    const key = new T.DirectionalLight(0xfffaf4, 2.25);
     key.position.set(-2, 4, 3);
+    key.castShadow = !isSoftwareGl;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.near = 1.0;
+    key.shadow.camera.far = 9.0;
+    key.shadow.camera.left = -0.75;
+    key.shadow.camera.right = 0.75;
+    key.shadow.camera.top = 1.95;
+    key.shadow.camera.bottom = -0.15;
+    key.shadow.bias = -0.0004;
+    key.shadow.normalBias = 0.018;
     scene.add(key);
-    const rim = new T.DirectionalLight(0xe9f0ff, 1.8);
+
+    const rim = new T.DirectionalLight(0xe9f0ff, 1.65);
     rim.position.set(2, 2, -3);
     scene.add(rim);
+
+    // Soft anterior-inferior fill light so deep cavities remain clearly legible during dissection
+    const cavityFill = new T.DirectionalLight(0xf1f6ff, 0.55);
+    cavityFill.position.set(1.2, 0.4, 2.6);
+    scene.add(cavityFill);
 
     const ground = new T.Mesh(
       new T.CircleGeometry(30, 96),
@@ -175,13 +197,15 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.019;
+    ground.receiveShadow = !isSoftwareGl;
     scene.add(ground);
 
     const platform = new T.Mesh(
       new T.CylinderGeometry(0.68, 0.7, 0.028, 100),
-      new T.MeshStandardMaterial({ color: 0xf1f3f5, metalness: 0.1, roughness: 0.68 }),
+      new T.MeshStandardMaterial({ color: 0xf1f3f5, metalness: 0.08, roughness: 0.7 }),
     );
     platform.position.y = -0.016;
+    platform.receiveShadow = !isSoftwareGl;
     scene.add(platform);
 
     const ring = new T.Mesh(
@@ -268,6 +292,20 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     const partMaterialTexture = new T.DataTexture(partMaterialData, width, 1);
     partMaterialTexture.needsUpdate = true;
     const microDetailUniform = { value: RENDER_QUALITY_PRESETS.balanced.microDetailStrength };
+
+    // Real tileable PBR normal/roughness/AO texture library (explicitly procedural approximations)
+    const maxAniso = isSoftwareGl ? 1 : Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    const tissueTextureLib = createTissueTextureLibrary(128, maxAniso);
+
+    // Runtime LOD 0 (full detail) & LOD 3 (verified meshoptimizer overview) scene groups
+    const lod0Group = new T.Group();
+    lod0Group.name = 'anatomy-lod0';
+    scene.add(lod0Group);
+    const lod3Group = new T.Group();
+    lod3Group.name = 'anatomy-lod3';
+    lod3Group.visible = false;
+    scene.add(lod3Group);
+    const lodManager = new AnatomicalLodManager(atlas.triangles);
 
     const materials: T.MeshStandardMaterial[] = [];
     const geometries: T.BufferGeometry[] = [];
@@ -463,17 +501,33 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     };
 
     const materialFor = (system: string) => {
+      const texSet = tissueTextureLib.getForSystem(system as SystemId);
+      const isEnvelope = system === 'integumentary';
+      const baseNormalStrength = isEnvelope ? 0 : texSet.normalStrength;
       const m = new T.MeshStandardMaterial({
         color: SYSTEMS.find((s) => s.id === system)?.color ?? '#aebbb8',
-        metalness: 0.08,
-        roughness: 0.53,
+        metalness: 0.04,
+        roughness: 0.54,
         side: T.DoubleSide,
-        transparent: system === 'integumentary',
-        opacity: system === 'integumentary' ? 0.1 : 1,
-        depthWrite: system !== 'integumentary',
+        transparent: isEnvelope,
+        opacity: isEnvelope ? 0.1 : 1,
+        depthWrite: !isEnvelope,
+        ...(isEnvelope
+          ? {}
+          : {
+              normalMap: texSet.normalMap,
+              normalScale: new T.Vector2(
+                baseNormalStrength * RENDER_QUALITY_PRESETS.balanced.microDetailStrength,
+                baseNormalStrength * RENDER_QUALITY_PRESETS.balanced.microDetailStrength,
+              ),
+              roughnessMap: texSet.roughnessMap,
+              aoMap: texSet.aoMap,
+              aoMapIntensity: 0.32,
+            }),
       });
       m.userData.baseSystem = system;
-      m.userData.systemOpacity = system === 'integumentary' ? 0.1 : 1.0;
+      m.userData.baseNormalStrength = baseNormalStrength;
+      m.userData.systemOpacity = isEnvelope ? 0.1 : 1.0;
       m.envMapIntensity = RENDER_QUALITY_PRESETS.balanced.envMapIntensity;
       m.onBeforeCompile = (shader) => {
         shader.uniforms.partState = { value: partTexture };
@@ -583,6 +637,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         g.setAttribute('position', new T.BufferAttribute(new Float32Array(buffer, p.positions, p.vertexCount * 3), 3));
         g.setAttribute('normal', new T.BufferAttribute(new Int16Array(buffer, p.normals, p.vertexCount * 3), 3, true));
         g.setIndex(new T.BufferAttribute(new Uint32Array(buffer, p.indices, p.indexCount), 1));
+        ensureAnatomicalUVs(g, 0.08);
         g.boundingBox = bounds[i].clone();
         g.computeBoundingSphere();
 
@@ -603,13 +658,74 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         geometries.push(geometry);
         const mesh = new T.Mesh(geometry, mats.get(system as never));
         mesh.frustumCulled = false;
-        scene.add(mesh);
+        if (!isSoftwareGl && system !== 'integumentary') {
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        }
+        lod0Group.add(mesh);
       });
 
       lastState = null;
       loaded++;
       onProgress(Math.round((loaded / atlas.chunks.length) * 100));
       dirty = true;
+    };
+
+    // Background loader for verified meshoptimizer LOD 3 overview chunks (never blocks initial render)
+    const loadLod3Background = async () => {
+      try {
+        const res = await fetch('/models/atlas.lod3.json', { signal: abort.signal });
+        if (!res.ok) return;
+        const lod3Atlas = (await res.json()) as Atlas;
+        if (disposed || !Array.isArray(lod3Atlas.parts) || lod3Atlas.parts.length !== atlas.parts.length) return;
+
+        for (let ci = 0; ci < lod3Atlas.chunks.length; ci++) {
+          if (disposed) return;
+          const chunk = lod3Atlas.chunks[ci];
+          const resp = await fetch(chunk.url, { signal: abort.signal });
+          if (!resp.ok) return;
+          const buffer = await decodeModelResponse(resp, chunk.bytes, false);
+          if (disposed) return;
+
+          const groups = new Map<string, T.BufferGeometry[]>();
+          lod3Atlas.parts.forEach((p) => {
+            if (p.chunk !== ci) return;
+            const partIdx = partIndexById.get(p.id);
+            if (partIdx === undefined) return;
+            const g = new T.BufferGeometry();
+            g.setAttribute('position', new T.BufferAttribute(new Float32Array(buffer, p.positions, p.vertexCount * 3), 3));
+            g.setAttribute('normal', new T.BufferAttribute(new Int16Array(buffer, p.normals, p.vertexCount * 3), 3, true));
+            g.setIndex(new T.BufferAttribute(new Uint32Array(buffer, p.indices, p.indexCount), 1));
+            ensureAnatomicalUVs(g, 0.08);
+            g.setAttribute('partIndex', new T.BufferAttribute(new Float32Array(p.vertexCount).fill(partIdx), 1));
+            const list = groups.get(p.system) ?? [];
+            list.push(g);
+            groups.set(p.system, list);
+          });
+
+          groups.forEach((gs, system) => {
+            const geometry = mergeGeometries(gs, false);
+            gs.forEach((sub) => sub.dispose());
+            if (!geometry) return;
+            geometries.push(geometry);
+            const mesh = new T.Mesh(geometry, mats.get(system as never));
+            mesh.frustumCulled = false;
+            if (!isSoftwareGl && system !== 'integumentary') {
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+            }
+            lod3Group.add(mesh);
+          });
+        }
+
+        if (!disposed) {
+          lodManager.registerLod3(lod3Atlas.triangles);
+          el.dataset.lod3Ready = 'true';
+          dirty = true;
+        }
+      } catch {
+        // LOD 3 is strictly additive; keep LOD 0 active silently if unavailable or aborted
+      }
     };
 
     (async () => {
@@ -626,6 +742,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         if (!disposed) {
           ready = true;
           dirty = true;
+          el.dataset.lodLevel = '0';
+          el.dataset.activeTriangles = String(atlas.triangles);
+          void loadLod3Background();
         }
       } catch (e) {
         if (!disposed) onError(e instanceof Error ? e.message : 'Could not load the anatomy.');
@@ -991,12 +1110,39 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         lastQualityPreset = presetKey;
         const preset = RENDER_QUALITY_PRESETS[presetKey] ?? RENDER_QUALITY_PRESETS.balanced;
         renderer.toneMappingExposure = preset.exposure;
+        const shadowsOn = !isSoftwareGl && presetKey !== 'performance';
+        key.castShadow = shadowsOn;
+        renderer.shadowMap.enabled = shadowsOn;
         microDetailUniform.value = preset.microDetailStrength;
         materials.forEach((m) => {
           m.envMapIntensity = preset.envMapIntensity;
+          const baseNorm = (m.userData.baseNormalStrength as number | undefined) ?? 0;
+          if (m.normalScale && baseNorm > 0) {
+            const scaled = baseNorm * preset.microDetailStrength;
+            m.normalScale.set(scaled, scaled);
+          }
         });
         updatePixelRatio();
         dirty = true;
+      }
+
+      if (ready) {
+        const camDist = camera.position.distanceTo(controls.target);
+        const lodDecision = lodManager.evaluate({
+          cameraDistance: camDist,
+          qualityPreset: presetKey,
+          lod3Available: lod3Group.children.length > 0,
+          isIsolatedOrCloseFocus: Boolean(s.isolate || camDist < 1.1),
+          isExploded: amount > 0.05 || Object.keys(s.partTransforms ?? {}).length > 0,
+        });
+        if (lodDecision.changed) {
+          lod0Group.visible = lodDecision.level === 0;
+          lod3Group.visible = lodDecision.level === 3;
+          const telem = lodManager.getTelemetry();
+          el.dataset.lodLevel = String(telem.activeLevel);
+          el.dataset.activeTriangles = String(telem.activeTriangles);
+          dirty = true;
+        }
       }
 
       const ghostActive = Boolean(s.ghostSurroundings && s.selected.length > 0 && !s.isolate);
@@ -1566,6 +1712,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       selectionTexture.dispose();
       partColorTexture.dispose();
       partMaterialTexture.dispose();
+      tissueTextureLib.dispose();
       markerGeometry.dispose();
       markerMaterial.dispose();
       hover.remove();

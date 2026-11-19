@@ -7,6 +7,7 @@ import {
   SURGICAL_ANATOMY_REGIONS,
   SURGICAL_EDUCATION_DISCLAIMER,
   resolveSurgicalRegionLayers,
+  validateSurgicalAnatomyRegistry,
 } from './data/surgical-anatomy';
 import { buildAnatomyCoverageMatrix } from './data/coverage-matrix';
 import { resolvePartMaterialProps } from './tissue-materials';
@@ -23,21 +24,55 @@ const atlas = JSON.parse(
   fs.readFileSync(path.resolve('public/models/atlas.json'), 'utf8'),
 ) as Atlas;
 
-test('all 10 surgical-anatomy regions resolve real BodyParts3D meshes and keep variations concept-only', () => {
+test('all 10 surgical-anatomy regions pass per-layer validation with zero cross-region bleed and concept-only variations', () => {
   assert.equal(SURGICAL_ANATOMY_REGIONS.length, 10, 'Expected 10 core surgical-anatomy regions');
   assert.ok(
     SURGICAL_EDUCATION_DISCLAIMER.includes('not a certified surgical simulator'),
     'Must include explicit non-clinical safety disclaimer',
   );
 
+  const regCheck = validateSurgicalAnatomyRegistry(atlas);
+  assert.equal(regCheck.valid, true, regCheck.errors.join('; '));
+
+  const partNameById = new Map(atlas.parts.map((p) => [p.id, p.name]));
+
   for (const region of SURGICAL_ANATOMY_REGIONS) {
     const resolved = resolveSurgicalRegionLayers(region, atlas);
-    assert.ok(resolved.length >= 2, `Region "${region.id}" must have >= 2 dissection layers`);
+    assert.ok(resolved.length >= 3, `Region "${region.id}" must have >= 3 dissection layers`);
     const totalMatched = resolved.reduce((acc, layer) => acc + layer.partIds.length, 0);
     assert.ok(
       totalMatched >= 4,
       `Region "${region.id}" should resolve >= 4 real BodyParts3D meshes, got ${totalMatched}`,
     );
+
+    for (const layer of resolved) {
+      const names = layer.partIds.map((id) => partNameById.get(id) ?? '');
+      if (layer.id === 'cv-vault-bones' || layer.id === 'nk-viscera' || layer.id === 'ul-skeleton') {
+        assert.ok(
+          names.every((n) => !/tooth|gingiva|molar|premolar|incisor/i.test(n)),
+          `Layer "${layer.id}" must not contain dental/gingiva meshes`,
+        );
+      }
+      if (layer.id === 'ab-wall' || layer.id === 'rp-gi' || layer.id === 'ul-muscles') {
+        assert.ok(
+          names.every((n) => !/gluteus|piriformis|gemellus/i.test(n)),
+          `Layer "${layer.id}" must not contain gluteal/hip-rotator meshes`,
+        );
+      }
+      if (layer.id === 'th-heart-vessels' || layer.id === 'hc-great-vessels' || layer.id === 'ul-neurovascular') {
+        assert.ok(
+          names.every((n) => !/hepatic|portal|celiac|mesenteric/i.test(n)),
+          `Layer "${layer.id}" must not contain abdominal hepatic/portal vessels`,
+        );
+      }
+      if (layer.id === 'pl-viscera') {
+        assert.ok(
+          names.every((n) => !/calcaneal|tibial|femoral/i.test(n)),
+          `Layer "${layer.id}" must not contain lower-limb femoral/ankle arteries`,
+        );
+      }
+    }
+
     for (const v of region.variations) {
       assert.equal(
         v.has3DGeometry,

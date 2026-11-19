@@ -1,0 +1,953 @@
+# ANATOMY 360 — MASTER DEVELOPMENT DIRECTIVE
+## Anatomical Intelligence, Guided 3D Education, Clinical Visualization, Presentation Studio & Video Creation
+
+**Repository:** `abdulsince2008/human-atlas`  
+**Primary branch:** `main`  
+**Project:** Anatomy 360  
+**Technology:** React 19, TypeScript, Three.js, WebGL, Vite, Tailwind CSS  
+**Deployment philosophy:** Free, open-source tooling, static-first, local-first, no mandatory paid APIs or hosted backend.
+
+---
+
+# 1. YOUR ROLE
+
+Act as a complete senior product engineering and medical education technology team:
+
+- Principal Software Architect
+- Senior Three.js / WebGL Engineer
+- Medical 3D Visualization Engineer
+- Anatomical Data Architect
+- Medical Anatomy Education Specialist
+- Clinical Education Content Architect
+- Scientific Evidence and Provenance Engineer
+- Interactive Animation Engineer
+- Video Capture and Media Engineering Specialist
+- UI/UX Designer
+- Accessibility Engineer
+- Performance Engineer
+- QA and Release Engineer
+
+Your responsibility is to transform the existing Anatomy 360 project into a scientifically grounded, interactive 3D anatomy and medical education platform.
+
+**You must implement working functionality, not merely describe improvements.**
+
+# 2. NON-NEGOTIABLE EXECUTION RULES
+
+1. Inspect the actual latest remote `main` branch and its latest commit before making changes. The previously inspected commit `70741038a378aa3c67ea0f2c44f3cc16b3135a07` is only a historical reference.
+2. Inspect the actual source code, assets, manifests, registries, tests, validation scripts, package dependencies, and documentation.
+3. Run `git status` and preserve any existing uncommitted work. Never discard or overwrite unrelated user changes.
+4. Never assume the previous README or project documentation accurately reflects current implementation.
+5. Verify whether a feature already exists before implementing it. Improve existing functionality rather than duplicating it.
+6. Preserve the existing 3D rendering architecture wherever possible.
+7. Do not create unnecessary abstractions, parallel rendering engines, duplicate state managers, or redundant feature modules.
+8. Do not introduce subscriptions, paid APIs, proprietary asset dependencies, or mandatory backend infrastructure.
+9. Do not fabricate anatomy, pathology, clinical evidence, radiological imagery, anatomical relationships, mesh provenance, or licensing information.
+10. Never label a feature complete merely because its UI exists.
+11. Do not mark automated validation as anatomical expert approval.
+12. Do not label the application clinically validated, surgical-grade, or suitable for patient-specific surgical planning.
+13. If an external anatomical asset cannot be obtained, implement the import architecture and clearly document the missing dependency.
+14. Do not stop after completing the first phase. Continue through all independent implementation phases.
+15. Run actual available checks, fix failures, rerun them, and inspect the final changes.
+16. Update documentation so that it reflects actual working functionality rather than aspirational functionality.
+17. Do not ask me for additional instructions. Make reasonable, evidence-based engineering decisions.
+18. Do not replace working features simply to make the implementation easier.
+19. Avoid creating controls that have no functioning backend logic.
+20. Report precisely what was implemented, what was tested, and what remains blocked.
+
+# 3. FIRST: REPOSITORY-WIDE AUDIT
+
+Before development, examine:
+
+- `app/scene.tsx`
+- `app/components/ExplorerView.tsx`
+- `app/interaction-engine.ts`
+- `app/dissection-registry.ts`
+- `app/data/surgical-anatomy.ts`
+- `app/data/clinical-data.ts`
+- `app/data/histology-data.ts`
+- `app/data/physiology-data.ts`
+- `app/data/asset-registries.ts`
+- `app/data/provenance-registry.ts`
+- `app/learning-data.ts`
+- `app/anatomy-knowledge.ts`
+- `app/coverage-matrix.ts`
+- `app/practical-lab/`
+- `app/study-store.ts`
+- `app/pages/`
+- `scripts/`
+- `public/models/`
+- `package.json`
+
+Investigate the real current implementation of:
+
+- Anatomy rendering and GPU performance.
+- Individual structure selection.
+- Group explosion and directional extraction.
+- Layer-by-layer dissection.
+- X-ray and transparency.
+- Cross-sectional clipping.
+- Anatomical relationships.
+- Rigid-body movements.
+- Physiological simulations.
+- Surgical learning configurations.
+- Clinical educational cases.
+- Histology entries and microscopy media.
+- Geometry quality and runtime LOD.
+- Content validation and provenance.
+- Local study persistence.
+
+Specifically investigate the existing presentation capabilities before implementing anything new.
+
+Search for actual implementations of:
+
+- `MediaRecorder`
+- `captureStream`
+- Video or audio export
+- Presentation sequencing
+- Timeline playback
+- Automated camera transitions
+- Scene snapshots
+- Animation orchestration
+
+Do not confuse an existing anatomical animation with a complete presentation system.
+
+Create an internal technical audit and identify the actual gaps.
+
+# 4. PHASE ONE — ANATOMICAL ACCURACY AND SCIENTIFIC INTEGRITY
+
+**Priority: CRITICAL**
+
+Our first objective is to ensure that the current 3D model represents its actual source anatomy correctly.
+
+## 4.1 Improve anatomical structure mapping
+
+Audit the relationship between:
+
+- FMA concepts.
+- Individual BodyParts3D meshes.
+- Anatomical systems.
+- Anatomical regions.
+- Dissection layers.
+- Clinical educational cases.
+- Surgical educational regions.
+
+Investigate the current surgical layer resolver, including its bounding-box-centre approach.
+
+Do not treat a bounding-box match as proof of anatomical correctness.
+
+Implement stronger mapping where possible using:
+
+- Explicit part IDs.
+- Verified anatomical names.
+- FMA relationships.
+- Anatomical region membership.
+- Source-backed relationships.
+- Manually reviewed mapping records.
+
+Every structure should have a clearly defined coverage status.
+
+Recommended statuses:
+
+- Verified individual mesh.
+- Partial mesh coverage.
+- Conceptual-only structure.
+- Missing source geometry.
+- Pending human review.
+
+Do not silently replace missing structures with unrelated meshes.
+
+## 4.2 Improve anatomical validation
+
+Add tests to detect:
+
+- Incorrect concept-to-mesh references.
+- Missing referenced mesh IDs.
+- Duplicate mappings.
+- Incorrect layer assignments.
+- Empty anatomical regions.
+- Unsupported anatomical claims.
+- Invalid directional relationships.
+- Invalid structure dependencies.
+- Contradictions between content and actual geometry.
+
+Provide explicit review status and source references for educational content.
+
+## 4.3 Anatomical completeness
+
+Evaluate current deficiencies, including:
+
+- Adult-male-only reference anatomy.
+- Missing female anatomy.
+- Missing meningeal structures.
+- Missing cranial nerves.
+- Missing microscopic anatomy.
+- Missing fine vascular structures.
+- Missing anatomical variation.
+- Missing deformable muscle and organ assets.
+
+Create a prioritized asset-expansion plan with actual licensing requirements.
+
+Do not compromise existing attribution or mix incompatible licenses into the core asset bundle.
+
+# 5. PHASE TWO — GUIDED 3D PRESENTATION STUDIO
+
+**Priority: HIGHEST PRODUCT DEVELOPMENT PRIORITY**
+
+This is a central feature of the next generation of Anatomy 360.
+
+The existing anatomy viewer already supports numerous individual visualization operations.
+
+We now need the ability to combine these operations into a guided educational presentation.
+
+Build a dedicated **Guided 3D Presentation Studio**.
+
+It should allow students and teachers to demonstrate complicated anatomical processes without manually controlling every interaction.
+
+## 5.1 Presentation architecture
+
+Build a reusable presentation engine that uses the existing Three.js scene and interaction engine.
+
+Do not create a second human anatomy renderer.
+
+Each presentation should contain an ordered sequence of scenes.
+
+Create a strongly typed data architecture similar to:
+
+```ts
+interface AnatomyPresentation {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  learningObjectives: string[];
+  level: string;
+  sourceReferences: SourceReference[];
+  steps: PresentationStep[];
+}
+
+interface PresentationStep {
+  id: string;
+  title: string;
+  explanation: string;
+  narration?: string;
+  durationSeconds: number;
+
+  camera: CameraConfiguration;
+
+  scene: AnatomicalSceneConfiguration;
+
+  annotations: AnatomicalAnnotation[];
+
+  transition: TransitionConfiguration;
+}
+```
+
+This is a starting schema, not a requirement to copy it without inspecting the current state architecture.
+
+Support the following scene configuration features:
+
+- Camera position and orientation.
+- Focused anatomical region.
+- Selected structures.
+- Visible anatomical systems.
+- Hidden structures.
+- Isolated structures.
+- Ghost transparency.
+- Individual structure opacity.
+- Anatomical highlighting.
+- Color overrides.
+- Full-body explosion.
+- Group explosion.
+- Progressive dissection.
+- Cross-sectional clipping.
+- Registered anatomical animations.
+- Educational annotations.
+- Captions and descriptions.
+
+A presentation step should be able to reproduce a complete saved visualization deterministically.
+
+## 5.2 Automatic scene transitions
+
+Implement:
+
+- Next scene.
+- Previous scene.
+- Play.
+- Pause.
+- Resume.
+- Restart.
+- Playback speed control.
+- Scene duration control.
+- Automatic advancement.
+- Smooth camera movement.
+- Smooth structural transitions.
+- Transition interruption handling.
+- Timeline progress indicator.
+
+The transition system should not unnecessarily reinitialize the WebGL renderer.
+
+Use the existing renderer and state architecture.
+
+## 5.3 Presentation timeline
+
+Create a visual timeline showing all presentation steps.
+
+Allow the creator to:
+
+- Add a scene.
+- Remove a scene.
+- Duplicate a scene.
+- Reorder scenes.
+- Edit a scene title.
+- Edit the explanation.
+- Set duration.
+- Choose a camera view.
+- Configure model visibility.
+- Add annotations.
+- Preview the scene.
+- Preview the whole presentation.
+
+Do not implement fake timeline controls.
+
+## 5.4 Educational annotations
+
+Provide a reusable annotation system supporting:
+
+- Anatomical labels.
+- Structure names.
+- Short explanatory text.
+- Highlighted regions.
+- Directional pointers.
+- Numbered steps.
+- Relationship explanations.
+- Important educational notes.
+
+Annotations must remain readable and correctly associated with their structures.
+
+Where possible, connect annotations to actual mesh IDs rather than guessed screen coordinates.
+
+Support both 3D-anchored labels and fixed educational overlays.
+
+Annotations and captions must also be considered in the video-export architecture.
+
+## 5.5 Presentation authoring and persistence
+
+Allow users to create custom presentations.
+
+Save presentations locally through the existing persistence architecture.
+
+Provide:
+
+- Save.
+- Rename.
+- Duplicate.
+- Delete.
+- Export JSON.
+- Import JSON.
+- Schema validation.
+- Version compatibility.
+
+Provide prebuilt educational presentation examples.
+
+Do not require an online account or paid database.
+
+# 6. PHASE THREE — THREE EDUCATIONAL DEMONSTRATION CATEGORIES
+
+**Priority: MAJOR**
+
+The presentation engine should support three different categories of educational content.
+
+## 6.1 Anatomical demonstrations
+
+This category explains the organization and relationships of anatomical structures.
+
+Examples:
+
+- Cranial vault and brain organization.
+- Skeletal and muscular relationships.
+- Heart chambers and great vessels.
+- Thoracic cavity organization.
+- Kidney anatomy.
+- Nervous system pathways.
+- Anatomical blood supply.
+- Joint articulation.
+- Superficial-to-deep anatomical dissection.
+- Organ relationships.
+
+Use actual bundled meshes wherever possible.
+
+A demonstration should contain educational steps, structure highlights, explanations and references.
+
+## 6.2 Disease and pathophysiology demonstrations
+
+Develop an architecture for explaining how diseases affect the human body.
+
+Examples to evaluate:
+
+- Coronary atherosclerosis.
+- Myocardial infarction.
+- Asthma and airway narrowing.
+- Renal filtration abnormalities.
+- Peripheral nerve injuries.
+- Bone fractures.
+- Inflammatory processes.
+- Abnormal blood flow.
+
+Each disease presentation should follow an educational structure:
+
+1. Normal anatomy.
+2. Affected anatomical structures.
+3. Underlying pathophysiological mechanism.
+4. Physiological consequences.
+5. Structural or functional changes.
+6. Educational clinical correlations.
+7. Assessment question.
+
+### Scientific restrictions
+
+Never invent disease-specific 3D geometry.
+
+Where genuine pathological meshes are unavailable:
+
+- Use verified existing healthy anatomy.
+- Highlight the affected structures.
+- Present clearly labelled conceptual diagrams.
+- Use evidence-backed explanatory annotations.
+- Use appropriate physiological models.
+- Explicitly disclose conceptual representations.
+
+Do not depict an illustrative overlay as a clinically accurate pathological tissue model.
+
+For every disease-specific demonstration, provide traceable references.
+
+Clearly distinguish anatomy, pathophysiology and simplified educational simulation.
+
+## 6.3 Surgical anatomy education
+
+Develop guided regional anatomy demonstrations based on the existing surgical anatomy registry.
+
+Examples:
+
+- Cranial anatomical layers.
+- Thoracic wall and mediastinum.
+- Upper-limb neurovascular anatomy.
+- Abdominal anatomical relationships.
+- Lower-limb neurovascular regions.
+
+A typical demonstration could:
+
+1. Introduce a region.
+2. Show its boundaries.
+3. Identify superficial structures.
+4. Reveal deeper anatomical structures.
+5. Explain important nerves and vessels.
+6. Highlight anatomical landmarks.
+7. Demonstrate spatial relationships.
+8. Explain educational significance.
+
+Use existing dissection and group-explosion capabilities.
+
+Do not turn an anatomical demonstration into unsupported operative instructions.
+
+This is medical anatomy education, not a surgical simulator.
+
+# 7. PHASE FOUR — THREE COMPLETE BUILT-IN PRESENTATIONS
+
+**Priority: MAJOR**
+
+Create at least three polished, fully functioning example presentations using real repository data.
+
+Choose the three subjects based on actual geometry coverage and anatomical correctness.
+
+Recommended candidates:
+
+### Presentation A — Cranial Anatomy and Progressive Dissection
+
+- Full head overview.
+- Cranial vault.
+- Skull structure.
+- Progressive cranial exposure.
+- Cerebral hemispheres.
+- Deep anatomical structures.
+- Brainstem and cerebellum.
+- Explanatory annotations.
+
+### Presentation B — Thoracic Anatomy and Cardiorespiratory Relationships
+
+- Rib cage and sternum.
+- Pectoral musculature.
+- Mediastinum.
+- Heart and great vessels.
+- Tracheobronchial structures.
+- Relevant anatomical relationships.
+- Existing respiratory mechanics where appropriate.
+
+### Presentation C — Upper-Limb Neurovascular Anatomy
+
+- Shoulder region.
+- Humerus.
+- Muscle compartments.
+- Radial nerve and associated structures where actually available.
+- Anatomical depth.
+- Elbow relationships.
+- Functional movement.
+- Educational nerve-injury correlation.
+
+If any proposed structure is not available, adjust the presentation to use a scientifically valid alternative.
+
+Each presentation must be independently testable.
+
+It must have real scene changes and actual interaction with the 3D engine.
+
+# 8. PHASE FIVE — VIDEO RECORDING AND EXPORT
+
+**Priority: IMPORTANT**
+
+Once guided presentations work, add a native video creation feature.
+
+The objective is to let teachers and students transform an Anatomy 360 presentation into an educational video.
+
+Use browser-native capabilities.
+
+Evaluate:
+
+- `HTMLCanvasElement.captureStream()`
+- `MediaRecorder`
+- `MediaRecorder.isTypeSupported()`
+- `navigator.mediaDevices.getUserMedia()`
+- Browser-native audio streams.
+
+Do not introduce paid recording APIs.
+
+## 8.1 Recording interface
+
+Provide:
+
+- Start recording.
+- Pause recording.
+- Resume recording.
+- Stop recording.
+- Recording duration.
+- Recording status.
+- Preview.
+- Download.
+- Discard.
+- Optional microphone narration.
+
+## 8.2 Recording composition
+
+The exported presentation should include:
+
+- Actual 3D anatomy.
+- Camera movements.
+- Anatomical transitions.
+- Highlighted structures.
+- Educational captions.
+- Relevant annotations.
+- Scene titles.
+- Optional recorded narration.
+
+The recording must capture the actual rendering, not a slideshow of screenshots.
+
+Avoid recording unnecessary editor controls.
+
+The video composition architecture must account for WebGL canvas content and educational overlays.
+
+If necessary, implement a separate recording composition canvas that combines the Three.js rendering and educational annotation layers.
+
+Do not claim that DOM interface elements are automatically captured by the WebGL canvas.
+
+## 8.3 Audio
+
+Allow optional microphone narration with explicit user permission.
+
+Audio should be optional.
+
+Captions and explanatory text should work even without a microphone.
+
+Do not claim that browser speech synthesis is embedded in the exported file unless it is actually captured or encoded into the recording audio stream.
+
+Handle missing microphone access gracefully.
+
+## 8.4 Browser compatibility
+
+Detect supported recording MIME types rather than assuming a particular codec.
+
+Provide a graceful fallback if recording is unavailable.
+
+Clearly disclose the exported format.
+
+Handle:
+
+- Resource cleanup.
+- Stream-track termination.
+- Recording interruption.
+- WebGL context loss.
+- Browser permission denial.
+- Memory limits.
+- Large video files.
+- Object URL cleanup.
+
+Avoid uploading recordings to any mandatory server.
+
+The user should be able to save their recording locally.
+
+# 9. PHASE SIX — PHYSIOLOGY AND FUNCTIONAL ANATOMY
+
+**Priority: MAJOR**
+
+Improve the relationship between the 3D anatomy model and existing physiology simulations.
+
+Audit the existing physiology modules before adding features.
+
+Connect appropriate simulations to actual anatomical demonstrations.
+
+Examples:
+
+### Cardiac cycle
+
+Connect the simulation to:
+
+- Heart structure.
+- Four chambers.
+- Valves.
+- Great vessels.
+- Blood-flow direction.
+- Systolic and diastolic phases.
+
+### Respiratory ventilation
+
+Connect:
+
+- Diaphragm.
+- Rib cage.
+- Intercostal muscles.
+- Trachea.
+- Main bronchi.
+- Lung anatomy.
+
+Clearly distinguish the existing rigid rib movement from true deformable lung inflation.
+
+### Renal filtration
+
+Connect:
+
+- Kidney.
+- Renal vasculature.
+- Nephron educational representation.
+- Filtration physiology.
+
+Do not imply that gross anatomical meshes contain microscopic structures they do not model.
+
+Add coordinated demonstrations where scientifically supported.
+
+# 10. PHASE SEVEN — HISTOLOGY AND MICROANATOMY
+
+**Priority: IMPORTANT**
+
+Audit the existing histology library.
+
+Do not call text-only specimen slots a complete microscopy library.
+
+Establish a genuine asset integration workflow supporting:
+
+- Authenticated histology imagery.
+- Source attribution.
+- Tissue classification.
+- Stain information.
+- Magnification.
+- Scale bars where supplied by the source.
+- Image licensing.
+- Linked gross anatomy structures.
+- Educational questions.
+
+Support specimen import through a validated asset registry.
+
+Do not fabricate photomicrographs.
+
+Where microscopy assets are unavailable, maintain an honest conceptual educational representation.
+
+# 11. PHASE EIGHT — VISUAL FIDELITY AND PERFORMANCE
+
+**Priority: IMPORTANT, BUT NOT AT THE EXPENSE OF THE PRESENTATION ENGINE**
+
+Evaluate the existing natural anatomy materials, GPU shader architecture, PBR attributes, rendering presets and LOD infrastructure.
+
+Prioritize genuine improvements:
+
+- Correct tissue appearance.
+- Per-tissue roughness.
+- Surface micro-detail.
+- Structure preservation.
+- Anatomical clarity.
+- Camera framing.
+- Responsive interaction.
+- Rendering stability.
+
+Do not spend excessive development time on decorative texture effects.
+
+## Runtime performance
+
+Measure actual performance on representative desktop and mobile hardware.
+
+Investigate:
+
+- WebGL draw calls.
+- GPU memory.
+- Model loading duration.
+- Frame pacing.
+- Animation state-update frequency.
+- Video recording overhead.
+- Mobile memory usage.
+- Renderer lifecycle.
+- Clipping and transparency performance.
+
+The declared LOD architecture must not be confused with actual runtime LOD switching.
+
+Only expose LOD options that genuinely have available geometry and working runtime selection.
+
+Preserve the merged-geometry/DataTexture design unless testing proves an alternative is better.
+
+# 12. PHASE NINE — EDUCATIONAL CONTENT AND USER EXPERIENCE
+
+The platform should clearly distinguish its three main experiences:
+
+## EXPLORE
+
+Interactive 3D anatomy.
+
+- Full anatomy.
+- Individual structures.
+- Anatomical relationships.
+- Deep inspection.
+- Dissection.
+- X-ray.
+- Cross-section.
+- Explosion.
+- Functional movement.
+
+## LEARN
+
+Structured educational content.
+
+- Anatomical systems.
+- Clinical correlations.
+- Pathophysiology.
+- Physiology.
+- Histology.
+- Quizzes.
+- Practical examinations.
+- Revision and flashcards.
+
+## PRESENT
+
+Guided 3D educational experiences.
+
+- Presentation library.
+- Custom scene sequences.
+- Automatic playback.
+- Camera transitions.
+- Annotations.
+- Explanations.
+- Narration.
+- Timeline editor.
+- Video recording.
+- Local export.
+
+Integrate these experiences naturally into the existing design system.
+
+Do not unnecessarily rebuild the navigation or existing learning sections.
+
+The platform must remain usable on desktop, tablet and mobile.
+
+# 13. PHASE TEN — QUALITY ASSURANCE
+
+Create tests for every new critical capability.
+
+## Presentation tests
+
+Test:
+
+- Presentation schema validation.
+- Scene ordering.
+- Scene restoration.
+- Camera configuration.
+- Part visibility.
+- Structure highlighting.
+- Group explosion.
+- Clipping.
+- Animation playback.
+- Scene transitions.
+- Timeline navigation.
+- Presentation persistence.
+- JSON import/export.
+
+## Recording tests
+
+Test:
+
+- Media API availability detection.
+- MIME type negotiation.
+- Canvas stream initialization.
+- Start/pause/resume/stop.
+- Audio permission handling.
+- Recording cleanup.
+- Export generation.
+- Browser fallback behavior.
+
+## Medical content tests
+
+Test:
+
+- All concept IDs.
+- Actual mesh availability.
+- Missing asset disclosures.
+- Source references.
+- Content review statuses.
+- Anatomical mapping integrity.
+- Presentation-to-model consistency.
+
+## Performance tests
+
+Check that:
+
+- The WebGL renderer is not unnecessarily remounted.
+- Scene transitions do not produce excessive state updates.
+- Recording does not unnecessarily duplicate 3D geometry.
+- The model remains selectable during normal exploration.
+- Existing lazy loading continues to work.
+- Mobile performance is not unnecessarily degraded.
+
+# 14. FINAL EXECUTION REQUIREMENTS
+
+Execute the following phases in one continuous development session:
+
+1. Inspect latest repository.
+2. Establish the real technical baseline.
+3. Improve anatomy and scientific mapping.
+4. Build the Guided 3D Presentation Studio.
+5. Implement presentation sequencing and playback.
+6. Implement three complete working demonstrations.
+7. Connect suitable clinical and physiological educational content.
+8. Implement local video recording and export.
+9. Improve histology and asset-management capabilities where feasible.
+10. Improve visual fidelity and measured performance.
+11. Update navigation and product documentation.
+12. Add automated tests and validation.
+13. Run all relevant checks.
+14. Fix failures.
+15. Run the final production build.
+16. Review the final diff.
+
+Use the existing project scripts, including:
+
+```bash
+npm run check
+npm run lint
+npm run validate:atlas
+npm run validate:interactions
+npm run validate:content
+npm run validate:assets
+npm run validate:materials
+npm run validate:licenses
+npm run validate:anatomy
+npm run validate:lod
+npm test
+npm run validate:all
+npm run build
+```
+
+Use the commands actually available in the current repository. Do not claim a check passed if it was not executed.
+
+# 15. FINAL REPORT
+
+When finished, provide:
+
+### A. Repository audit
+- Latest commit inspected.
+- Original feature state.
+- Newly discovered issues.
+- Major architectural observations.
+
+### B. Implemented functionality
+- Every actual code change.
+- Every new functional feature.
+- Relevant files.
+- How users interact with the new features.
+
+### C. Presentation demonstrations
+- Names of built-in presentations.
+- Number of working scenes in each.
+- Actual 3D interactions used.
+- Any missing structures.
+
+### D. Video system
+- Supported recording formats.
+- Audio support.
+- Browser limitations.
+- Export behavior.
+
+### E. Anatomical and scientific accuracy
+- What was verified.
+- What remains conceptual.
+- What needs expert review.
+- What assets remain unavailable.
+
+### F. Testing
+Provide actual results for:
+- TypeScript.
+- Lint.
+- Unit tests.
+- Registry validation.
+- Asset validation.
+- Production build.
+- Browser testing.
+
+Clearly distinguish automated checks from manually tested browser interactions.
+
+### G. Remaining priorities
+Identify the actual remaining technical bottlenecks in descending order of importance.
+
+Update:
+
+- `PROJECT_STATUS.md`
+- `COMPLETED_FEATURES.md`
+- `ANATOMY360_BACKLOG.md`
+- `REMAINING_TASKS.md`
+- `ANATOMY360_IMPLEMENTATION_LOG.md`
+- `README.md`
+
+Only document features that genuinely work as completed.
+
+---
+
+# 16. FINAL PRODUCT VISION
+
+The ultimate objective is not simply to create a realistic-looking 3D human figure.
+
+It is to build a platform where a student or teacher can:
+
+1. Explore real anatomical structures in three dimensions.
+2. Understand how different structures relate to each other.
+3. Study progressively deeper anatomy.
+4. See how organs and anatomical systems function.
+5. Understand medically relevant disease mechanisms.
+6. Explore regional surgical anatomy for educational purposes.
+7. Follow guided visual demonstrations.
+8. Create their own anatomical presentations.
+9. Narrate and record those presentations.
+10. Export educational videos for classroom use and independent study.
+
+**Anatomy 360 should evolve from an interactive 3D anatomy viewer into an integrated visual anatomy and medical education platform.**
+
+Prioritize scientific integrity, genuine educational value, functional completeness, and reusable architecture.
+
+Do not sacrifice correctness for appearance.
+
+Do not sacrifice working functionality for feature count.
+
+Do not merely add more controls.
+
+**MAKE THE EXISTING ANATOMY MODEL TEACH.**
+
+Build the actual platform.
