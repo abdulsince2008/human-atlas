@@ -238,8 +238,25 @@ assert.equal(
   'builtin-hepatic-portal-mechanism',
 );
 
+// ---------------------------------------------------------------------------
+// 7. Human Biology & Medical Sciences Education Taxonomy Integrity Tests
+// ---------------------------------------------------------------------------
+const { validateEducationSystem } = await import(
+  '../app/education/education-validation.ts'
+);
+const eduRes = validateEducationSystem(atlas);
+assert.equal(
+  eduRes.valid,
+  true,
+  `Education taxonomy validation failed: ${eduRes.errors.join('; ')}`,
+);
+assert.equal(eduRes.summary.tracks, 5);
+assert.equal(eduRes.summary.frameworks, 11);
+assert.equal(eduRes.summary.domains, 16);
+assert.ok(eduRes.summary.topics >= 16);
+
 console.log(
   'All automated platform tests passed: search-engine, knowledge-graph, SM-2 scheduler, ' +
     'study-store sanitization/migration/queue, atlas/pack validators, physiology evaluators, ' +
-    'and clinical 3D presentation integrity.',
+    'clinical 3D presentation integrity, and 16-domain human biology/medical education taxonomy.',
 );

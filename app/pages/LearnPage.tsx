@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Compass, Layers, Type } from 'lucide-react';
+import { ArrowRight, BookOpen, Compass, GraduationCap, Layers, Type } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CURATED_KNOWLEDGE } from '../anatomy-knowledge';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import MedicalCurriculumHub from '../components/MedicalCurriculumHub';
+import type { AppRoute } from '../components/SiteHeader';
 import SystemLearnWorkspace from '../components/SystemLearnWorkspace';
 import {
   GUIDED_PATHWAYS,
@@ -17,6 +19,8 @@ interface Props {
   initialSystemId?: CanonicalSystemId | null;
   initialTopicId?: string | null;
   onInspectConcept: (conceptId: string) => void;
+  onNavigate: (route: AppRoute) => void;
+  onOpenPresentation: (presentationId: string) => void;
 }
 
 export default function LearnPage({
@@ -25,10 +29,20 @@ export default function LearnPage({
   initialSystemId,
   initialTopicId,
   onInspectConcept,
+  onNavigate,
+  onOpenPresentation,
 }: Props) {
-  const [category, setCategory] = useState<LearningCategoryId>('by-system');
+  const [category, setCategory] = useState<LearningCategoryId>(() =>
+    initialSystemId || initialTopicId ? 'by-system' : 'curriculum-hub',
+  );
+  const [systemLessonIntent, setSystemLessonIntent] = useState<CanonicalSystemId | null>(
+    initialSystemId ?? null,
+  );
   useEffect(() => {
-    if (initialSystemId || initialTopicId) setCategory('by-system');
+    if (initialSystemId || initialTopicId) {
+      setCategory('by-system');
+      if (initialSystemId) setSystemLessonIntent(initialSystemId);
+    }
   }, [initialSystemId, initialTopicId]);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [termFilter, setTermFilter] = useState<string>('all');
@@ -57,6 +71,7 @@ export default function LearnPage({
   );
 
   const categoryIcon = (id: LearningCategoryId) => {
+    if (id === 'curriculum-hub') return <GraduationCap size={16} />;
     if (id === 'by-system') return <Layers size={16} />;
     if (id === 'by-structure') return <BookOpen size={16} />;
     if (id === 'explore-body') return <Compass size={16} />;
@@ -66,11 +81,11 @@ export default function LearnPage({
   return (
     <div className="a360-page a360-learn-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Structured Curriculum</p>
-        <h1>Learn Human Anatomy</h1>
+        <p className="a360-kicker">Structured Curriculum · 16 Biomedical &amp; Clinical Domains</p>
+        <h1>Learn Human Biology &amp; Medical Sciences</h1>
         <p className="a360-lead">
-          Study verified concepts organized for Foundational, FSc / MDCAT, and MBBS / Nursing
-          courses—synchronized directly with real 3D structures in Anatomy 360.
+          Progress from School Foundations and Pre-Medical Biology (Matric, FSc, MDCAT, CBSE, AP, WA)
+          through MBBS/MD Foundations and Applied Clinical Sciences—connected directly to real 3D anatomy.
         </p>
       </header>
 
@@ -90,11 +105,24 @@ export default function LearnPage({
         ))}
       </div>
 
+      {category === 'curriculum-hub' && (
+        <MedicalCurriculumHub
+          atlas={atlas}
+          onInspectConcept={onInspectConcept}
+          onNavigate={onNavigate}
+          onOpenSystemLesson={(sysId) => {
+            setSystemLessonIntent(sysId);
+            setCategory('by-system');
+          }}
+          onOpenPresentation={onOpenPresentation}
+        />
+      )}
+
       {category === 'by-system' && (
         <SystemLearnWorkspace
           atlas={atlas}
           atlasError={atlasError}
-          initialSystemId={initialSystemId}
+          initialSystemId={systemLessonIntent}
           initialTopicId={initialTopicId}
           onInspectConcept={onInspectConcept}
         />

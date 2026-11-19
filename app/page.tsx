@@ -261,6 +261,8 @@ export default function Home() {
               initialSystemId={learnSystemIntent}
               initialTopicId={learnTopicIntent}
               onInspectConcept={inspectConceptIn3D}
+              onNavigate={navigate}
+              onOpenPresentation={openPresentation}
             />
           )}
 

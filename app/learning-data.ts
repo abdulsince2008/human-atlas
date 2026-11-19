@@ -1,7 +1,12 @@
 import type { LocalizedText, View } from './anatomy';
 import type { CanonicalSystemId } from './anatomy-systems';
 
-export type LearningCategoryId = 'by-system' | 'by-structure' | 'explore-body' | 'terminology';
+export type LearningCategoryId =
+  | 'curriculum-hub'
+  | 'by-system'
+  | 'by-structure'
+  | 'explore-body'
+  | 'terminology';
 
 export type StudentLevel = 'Foundational' | 'FSc / MDCAT' | 'MBBS / Nursing';
 
@@ -59,6 +64,7 @@ export interface TerminologyEntry {
 }
 
 export const LEARNING_CATEGORIES: { id: LearningCategoryId; title: string; subtitle: string }[] = [
+  { id: 'curriculum-hub', title: 'Human Biology & Medical Sciences', subtitle: '16 curriculum-aligned domains across School, Pre-Medical, Medical Foundations, Clinical, and Allied Health tracks.' },
   { id: 'by-system', title: 'Learn by Anatomical System', subtitle: 'Structured chapters and interactive 3D lessons across all 12 canonical organ systems.' },
   { id: 'by-structure', title: 'Learn by Individual Structure', subtitle: 'High-yield organ, bone, and muscle study guides linked directly to 3D inspection.' },
   { id: 'explore-body', title: 'Explore the Human Body', subtitle: 'Step-by-step guided 3D pathways tracing blood flow, airflow, digestion, and skeleton.' },

@@ -1,0 +1,992 @@
+# ANATOMY 360 — COMPLETE HUMAN BIOLOGY & MEDICAL EDUCATION COVERAGE
+## Comprehensive Curriculum Research, Repository Gap Analysis, Educational Architecture & Implementation
+
+You are working directly inside my existing Google AI Studio project, connected to the GitHub repository:
+
+`abdulsince2008/human-atlas`
+
+The goal is to expand ANATOMY 360 into a comprehensive, curriculum-aligned human biology and medical sciences learning platform for students progressing from secondary school and pre-medical education to medical university.
+
+This is not a request to add a few more diseases, presentations, animations, quizzes or isolated features.
+
+The objective is to identify what students actually study, compare the complete human-body and biomedical learning scope against the current repository, identify every meaningful educational gap, decide exactly what belongs in the product, and implement a coherent first complete educational foundation.
+
+Do not ask me to approve every stage. Perform the research, repository audit, planning, implementation, integration, validation and documentation in this task.
+
+---
+
+# PART 1 — CORE PRODUCT OBJECTIVE
+
+ANATOMY 360 should become:
+
+**A curriculum-aligned human biology and medical sciences learning platform, covering secondary-school human biology, pre-medical biology, medical foundations and clinically applied medical education.**
+
+The platform must support different levels of students without teaching every student the same material at the same complexity.
+
+Establish these learning tracks:
+
+1. School Foundations — approximately Grades 6–8, with age-appropriate material for younger learners where relevant.
+2. Secondary / Pre-Medical — Matric, FSc Pre-Medical, MDCAT, CBSE Classes XI–XII, and equivalent international secondary courses.
+3. Medical Foundations — early MBBS/MD and equivalent undergraduate medical science education.
+4. Clinical / Applied Medicine — later medical education, system-based clinical subjects, clinical reasoning and specialty introductions.
+5. Allied Health Foundations — nursing and relevant allied-health topics where they overlap with human anatomy and biomedical sciences.
+
+Do not present ANATOMY 360 as a replacement for an accredited medical degree, cadaveric dissection, clinical placements, qualified faculty, supervised practice or clinical decision-making.
+
+The goal is educational coverage and learning support, not professional accreditation.
+
+---
+
+# PART 2 — CONDUCT A BOUNDED, SOURCE-BASED CURRICULUM RESEARCH PASS
+
+Use official curriculum authorities and representative medical-school programmes as the primary evidence.
+
+Do not conduct endless general web research. Use the official references below as the initial source set. Verify relevant documents, academic years, implementation dates, topic names and curriculum details wherever browsing or grounding is available.
+
+## Pakistan — primary market and baseline
+
+1. National Curriculum of Pakistan, General Science, Grades 4–8:
+https://www.ncc.gov.pk/Detail/MjM3NGE4Y2ItNjIyNC00ZTY5LTg0OTQtOWZhZWMzODRlYTQ2
+
+2. National Curriculum of Pakistan 2026, Biology Grades IX–XII:
+https://www.ncc.gov.pk/SiteImage/Misc/files/Biology.pdf
+
+3. Pakistan Medical and Dental Council — Undergraduate Medical Education / MBBS Guidelines:
+https://www.pmdc.pk/Documents/Others/PM%26DC%20GUIDELINES%20FOR%20UG%20M.EDUCATION-06242024035407.pdf
+
+4. University of Health Sciences Lahore — MBBS Modular Curriculum:
+https://www.uhs.edu.pk/downloads/2k23mbbscurriculumv20.pdf
+
+Important date and adoption rule:
+The NCP-2026 Biology framework must not be described as universally implemented in every Pakistani school. Record its notified academic-year implementation information and distinguish federal/ICT implementation from provincial board adoption. Where provincial implementation cannot be verified, mark it as board-dependent or unverified.
+
+## India
+
+5. CBSE Biology curriculum, Classes XI–XII, academic year 2026–27:
+https://cbseacademic.nic.in/web_material/CurriculumMain27/SecPart2/Biology_SecP2_2026-27.pdf
+
+## England / United Kingdom reference
+
+6. England National Curriculum — Science:
+https://www.gov.uk/government/publications/national-curriculum-in-england-science-programmes-of-study/national-curriculum-in-england-science-programmes-of-study
+
+Do not treat England's curriculum as automatically representing every UK nation. Keep the geographic scope accurate.
+
+## United States
+
+7. College Board — AP Biology:
+https://apcentral.collegeboard.org/courses/ap-biology
+
+AP Biology is an advanced course, not a universal US high-school syllabus. Do not misrepresent it as one.
+
+## China
+
+8. Ministry of Education — Compulsory Education Biology Curriculum Standards:
+https://www.moe.gov.cn/srcsite/A26/s8001/202204/W020220420582359998122.pdf
+
+## Australia
+
+9. School Curriculum and Standards Authority, Western Australia — Human Biology:
+https://senior-secondary.scsa.wa.edu.au/syllabus-and-support-materials/science/human-biology
+
+Do not assume this one state syllabus represents every Australian state or territory.
+
+## Representative medical universities
+
+10. Harvard Medical School — Pathways Curriculum:
+https://hms.harvard.edu/education-admissions/md-program/curriculum/pathways
+
+11. University of Oxford — Pre-clinical Medical Course Structure:
+https://www.medsci.ox.ac.uk/study/medicine/pre-clinical/structure/pre-clinical-course-structure-description
+
+Use these as representative medical programme examples, not as universal global standards.
+
+## Research rules
+
+- Prefer curriculum authorities, official medical-school course descriptions, professional councils and official course specifications.
+- Use textbooks as supporting references, not substitutes for official syllabi.
+- Where an official source identifies learning outcomes, use those outcomes rather than inventing chapter requirements.
+- Record source title, publisher/authority, URL, country, academic year/version, date accessed, applicable grade or medical year, and what it supports.
+- Distinguish compulsory, elective, optional, recommended and institution-specific material.
+- Distinguish official curricula from common textbook references.
+- Do not copy copyrighted textbook passages, diagrams, tables or illustrations into the project. Create original educational explanations and use properly licensed assets.
+- Do not fabricate citations, source access dates, adoption status, official endorsements, or university requirements.
+- Where a source is inaccessible, record that limitation rather than pretending it was checked.
+
+## Required research outputs
+
+Create and maintain:
+
+`CURRICULUM_ALIGNMENT.md`
+
+This document must include:
+
+- Pakistan school, Matric, FSc and MBBS curriculum progression.
+- India CBSE Classes XI–XII.
+- England's relevant school science curriculum.
+- US AP Biology as an advanced comparison.
+- China's compulsory Biology curriculum.
+- Australia's Western Australian Human Biology course.
+- Harvard and Oxford representative medical programme structures.
+- Shared human-biology and medical-science topics across these systems.
+- Country-specific or optional topics.
+- Clear references and adoption-date notes.
+- A concise explanation of what is outside ANATOMY 360's intended scope.
+
+Do not invent one worldwide percentage ranking. Compare weighting only inside an individual curriculum where official teaching hours, marks or assessment weighting are available.
+
+For Pakistan, preserve the PM&DC MBBS subject-hour breakdown as a Pakistan-specific reference. Do not use its numbers to claim a universal global distribution.
+
+---
+
+# PART 3 — AUDIT THE ACTUAL REPOSITORY BEFORE CHANGING ANYTHING
+
+Inspect the latest `main` branch and actual source files, data, route configuration, UI and tests.
+
+Do not rely on README counts or older assistant summaries without verification.
+
+Audit at least:
+
+- `app/anatomy.ts`
+- `app/anatomy-systems.ts`
+- `app/anatomy-knowledge.ts`
+- `app/learning-data.ts`
+- `app/data/coverage-matrix.ts`
+- `app/data/physiology-data.ts`
+- `app/data/histology-data.ts`
+- `app/data/clinical-data.ts`
+- `app/data/surgical-anatomy.ts`
+- `app/data/study-resources.ts`
+- `app/content-registry.ts`
+- `app/quiz-data.ts`
+- `app/presentation/`
+- `app/pages/`
+- `app/components/`
+- existing validation scripts and package scripts
+- actual `public/models/atlas.json` and its anatomy manifest where relevant.
+
+Verify the actual current counts and implementation states.
+
+The known current project foundation includes, subject to source verification:
+
+- 2,234 selectable BodyParts3D meshes and approximately 3,432 FMA concepts.
+- 12 canonical anatomical systems.
+- 12 lesson chapters and 28 structured lesson topics.
+- 4 guided anatomical learning pathways.
+- 97 curated anatomy knowledge entries.
+- A Relationship Explorer.
+- A Practical Spotter Lab.
+- Quizzes, revision, bookmarks and student progress.
+- Four interactive physiology simulations and one planned endocrine feedback specification.
+- Ten histology entries with specimen media still requiring real licensed images.
+- Ten clinical correlation cases.
+- Ten surgical anatomy/dissection region specifications.
+- Five built-in 3D presentation sequences in the actual presentation source data.
+- A 3D presentation studio and browser-native local video recording.
+- A curated external study resource library.
+
+These counts are not guaranteed to remain correct. Recalculate them from the current source.
+
+Known limitations to verify:
+
+- The existing BodyParts3D reference dataset is adult male anatomy.
+- Female reproductive anatomy is not represented by the current reference dataset.
+- Some peripheral nerves, meninges, thyroid/parathyroid details, inner-ear structures and other anatomical structures are absent or conceptual.
+- Some body-system geometry is partial, even when its educational concepts exist.
+- Histology records exist, but genuine microscopy images are not yet populated in the specimen slots.
+- Physiology simulations cover only a small subset of human physiology.
+- Existing clinical cases are anatomy-led correlations, not a complete clinical medicine or systemic pathology curriculum.
+- Existing presentations do not constitute full coverage of medical specialties.
+- Existing study-resource links are not equivalent to teaching modules.
+- Existing content review states must not be upgraded to expert-verified without actual human expert review.
+
+For every subject, determine whether the current project has:
+1. Real implemented learning content.
+2. A working interactive visual or learning activity.
+3. Actual licensed/verified visual assets where needed.
+4. Assessment or practice.
+5. Curriculum mapping.
+6. Proper educational sources and review status.
+
+Do not count a title, placeholder, empty page, planned slot or resource link as a completed learning module.
+
+Create:
+
+`EDUCATION_COVERAGE_MATRIX.md`
+
+Use these status values consistently:
+
+- `implemented_validated`
+- `implemented_partial`
+- `content_only_no_visual`
+- `asset_missing`
+- `planned_scaffold_only`
+- `not_present`
+- `out_of_scope`
+
+Each row must identify the subject, subtopic, existing files/features, current status, evidence, missing requirements, target learning levels, recommended learning format and implementation priority.
+
+---
+
+# PART 4 — ESTABLISH THE COMPLETE HUMAN-BIOLOGY AND MEDICAL-SCIENCES SUBJECT TAXONOMY
+
+Build a comprehensive subject structure. Do not limit the product to the 12 gross anatomical systems.
+
+At minimum, evaluate and cover the following domains.
+
+## A. Human anatomy
+
+- Anatomical terminology, planes, directions, positions and movements.
+- General anatomy and organisation of the human body.
+- Gross anatomy.
+- Regional anatomy: head and neck, back, thorax, abdomen, pelvis/perineum, upper limb and lower limb.
+- Systemic anatomy across all 12 canonical systems.
+- Neuroanatomy: brain, spinal cord, cranial nerves, spinal nerves, autonomic system and pathways.
+- Cardiovascular, arterial, venous and lymphatic anatomy.
+- Surface and clinically applied anatomy.
+- Joint anatomy, biomechanics and muscle actions.
+- Sex-specific anatomical differences.
+- Paediatric and age-related anatomical variation where relevant.
+
+## B. Cell biology and cytology
+
+- Cell theory and organisation.
+- Plasma membrane and membrane transport.
+- Cytoplasm and organelles.
+- Nucleus, chromosomes and nucleic acids.
+- Mitochondria, ribosomes, endoplasmic reticulum and Golgi apparatus.
+- Cell junctions and extracellular matrix.
+- Cell cycle and mitosis.
+- Meiosis.
+- Apoptosis, necrosis and cellular stress.
+- Cell signalling and communication.
+- Stem cells and cellular differentiation.
+
+## C. Histology and microscopic anatomy
+
+- Epithelial tissue.
+- Connective tissue.
+- Cartilage and bone.
+- Blood and blood-forming tissue.
+- Skeletal, cardiac and smooth muscle.
+- Nervous tissue.
+- Glands and secretory tissue.
+- Organ-specific histology.
+- Skin and its appendages.
+- Respiratory, gastrointestinal, renal, endocrine, reproductive, cardiovascular and lymphoid histology.
+- Basic histological staining and tissue identification.
+
+Real licensed microscopy specimens are required for a genuine virtual microscopy experience. A text description or generated illustration is not a substitute for a real histology image.
+
+## D. Embryology and human development
+
+- Gametogenesis.
+- Fertilisation.
+- Cleavage and implantation.
+- Gastrulation and germ layers.
+- Neurulation.
+- Embryonic folding.
+- Organogenesis.
+- Development of the cardiovascular and nervous systems.
+- Development of limbs, face, thorax and abdominal organs.
+- Placenta and fetal membranes.
+- Fetal development.
+- Congenital anomalies and developmental mechanisms.
+- Basic puberty, reproductive development, ageing and lifespan changes.
+
+## E. Human physiology and homeostasis
+
+Cover normal structure-function relationships across all major systems:
+
+- Cell and membrane physiology.
+- Blood physiology and haemostasis.
+- Cardiovascular physiology.
+- Cardiac conduction and ECG fundamentals.
+- Blood pressure, vascular resistance and regulation.
+- Respiratory mechanics, gas exchange and oxygen transport.
+- Renal physiology, filtration and urine formation.
+- Fluid, electrolyte and acid-base regulation.
+- Gastrointestinal motility, secretion, digestion and absorption.
+- Liver and pancreatic physiology.
+- Endocrine glands and hormonal feedback.
+- Nervous system physiology.
+- Action potentials and synaptic transmission.
+- Sensory physiology.
+- Autonomic control and reflexes.
+- Muscle contraction and neuromuscular function.
+- Reproductive physiology and pregnancy.
+- Thermoregulation.
+- Exercise and energy regulation.
+- Sleep and basic pain physiology.
+- Immune-system physiology.
+
+The existing four working simulations should be preserved and improved. The endocrine feedback slot must not produce false quantitative values. Complete it only with defensible, sourced parameters and transparent model assumptions.
+
+Evaluate additional high-value interactive simulations, including:
+- ECG/cardiac electrical conduction.
+- Blood pressure and baroreceptor feedback.
+- Gas exchange and oxygen transport.
+- Acid-base balance.
+- Action potentials and synaptic transmission.
+- Gastrointestinal digestion and absorption.
+- Endocrine feedback.
+- Muscle contraction.
+- Fluid and electrolyte regulation.
+
+Do not add simulations merely to increase their count. Every numerical simulation requires documented equations, assumptions, units, parameter ranges and supporting sources.
+
+## F. Biochemistry and human metabolism
+
+- Water and biological molecules.
+- Proteins, amino acids, carbohydrates, lipids and nucleotides.
+- Enzymes and enzyme kinetics.
+- ATP and biological energy.
+- Glycolysis.
+- Citric acid cycle.
+- Oxidative phosphorylation.
+- Glycogen metabolism.
+- Lipid metabolism.
+- Amino acid and protein metabolism.
+- Nucleotide metabolism.
+- Vitamins and minerals.
+- Hormone biochemistry.
+- Fluid, electrolyte and acid-base chemistry.
+- Metabolic integration between organs.
+- Basic clinical relevance of common biochemical markers.
+
+Use pathway diagrams and interactive visualisations. Do not turn every biochemical pathway into an artificial 3D organ feature.
+
+## G. Molecular biology and human genetics
+
+- DNA and RNA structure.
+- DNA replication.
+- Transcription.
+- Translation and protein synthesis.
+- Gene expression and regulation.
+- Chromosomes and inheritance.
+- Mendelian inheritance.
+- Non-Mendelian inheritance.
+- Mutations and genetic variation.
+- Chromosomal disorders.
+- Selected inherited human diseases.
+- Genetic counselling concepts and inheritance patterns.
+- Genomics and introductory pharmacogenetics.
+
+## H. Microbiology and parasitology
+
+- Bacteria.
+- Viruses.
+- Fungi.
+- Protozoa.
+- Helminths.
+- Microbial structure and classification.
+- Pathogenesis and infection.
+- Transmission routes.
+- Sterilisation and disinfection.
+- Culture and laboratory identification.
+- Antimicrobial resistance.
+- Host-pathogen interaction.
+- Common medically significant organisms.
+
+## I. Immunology
+
+- Innate immunity.
+- Adaptive immunity.
+- Immune cells and lymphoid organs.
+- Antigens and antibodies.
+- MHC and antigen presentation.
+- Complement system.
+- Inflammation and immune signalling.
+- Vaccination and immunisation.
+- Hypersensitivity and allergy.
+- Autoimmune disease mechanisms.
+- Immunodeficiency.
+- Transplant immunology.
+- Basic immunotherapy concepts.
+
+## J. General and systemic pathology
+
+General pathology:
+- Cellular adaptation.
+- Cell injury and death.
+- Acute and chronic inflammation.
+- Healing and repair.
+- Haemodynamic disorders.
+- Oedema, thrombosis and embolism.
+- Ischaemia and infarction.
+- Shock.
+- Neoplasia and cancer biology.
+- Genetic and immune-mediated disease processes.
+
+Systemic pathology:
+- Cardiovascular pathology.
+- Respiratory pathology.
+- Gastrointestinal and liver pathology.
+- Renal pathology.
+- Neuropathology.
+- Endocrine pathology.
+- Haematological pathology.
+- Reproductive pathology.
+- Skin pathology.
+- Musculoskeletal pathology.
+- Infectious and immune-mediated pathology.
+
+Make a distinction between:
+- Actual anatomical mesh geometry.
+- Conceptual disease mechanism.
+- Authentic histopathology media.
+- A clinical case that teaches the mechanism.
+
+Do not colour healthy meshes and present them as authentic pathological 3D anatomy.
+
+## K. Pharmacology and therapeutics
+
+- General pharmacology.
+- Pharmacokinetics.
+- Pharmacodynamics.
+- Receptors and dose-response concepts.
+- Drug absorption, distribution, metabolism and elimination.
+- Adverse effects and interactions.
+- Autonomic pharmacology.
+- Cardiovascular drugs.
+- Respiratory drugs.
+- Gastrointestinal drugs.
+- Renal and fluid-related drugs.
+- Endocrine drugs.
+- Antimicrobial drugs.
+- Analgesics and anti-inflammatory agents.
+- Neuropsychiatric pharmacology.
+- Chemotherapy principles.
+- Toxicology fundamentals.
+
+This is educational pharmacology, not personalised prescribing. Do not generate patient-specific dosing instructions or treatment recommendations.
+
+## L. Nutrition and human health
+
+- Macronutrients and micronutrients.
+- Energy balance.
+- Digestion and nutrient absorption.
+- Vitamins and mineral functions.
+- Nutritional deficiencies.
+- Malnutrition.
+- Obesity and metabolic health.
+- Nutrition across the lifespan.
+- Diet, lifestyle and common disease risk.
+
+## M. Haematology and laboratory medicine
+
+- Blood cells and plasma.
+- Haemoglobin and blood indices.
+- Blood groups and transfusion fundamentals.
+- Platelets and coagulation.
+- CBC interpretation fundamentals.
+- Peripheral blood smear concepts.
+- Urinalysis.
+- Basic renal and liver function tests.
+- Glucose regulation and tests.
+- Electrolytes.
+- Thyroid tests.
+- Common cardiac biomarkers.
+- Microbiology and culture tests.
+
+Use carefully sourced educational reference examples. Never present a teaching example as an interpretation of a real user's medical results.
+
+## N. Radiology and medical imaging
+
+- Anatomical orientation in medical images.
+- Plain X-ray.
+- CT.
+- MRI.
+- Ultrasound.
+- Basic nuclear medicine concepts where appropriate.
+- Cross-sectional planes.
+- Normal radiological anatomy.
+- Correlation of imaging slices with the existing 3D model.
+
+Only use properly licensed or otherwise legally usable imaging examples. Do not manufacture fake radiographs or claim to have real imaging data where none exists.
+
+## O. Clinical medicine and specialties
+
+Create an educational subject structure for:
+
+- General medicine.
+- Cardiology.
+- Pulmonology.
+- Gastroenterology and hepatology.
+- Nephrology.
+- Neurology.
+- Endocrinology.
+- Haematology and oncology.
+- Infectious diseases.
+- Rheumatology.
+- Dermatology.
+- Psychiatry and behavioural sciences.
+- Emergency and critical care.
+- Anaesthesia.
+- General surgery.
+- Orthopaedics and trauma.
+- Urology.
+- Neurosurgery.
+- Thoracic and vascular surgery.
+- Plastic surgery.
+- Obstetrics and gynaecology.
+- Paediatrics and neonatology.
+- Ophthalmology.
+- ENT.
+- Family and community medicine.
+
+Do not create shallow duplicate entries simply to display a long list of specialties. Build meaningful introductions, learning objectives, system relationships and appropriate cases.
+
+## P. Clinical skills, public health and medical practice
+
+- Basic clinical history-taking concepts.
+- Physical examination principles.
+- Vital signs.
+- Clinical reasoning.
+- Differential-diagnosis learning exercises.
+- Reading and interpreting educational test results.
+- Patient communication.
+- Patient safety.
+- Consent and medical ethics.
+- Professionalism.
+- Infection control.
+- Epidemiology.
+- Screening and prevention.
+- Vaccination programmes.
+- Population health.
+- Research methods.
+- Evidence-based medicine.
+- Biostatistics and data interpretation.
+- Forensic medicine and toxicology fundamentals.
+
+These areas are part of medical education even when they do not require a 3D human model.
+
+---
+
+# PART 5 — DECIDE WHAT BELONGS IN THE PRODUCT AND HOW MUCH
+
+Do not simply add every topic in the list at maximum depth.
+
+For each domain, determine:
+
+1. How frequently it appears across the selected curriculum frameworks.
+2. Which education levels require it.
+3. Whether it is core, elective, specialised or optional.
+4. Whether the student needs introductory, intermediate or advanced learning.
+5. Whether the subject benefits from actual 3D, a 2D diagram, a simulation, microscopy, imaging, a case study or a combination.
+6. What the current project already supports.
+7. What exact content or functionality is still missing.
+8. What assets or external data are required.
+9. What can be completed accurately with the current repository.
+10. What needs formal review from a medical educator.
+
+Create a priority model:
+
+- **P0 — Core coverage gap:** Repeatedly taught human-body or biomedical subject with no meaningful current learning module, or a major existing module with serious missing coverage.
+- **P1 — High-value completion:** Existing subject that is present but needs substantial expansion, real visuals, interaction or assessment.
+- **P2 — Important specialist depth:** A relevant subject that should be represented but can be introduced at a smaller depth initially.
+- **P3 — Optional / specialised:** Relevant but not required for the initial common core.
+- **Out of scope:** Not a human-body or biomedical learning area for this product.
+
+Use curriculum recurrence and official assessment weighting as evidence. Do not invent numerical priority scores or pretend that every country's syllabus can be combined into one universal percentage.
+
+Create a decision table with:
+
+`Domain | Subdomain | Country/Framework | Grade/Year | Core or Optional | Evidence | Current Repo Status | Gap | Priority | Recommended Depth | Recommended Format | Source`
+
+---
+
+# PART 6 — CREATE A COHERENT EDUCATIONAL ARCHITECTURE
+
+Do not create a collection of disconnected mini-apps.
+
+Use a shared educational content model that connects:
+
+- Learning domain.
+- Subject.
+- Chapter.
+- Topic.
+- Subtopic.
+- Learning objective.
+- Student level.
+- Country/curriculum mapping.
+- Relevant body systems.
+- FMA concepts and 3D mesh IDs.
+- Source references.
+- Review status.
+- Assessment.
+- Visualisation or asset requirement.
+
+Implement a canonical educational taxonomy and reusable content types.
+
+Suggested architecture:
+
+`app/education/`
+
+It may contain modules such as:
+
+- `education-types.ts`
+- `education-domains.ts`
+- `education-curricula.ts`
+- `education-mappings.ts`
+- `education-content.ts`
+- `education-coverage.ts`
+- `education-validation.ts`
+
+You may adapt this structure to the project's actual conventions. Do not blindly duplicate existing systems or overwrite stable code.
+
+Each learning unit should support:
+
+- Subject and topic title.
+- Target learning level.
+- Relevant curriculum tags.
+- Learning objectives.
+- Clear original explanation.
+- Key concepts and terminology.
+- Important facts.
+- Relationships to other subjects.
+- Related anatomical systems.
+- Related FMA concepts and actual mesh IDs where valid.
+- Visualisation type.
+- Required assets and current asset status.
+- Self-assessment questions.
+- A practical, visual or interpretation activity where appropriate.
+- Source references.
+- Review and scientific-confidence status.
+
+Every lesson should be useful, not just a title and a paragraph.
+
+Use different explanation depths for school, pre-medical and medical students. Reuse the same canonical concept where possible instead of creating duplicate versions that drift apart scientifically.
+
+---
+
+# PART 7 — BUILD THE LEARNING EXPERIENCE INTO THE EXISTING PLATFORM
+
+Inspect the existing navigation and learning pages before designing new UI.
+
+Prefer extending the existing Learn experience with a well-organised subject/domain browser rather than creating a separate unrelated platform.
+
+The student should be able to:
+
+1. Choose a learning track or educational level.
+2. Browse major human-biology and medical-science subjects.
+3. Open a subject and see its chapters and topics.
+4. See which topics connect to which body systems.
+5. See whether a topic is mapped to a particular national curriculum.
+6. Open related structures in the 3D explorer when real mesh mappings exist.
+7. Explore diagrams, simulations, microscopy or clinical learning activities.
+8. Test understanding through appropriate quizzes or exercises.
+9. Track completed topics through existing study progress tools.
+10. Find the original learning sources and asset/review disclosures.
+
+Add curriculum tags and learning-level filters where useful.
+
+Keep the UI understandable. Do not overload the main navigation with dozens of new page links.
+
+Use the existing design system, typography, spacing, dark scientific visual language and reusable components.
+
+---
+
+# PART 8 — VISUALISATION AND ASSET STRATEGY
+
+The correct visual format must be chosen for each educational subject.
+
+## Use genuine 3D geometry where it makes sense
+
+Prioritise:
+- Missing important gross anatomical structures.
+- Female reproductive anatomy.
+- Important nerves and neurovascular relationships.
+- Thyroid and parathyroid anatomy.
+- Lymphatic pathways and nodes.
+- Relevant regional anatomy and internal structures.
+- Appropriate developmental anatomy where verified assets exist.
+
+Only integrate 3D assets when:
+- The licence is compatible and documented.
+- The source and attribution are recorded.
+- The anatomy has been checked against reliable references.
+- FMA or another stable concept mapping is established.
+- The model does not falsely claim anatomical completeness.
+
+Never fabricate anatomy by mapping an unrelated mesh onto a missing structure.
+
+## Use real microscopy assets for histology
+
+The existing ten histology entries should be audited individually.
+
+Find or define an asset acquisition strategy for genuine, licensed microscopy images. Record the source, licence, tissue, stain, magnification and scale-bar information when available.
+
+Do not generate fake microscope images and label them as real tissue specimens.
+
+## Use 2D diagrams and interactive models where appropriate
+
+Build diagrams and educational interactions for:
+- Cells.
+- Molecular biology.
+- Biochemical pathways.
+- Genetics.
+- Embryonic development.
+- Immune responses.
+- Microbiology.
+- Pathology mechanisms.
+- Pharmacological mechanisms.
+- Epidemiology.
+
+## Use simulations only where mathematically defensible
+
+Every quantitative simulation must include:
+- Equations.
+- Units.
+- Parameter bounds.
+- Assumptions.
+- Source references.
+- Educational limitations.
+- Tests for expected behaviour.
+
+A conceptual animation must be labelled conceptual. A numerical simulation must not produce fake precision.
+
+## Radiology and medical imaging
+
+Build a real imaging learning experience only when legitimate image data is available. Otherwise implement the subject structure and a clear asset-required state.
+
+Do not show a blank image viewer and call radiology implemented.
+
+---
+
+# PART 9 — IMPLEMENT THE MOST IMPORTANT EDUCATIONAL CONTENT
+
+Do not finish after creating documentation or an empty taxonomy.
+
+Implement meaningful foundational material across all core human-medical domains.
+
+At a minimum:
+
+1. Ensure all major domains have a real, navigable place in the existing Learn experience.
+2. Ensure each core domain contains an introductory learning pack with clear outcomes and structured subtopics.
+3. Create a coherent high-school/pre-medical path for human-body content.
+4. Create a coherent early medical-foundations path spanning anatomy, histology, embryology, physiology, cell biology, biochemistry, genetics, microbiology, immunology, pathology and pharmacology.
+5. Create an applied medical path that introduces diagnostics, imaging, clinical specialties, clinical reasoning, public health and medical practice.
+6. Map existing lessons, simulations, clinical cases, anatomy knowledge, presentations and study resources into the new taxonomy.
+7. Expand the highest-priority gaps with real instructional content and appropriate interaction.
+8. Add relevant assessment and practical exercises for new subjects.
+9. Integrate subject content with 3D anatomy when a correct anatomical link exists.
+10. Preserve existing user progress and existing working features.
+
+As a minimum content-quality target, each core subject should have:
+- One meaningful subject overview.
+- Clear learning objectives.
+- An organised topic tree.
+- Several substantive introductory lessons or subtopics appropriate to the subject.
+- Relevant visual explanations or a clearly disclosed asset limitation.
+- A small set of useful assessment questions.
+- At least one learning activity, interpretation exercise or practical task where appropriate.
+- Curriculum mapping and references.
+
+Do not generate hundreds of shallow, repetitive, unverified facts merely to inflate content counts.
+
+Prioritise accurate, connected, reusable content.
+
+---
+
+# PART 10 — LEVEL-APPROPRIATE LEARNING
+
+For every major topic, provide the appropriate depth.
+
+### School Foundations
+- Plain language.
+- Basic organ and system functions.
+- Age-appropriate vocabulary.
+- Clear diagrams and simple interactions.
+- Basic relationships between body systems.
+- Relevant hygiene, health and prevention concepts.
+
+### Secondary / Pre-Medical
+- Curriculum-aligned terminology.
+- Organs, tissues and system-level detail.
+- Normal physiology.
+- Cells, metabolism, inheritance and basic molecular processes.
+- Selected disease mechanisms and human health concepts.
+- Exam-oriented revision and questions.
+
+### Medical Foundations
+- Detailed anatomy.
+- Histology.
+- Embryology.
+- Physiology.
+- Biochemistry.
+- Cell and molecular biology.
+- Genetics.
+- Microbiology and immunology.
+- General pathology.
+- Pharmacology.
+- Applied relationships between the subjects.
+
+### Clinical / Applied Medicine
+- System-based clinical learning.
+- Pathology and pathophysiology.
+- Medical imaging and diagnostic concepts.
+- Clinical case reasoning.
+- Specialty introductions.
+- Treatment principles and pharmacology concepts.
+- Patient-safety and professional boundaries.
+
+Do not use the same shallow lesson for all levels.
+
+---
+
+# PART 11 — SCIENTIFIC AND EDUCATIONAL GOVERNANCE
+
+This is essential.
+
+- Preserve the existing provenance and source registry.
+- Every new significant medical claim must have an identifiable supporting reference.
+- Use reliable textbooks, open educational resources, professional guidelines and recognised academic sources.
+- Distinguish established scientific facts from simplified teaching models.
+- Record when evidence or source support is incomplete.
+- Do not claim faculty or specialist validation unless a real qualified person has performed it.
+- Do not change `draft`, `structured_reference` or other review statuses into `expert_verified` without genuine review.
+- Do not present educational case content as patient-specific diagnosis.
+- Do not generate personalised treatment or prescription advice.
+- Keep explanations appropriate to each student's education level.
+- Add clear educational disclaimers to advanced clinical topics.
+
+Make the content ready for future formal medical-faculty review without pretending that such review has already happened.
+
+---
+
+# PART 12 — TESTING AND VALIDATION
+
+Extend the existing validation system.
+
+Create tests for:
+
+- Unique domain, subject, chapter and lesson IDs.
+- Valid curriculum references.
+- Valid country, grade and medical-year metadata.
+- Valid learning-level tags.
+- Valid FMA concept and mesh mappings.
+- No references to nonexistent mesh IDs.
+- Accurate content coverage statuses.
+- Required learning objectives and sources.
+- Assessment question structure and correct-answer indices.
+- Asset provenance and licence metadata.
+- No false `expert_verified` status.
+- No missing or misleading asset states.
+- Correct cross-linking between learning modules and existing platform pages.
+
+Verify that existing functionality remains intact:
+- 3D model loading.
+- Search.
+- Structure selection.
+- System layers.
+- Relationships.
+- Learn pages.
+- Practical Lab.
+- Quizzes and revision.
+- Physiology simulations.
+- Histology.
+- Clinical cases.
+- Presentation Studio.
+- Video recording.
+
+Run the repository's existing commands where the environment supports them:
+
+`npm run check`
+
+`npm run lint`
+
+`npm run validate:atlas`
+
+`npm run validate:interactions`
+
+`npm run validate:content`
+
+`npm run validate:assets`
+
+`npm run validate:materials`
+
+`npm run validate:licenses`
+
+`npm run validate:anatomy`
+
+`npm run validate:lod`
+
+`npm test`
+
+`npm run validate:all`
+
+`npm run build`
+
+Do not report a command as passing unless it was actually executed and passed.
+
+Do not claim browser testing, visual testing or medical expert review unless it was genuinely completed.
+
+---
+
+# PART 13 — UPDATE PROJECT DOCUMENTATION
+
+Update existing project documentation to accurately reflect the new platform.
+
+Create or update:
+
+- `CURRICULUM_ALIGNMENT.md`
+- `EDUCATION_COVERAGE_MATRIX.md`
+- `EDUCATION_ARCHITECTURE.md`
+- `PROJECT_STATUS.md`
+- `COMPLETED_FEATURES.md`
+- `REMAINING_TASKS.md`
+- `README.md`
+- Any relevant provenance, asset or content-pack documentation.
+
+The documentation must identify:
+- What is genuinely implemented.
+- What is partially implemented.
+- What is available only as explanatory content.
+- What requires external geometry, microscopy or imaging assets.
+- What requires human medical-expert review.
+- What is not included.
+- What curriculum systems are supported.
+- What student levels the content supports.
+
+Reconcile documentation with the actual source code. Do not retain stale counts or claim features that are only planned.
+
+---
+
+# PART 14 — FINAL ACCEPTANCE CRITERIA
+
+This task is complete only when:
+
+1. The source-based curriculum research and country comparison are documented.
+2. The human-biology and medical-science subject taxonomy is established.
+3. The latest repository has been audited against the taxonomy.
+4. Every major subject has a clear and honest coverage status.
+5. The most important missing learning domains have been implemented with meaningful foundational content.
+6. Existing anatomy, physiology, histology, clinical cases, presentations, practical learning and assessment are integrated into the shared learning structure.
+7. Students can navigate the platform by educational level and subject.
+8. Existing content can be connected to the relevant country syllabus and learning outcome.
+9. Missing geometry, microscopy, imaging and other external assets are explicitly disclosed.
+10. No fabricated mesh, image, clinical fact, source, quantitative model or expert approval is presented as genuine.
+11. Existing working features remain functional.
+12. Tests and build results are reported honestly.
+13. The documentation describes the real implementation rather than the intended future product.
+
+## Important final instruction
+
+Do not stop after producing the research report.
+
+Do not stop after listing the gaps.
+
+Do not create a huge plan and leave the implementation untouched.
+
+Complete the research, make the coverage decisions, implement the shared educational architecture, populate the core learning domains, integrate them with existing features, run validations and update documentation.
+
+Use sound engineering judgement. Preserve working code and avoid unnecessary rewrites.
+
+If an item requires assets, external data or human review that cannot be completed in this environment, implement the useful educational structure where appropriate, mark the limitation accurately and document the exact missing requirement.
+
+Do not create fake completeness.
+
+The desired result is a much more complete ANATOMY 360 educational platform whose human-biology and medical-science learning areas are mapped, navigable, connected, meaningfully taught and honestly documented.
+
+This is the comprehensive educational-domain expansion pass. Avoid starting another endless cycle of adding disconnected features after completing it.
