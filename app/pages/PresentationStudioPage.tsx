@@ -24,6 +24,7 @@ import {
   Trash2,
   Upload,
   Video,
+  XCircle,
 } from 'lucide-react';
 import {
   useCallback,
@@ -35,6 +36,8 @@ import {
 } from 'react';
 import type { Atlas, SystemId, View } from '../anatomy';
 import { SYSTEMS } from '../anatomy';
+import { useStudy } from '../components/StudyContext';
+import { CLINICAL_CASES } from '../data/clinical-data';
 import { SURGICAL_ANATOMY_REGIONS } from '../data/surgical-anatomy';
 import { BUILTIN_PRESENTATIONS } from '../presentation/builtin-presentations';
 import {
@@ -67,10 +70,12 @@ import AnatomyScene from '../scene';
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
-  initialPresentationId?: string | null;
+  initialPresentationIntent?: { id: string; seq: number } | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenClinical?: () => void;
 }
+
+const VALID_CLINICAL_CASE_IDS = new Set(CLINICAL_CASES.map((c) => c.id));
 
 const CATEGORY_LABELS: Record<PresentationCategory, string> = {
   anatomical: 'Anatomical & Dissection',
@@ -98,10 +103,12 @@ function formatTime(totalSeconds: number): string {
 export default function PresentationStudioPage({
   atlas,
   atlasError,
-  initialPresentationId,
+  initialPresentationIntent,
   onInspectConcept,
   onOpenClinical,
 }: Props) {
+  const study = useStudy();
+
   const [customPresentations, setCustomPresentations] = useState<
     AnatomyPresentation[]
   >(() => loadCustomPresentations());
@@ -116,29 +123,19 @@ export default function PresentationStudioPage({
   >('all');
   const [activePresentationId, setActivePresentationId] = useState<string>(
     () => {
+      const requestedId = initialPresentationIntent?.id;
       if (
-        initialPresentationId &&
-        BUILTIN_PRESENTATIONS.some((p) => p.id === initialPresentationId)
+        requestedId &&
+        BUILTIN_PRESENTATIONS.some((p) => p.id === requestedId)
       ) {
-        return initialPresentationId;
+        return requestedId;
       }
       return BUILTIN_PRESENTATIONS[0].id;
     },
   );
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [focusCounter, setFocusCounter] = useState<number>(1);
-
-  // Sync deep-linked presentation ID when navigating from ClinicalPage
-  useEffect(() => {
-    if (!initialPresentationId) return;
-    if (allPresentations.some((p) => p.id === initialPresentationId)) {
-      setActivePresentationId(initialPresentationId);
-      setActiveStepIndex(0);
-      setStepElapsedSec(0);
-      setIsPlaying(false);
-      setFocusCounter((c) => c + 1);
-    }
-  }, [initialPresentationId, allPresentations]);
+  const lastAppliedIntentSeqRef = useRef<number>(initialPresentationIntent?.seq ?? 0);
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -280,33 +277,84 @@ export default function PresentationStudioPage({
     return () => window.clearInterval(id);
   }, [recordingStatus]);
 
+  const resetRecordingSession = useCallback(() => {
+    if (recorderRef.current) {
+      recorderRef.current.dispose();
+      recorderRef.current = null;
+    }
+    setRecordedVideo(null);
+    setRecordingElapsedSec(0);
+    setRecordingStatus(recordingCap.supported ? 'idle' : 'unsupported');
+    setRecordingNotice('');
+  }, [recordingCap.supported]);
+
+  // Apply deep-linked presentation intent ONLY when its sequence number advances
+  useEffect(() => {
+    if (!initialPresentationIntent) return;
+    if (initialPresentationIntent.seq === lastAppliedIntentSeqRef.current) return;
+    lastAppliedIntentSeqRef.current = initialPresentationIntent.seq;
+
+    const match = allPresentations.find(
+      (p) => p.id === initialPresentationIntent.id,
+    );
+    resetRecordingSession();
+    setIsPlaying(false);
+    setStepElapsedSec(0);
+    setSelectedQuizOption(null);
+    setMechanismOpen(false);
+    setActiveStepIndex(0);
+    setFocusCounter((c) => c + 1);
+
+    if (match) {
+      setActivePresentationId(match.id);
+      setStatusMessage('');
+      setImportError('');
+    } else {
+      setActivePresentationId(BUILTIN_PRESENTATIONS[0].id);
+      setStatusMessage(
+        `Requested presentation "${initialPresentationIntent.id}" was not found; showing the default clinical explainer.`,
+      );
+    }
+  }, [initialPresentationIntent, allPresentations, resetRecordingSession]);
+
   const compiledSceneState = useMemo(() => {
     if (!atlas || !activeStep) return null;
     return compileStepToSceneState(activeStep, atlas, focusCounter);
   }, [atlas, activeStep, focusCounter]);
 
-  const selectPresentation = useCallback((id: string) => {
-    setActivePresentationId(id);
-    setActiveStepIndex(0);
-    setStepElapsedSec(0);
-    setIsPlaying(false);
-    setFocusCounter((c) => c + 1);
-    setStatusMessage('');
-    setImportError('');
-    if (typeof window !== 'undefined') {
-      window.location.hash = `#/present?id=${encodeURIComponent(id)}`;
-    }
-  }, []);
+  const selectPresentation = useCallback(
+    (id: string) => {
+      resetRecordingSession();
+      setActivePresentationId(id);
+      setActiveStepIndex(0);
+      setStepElapsedSec(0);
+      setIsPlaying(false);
+      setSelectedQuizOption(null);
+      setMechanismOpen(false);
+      setFocusCounter((c) => c + 1);
+      setStatusMessage('');
+      setImportError('');
+      if (typeof window !== 'undefined') {
+        const targetHash = `#/present?id=${encodeURIComponent(id)}`;
+        if (window.location.hash !== targetHash) {
+          window.location.hash = targetHash;
+        }
+      }
+    },
+    [resetRecordingSession],
+  );
 
   const goToStep = useCallback((index: number) => {
     setActiveStepIndex(index);
     setStepElapsedSec(0);
+    setSelectedQuizOption(null);
     setFocusCounter((c) => c + 1);
   }, []);
 
   const handleRestart = useCallback(() => {
     setActiveStepIndex(0);
     setStepElapsedSec(0);
+    setSelectedQuizOption(null);
     setFocusCounter((c) => c + 1);
     setIsPlaying(true);
   }, []);
@@ -354,27 +402,33 @@ export default function PresentationStudioPage({
   }, [activePresentation]);
 
   const handleCreateNew = useCallback(() => {
+    resetRecordingSession();
     const created = createNewCustomPresentation();
     setCustomPresentations((prev) => [created, ...prev]);
     setActivePresentationId(created.id);
     setActiveStepIndex(0);
     setStepElapsedSec(0);
+    setSelectedQuizOption(null);
     setIsPlaying(false);
     setEditorOpen(true);
     setStatusMessage('Created new custom presentation.');
-  }, []);
+  }, [resetRecordingSession]);
 
   const handleDeleteCustom = useCallback(
     (id: string) => {
       setCustomPresentations((prev) => prev.filter((p) => p.id !== id));
       if (activePresentationId === id) {
+        resetRecordingSession();
         setActivePresentationId(BUILTIN_PRESENTATIONS[0].id);
         setActiveStepIndex(0);
+        setStepElapsedSec(0);
+        setSelectedQuizOption(null);
+        setIsPlaying(false);
         setEditorOpen(false);
       }
       setStatusMessage('Removed custom presentation.');
     },
-    [activePresentationId],
+    [activePresentationId, resetRecordingSession],
   );
 
   const handleExportJson = useCallback(() => {
@@ -396,22 +450,27 @@ export default function PresentationStudioPage({
       const reader = new FileReader();
       reader.onload = () => {
         const text = String(reader.result ?? '');
-        const { presentation, errors } = importPresentationFromJson(text);
+        const { presentation, errors } = importPresentationFromJson(text, {
+          atlas,
+          validClinicalCaseIds: VALID_CLINICAL_CASE_IDS,
+        });
         if (!presentation) {
           setImportError(errors.join(' '));
           return;
         }
         setImportError('');
+        resetRecordingSession();
         setCustomPresentations((prev) => [presentation, ...prev]);
         setActivePresentationId(presentation.id);
         setActiveStepIndex(0);
         setStepElapsedSec(0);
+        setSelectedQuizOption(null);
         setStatusMessage(`Imported "${presentation.title}" successfully.`);
       };
       reader.readAsText(file);
       e.target.value = '';
     },
-    [],
+    [atlas, resetRecordingSession],
   );
 
   // Step authoring handlers (for custom presentations)
@@ -1326,14 +1385,36 @@ export default function PresentationStudioPage({
 
             {/* Embedded Assessment Check (when present on active step) */}
             {activeStep?.assessmentCheck && (
-              <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-4">
-                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-indigo-700">
-                  Step Knowledge Check
+              <div
+                key={`${activePresentation.id}:${activeStep.id}`}
+                className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-4"
+              >
+                <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                  <span>Step Knowledge Check</span>
+                  {selectedQuizOption !== null && (
+                    <span
+                      className={
+                        selectedQuizOption ===
+                        activeStep.assessmentCheck.correctIndex
+                          ? 'text-emerald-700'
+                          : 'text-red-700'
+                      }
+                    >
+                      {selectedQuizOption ===
+                      activeStep.assessmentCheck.correctIndex
+                        ? 'Correct'
+                        : 'Review Explanation'}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm font-semibold text-slate-900">
                   {activeStep.assessmentCheck.question}
                 </p>
-                <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div
+                  role="radiogroup"
+                  aria-label="Step knowledge check options"
+                  className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2"
+                >
                   {activeStep.assessmentCheck.options.map((opt, idx) => {
                     const answered = selectedQuizOption !== null;
                     const isPicked = selectedQuizOption === idx;
@@ -1343,8 +1424,17 @@ export default function PresentationStudioPage({
                       <button
                         key={opt}
                         type="button"
-                        onClick={() => setSelectedQuizOption(idx)}
-                        className={`rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors ${
+                        role="radio"
+                        aria-checked={isPicked}
+                        onClick={() => {
+                          setSelectedQuizOption(idx);
+                          study.recordQuizResult(
+                            `pres:${activePresentation.id}:${activeStep.id}`,
+                            isCorrect,
+                            activeStep.title,
+                          );
+                        }}
+                        className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${
                           answered && isCorrect
                             ? 'border-emerald-500 bg-emerald-50 text-emerald-950'
                             : answered && isPicked && !isCorrect
@@ -1352,17 +1442,37 @@ export default function PresentationStudioPage({
                               : 'border-slate-200 bg-white text-slate-800 hover:border-indigo-300'
                         }`}
                       >
-                        {opt}
+                        <span>{opt}</span>
+                        {answered && isCorrect && (
+                          <CheckCircle2
+                            size={15}
+                            className="shrink-0 text-emerald-600"
+                          />
+                        )}
+                        {answered && isPicked && !isCorrect && (
+                          <XCircle
+                            size={15}
+                            className="shrink-0 text-red-600"
+                          />
+                        )}
                       </button>
                     );
                   })}
                 </div>
                 {selectedQuizOption !== null && (
                   <div className="mt-2.5 flex items-start gap-2 rounded-lg bg-white p-2.5 text-xs text-slate-700">
-                    <CheckCircle2
-                      size={15}
-                      className="mt-0.5 shrink-0 text-emerald-600"
-                    />
+                    {selectedQuizOption ===
+                    activeStep.assessmentCheck.correctIndex ? (
+                      <CheckCircle2
+                        size={15}
+                        className="mt-0.5 shrink-0 text-emerald-600"
+                      />
+                    ) : (
+                      <XCircle
+                        size={15}
+                        className="mt-0.5 shrink-0 text-red-600"
+                      />
+                    )}
                     <span>{activeStep.assessmentCheck.explanation}</span>
                   </div>
                 )}

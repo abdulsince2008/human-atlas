@@ -205,7 +205,41 @@ assert.equal(renal.gfrApprox, 125);
 const elbow = evaluateMusculoskeletalSimulation({ elbowAngle: 90, bicepsDrive: 70 });
 assert.equal(elbow.mechanicalAdvantagePct, 100);
 
+// ---------------------------------------------------------------------------
+// 6. Clinical Mechanism & 3D Presentation Integrity Tests
+// ---------------------------------------------------------------------------
+const { BUILTIN_PRESENTATIONS, getClinicalCaseExplainerLink } = await import(
+  '../app/presentation/builtin-presentations.ts'
+);
+const {
+  validatePresentationSchema,
+  validatePresentationAgainstAtlas,
+} = await import('../app/presentation/presentation-types.ts');
+const { CLINICAL_CASES } = await import('../app/data/clinical-data.ts');
+
+const validCaseIds = new Set(CLINICAL_CASES.map((c) => c.id));
+assert.equal(BUILTIN_PRESENTATIONS.length, 5, 'Expected 5 built-in presentations');
+for (const pres of BUILTIN_PRESENTATIONS) {
+  const schemaRes = validatePresentationSchema(pres);
+  assert.equal(schemaRes.valid, true, `Schema failed for ${pres.id}: ${schemaRes.errors.join('; ')}`);
+  const atlasRes = validatePresentationAgainstAtlas(pres, atlas, validCaseIds);
+  assert.equal(atlasRes.valid, true, `Atlas validation failed for ${pres.id}: ${atlasRes.errors.join('; ')}`);
+}
+assert.equal(
+  getClinicalCaseExplainerLink('case-coronary-lad-septum').presentationId,
+  'builtin-thorax-coronary-ischemia',
+);
+assert.equal(
+  getClinicalCaseExplainerLink('case-pituitary-optic-chiasm').presentationId,
+  'builtin-pituitary-optic-chiasm',
+);
+assert.equal(
+  getClinicalCaseExplainerLink('case-hepatic-portal-circulation').presentationId,
+  'builtin-hepatic-portal-mechanism',
+);
+
 console.log(
   'All automated platform tests passed: search-engine, knowledge-graph, SM-2 scheduler, ' +
-    'study-store sanitization/migration/queue, atlas/pack validators, and physiology evaluators.',
+    'study-store sanitization/migration/queue, atlas/pack validators, physiology evaluators, ' +
+    'and clinical 3D presentation integrity.',
 );

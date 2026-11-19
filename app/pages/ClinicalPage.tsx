@@ -99,8 +99,8 @@ export default function ClinicalPage({
                 onClick={() => setSelectedCaseId(cs.id)}
               >
                 <Stethoscope size={15} className="shrink-0" />
-                <span className="flex flex-1 flex-col items-start gap-0.5 text-left">
-                  <span className="a360-system-nav-label">{cs.title}</span>
+                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
+                  <span className="a360-system-nav-label whitespace-normal leading-snug">{cs.title}</span>
                   <span
                     className={`text-[10px] font-semibold uppercase tracking-wide ${
                       has3D

@@ -304,3 +304,35 @@ test('video-recorder negotiates MIME types, handles unsupported environments cle
   );
   assert.doesNotThrow(() => recorder.dispose());
 });
+
+test('strict schema & atlas validator rejects invalid FMA IDs, duplicate step IDs, bad quiz bounds, and expert_verified', () => {
+  const custom = createNewCustomPresentation('Bad FMA Import Test');
+  custom.steps[0].scene.selectedConceptIds = ['FMA999999999'];
+  const badFmaRes = importPresentationFromJson(JSON.stringify(custom), {
+    atlas,
+    validClinicalCaseIds: clinicalCaseIds,
+  });
+  assert.equal(badFmaRes.presentation, null);
+  assert.ok(
+    badFmaRes.errors.some((e) => e.includes('FMA999999999')),
+    'Importer must report exact invalid FMA concept ID',
+  );
+
+  // Duplicate step IDs & out-of-bounds quiz correctIndex & unverified expert_verified
+  const malformed = createNewCustomPresentation('Malformed Test');
+  malformed.reviewStatus = 'expert_verified';
+  malformed.steps.push({
+    ...malformed.steps[0],
+    assessmentCheck: {
+      question: 'Test question?',
+      options: ['Only A', 'Only B'],
+      correctIndex: 5,
+      explanation: 'Out of bounds index',
+    },
+  });
+  const schemaCheck = validatePresentationSchema(malformed);
+  assert.equal(schemaCheck.valid, false);
+  assert.ok(schemaCheck.errors.some((e) => e.includes('expert_verified')));
+  assert.ok(schemaCheck.errors.some((e) => e.includes('duplicate step id')));
+  assert.ok(schemaCheck.errors.some((e) => e.includes('correctIndex')));
+});

@@ -6,6 +6,7 @@ import {
 } from '../data/surgical-anatomy';
 import {
   PRESENTATION_SCHEMA_VERSION,
+  validatePresentationAgainstAtlas,
   validatePresentationSchema,
   type AnatomyPresentation,
   type PresentationSourceReference,
@@ -281,9 +282,16 @@ export function exportPresentationToJson(
 }
 
 /**
- * Imports and migrates v1 or v2 presentation JSON payloads safely.
+ * Imports and migrates v1 or v2 presentation JSON payloads safely,
+ * validating both schema structure and (when atlas is provided) FMA mesh identity.
  */
-export function importPresentationFromJson(jsonText: string): {
+export function importPresentationFromJson(
+  jsonText: string,
+  options?: {
+    atlas?: Atlas | null;
+    validClinicalCaseIds?: ReadonlySet<string>;
+  },
+): {
   presentation: AnatomyPresentation | null;
   errors: string[];
 } {
@@ -305,6 +313,18 @@ export function importPresentationFromJson(jsonText: string): {
   }
 
   const raw = parsed as AnatomyPresentation;
+
+  if (options?.atlas) {
+    const atlasValidation = validatePresentationAgainstAtlas(
+      raw,
+      options.atlas,
+      options.validClinicalCaseIds,
+    );
+    if (!atlasValidation.valid) {
+      return { presentation: null, errors: atlasValidation.errors };
+    }
+  }
+
   const imported: AnatomyPresentation = {
     ...raw,
     schemaVersion: PRESENTATION_SCHEMA_VERSION,

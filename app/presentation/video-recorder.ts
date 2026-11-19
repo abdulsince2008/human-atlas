@@ -38,16 +38,24 @@ export interface VideoRecordingCapability {
 }
 
 export const CANDIDATE_VIDEO_MIME_TYPES = [
-  'video/webm;codecs=vp9,opus',
   'video/webm;codecs=vp8,opus',
-  'video/webm;codecs=vp9',
+  'video/webm;codecs=vp9,opus',
   'video/webm;codecs=vp8',
+  'video/webm;codecs=vp9',
+  'video/webm',
+  'video/mp4',
+] as const;
+
+export const CANDIDATE_VIDEO_ONLY_MIME_TYPES = [
+  'video/webm;codecs=vp8',
+  'video/webm;codecs=vp9',
   'video/webm',
   'video/mp4',
 ] as const;
 
 export function detectSupportedVideoMimeType(
   mediaRecorderCtor?: typeof MediaRecorder,
+  includeAudio = true,
 ): string | null {
   const ctor =
     mediaRecorderCtor ??
@@ -55,7 +63,10 @@ export function detectSupportedVideoMimeType(
   if (!ctor || typeof ctor.isTypeSupported !== 'function') {
     return null;
   }
-  for (const mime of CANDIDATE_VIDEO_MIME_TYPES) {
+  const candidates = includeAudio
+    ? CANDIDATE_VIDEO_MIME_TYPES
+    : CANDIDATE_VIDEO_ONLY_MIME_TYPES;
+  for (const mime of candidates) {
     try {
       if (ctor.isTypeSupported(mime)) {
         return mime;
@@ -153,7 +164,7 @@ export class PresentationVideoRecorder {
   private micStream: MediaStream | null = null;
   private combinedStream: MediaStream | null = null;
   private chunks: Blob[] = [];
-  private rafId: number | null = null;
+  private timerId: number | null = null;
   private running = false;
   private objectUrl: string | null = null;
   private mimeType: string = 'video/webm';
@@ -191,8 +202,15 @@ export class PresentationVideoRecorder {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.cssText =
+      'position:fixed;left:-9999px;top:0;width:1px;height:1px;pointer-events:none;opacity:0;';
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.appendChild(canvas);
+    }
     const ctx = canvas.getContext('2d');
     if (!ctx) {
+      canvas.remove();
       throw new Error('Could not initialize 2D composition canvas for recording.');
     }
     this.compositeCanvas = canvas;
@@ -225,8 +243,12 @@ export class PresentationVideoRecorder {
     const combinedStream = new MediaStream(tracks);
     this.combinedStream = combinedStream;
 
+    const preferredForTracks = detectSupportedVideoMimeType(undefined, microphoneActive);
     const recorderOptions: MediaRecorderOptions = {};
-    if (cap.preferredMimeType) {
+    if (preferredForTracks) {
+      recorderOptions.mimeType = preferredForTracks;
+      this.mimeType = preferredForTracks;
+    } else if (cap.preferredMimeType) {
       recorderOptions.mimeType = cap.preferredMimeType;
       this.mimeType = cap.preferredMimeType;
     } else {
@@ -243,8 +265,8 @@ export class PresentationVideoRecorder {
     };
 
     this.running = true;
-    this.scheduleCompositeLoop();
     recorder.start(250);
+    this.startCompositeLoop(fps);
 
     return {
       mimeType: recorder.mimeType || this.mimeType,
@@ -277,10 +299,14 @@ export class PresentationVideoRecorder {
       recorder.onstop = () => {
         const finalMime = recorder.mimeType || this.mimeType || 'video/webm';
         const blob = new Blob(this.chunks, { type: finalMime });
+        this.stopStreamsAndLoop();
+        if (blob.size === 0) {
+          reject(new Error('No video frames were captured. Please record for at least 1 second before stopping.'));
+          return;
+        }
         this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);
         this.objectUrl = url;
-        this.stopStreamsAndLoop();
         resolve({ blob, url, mimeType: finalMime });
       };
 
@@ -289,16 +315,30 @@ export class PresentationVideoRecorder {
         reject(new Error('Video recording encountered an encoding error.'));
       };
 
+      try {
+        if (recorder.state === 'recording' && typeof recorder.requestData === 'function') {
+          recorder.requestData();
+        }
+      } catch {
+        // Some browsers throw if requestData is called right before stop
+      }
+
       recorder.stop();
     });
   }
 
   public dispose(): void {
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      try {
-        this.mediaRecorder.stop();
-      } catch {
-        // Ignore already-stopped errors
+    const recorder = this.mediaRecorder;
+    if (recorder) {
+      recorder.onstop = null;
+      recorder.onerror = null;
+      recorder.ondataavailable = null;
+      if (recorder.state !== 'inactive') {
+        try {
+          recorder.stop();
+        } catch {
+          // Ignore already-stopped errors
+        }
       }
     }
     this.stopStreamsAndLoop();
@@ -306,10 +346,28 @@ export class PresentationVideoRecorder {
     this.chunks = [];
   }
 
-  private scheduleCompositeLoop(): void {
+  private startCompositeLoop(fps: number): void {
     if (!this.running) return;
-    this.drawCompositeFrame();
-    this.rafId = window.requestAnimationFrame(() => this.scheduleCompositeLoop());
+    const targetIntervalMs = Math.max(33, Math.round(1000 / Math.max(10, Math.min(fps, 30))));
+    const tick = () => {
+      if (!this.running) return;
+      const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
+      this.drawCompositeFrame();
+      const track = this.canvasStream?.getVideoTracks()[0] as
+        | (MediaStreamTrack & { requestFrame?: () => void })
+        | undefined;
+      if (track && typeof track.requestFrame === 'function') {
+        try {
+          track.requestFrame();
+        } catch {
+          // Ignore browsers that do not support explicit requestFrame
+        }
+      }
+      const elapsed = typeof performance !== 'undefined' ? performance.now() - t0 : 0;
+      const delay = Math.max(16, targetIntervalMs - elapsed);
+      this.timerId = window.setTimeout(tick, delay);
+    };
+    tick();
   }
 
   private drawCompositeFrame(): void {
@@ -445,9 +503,9 @@ export class PresentationVideoRecorder {
 
   private stopStreamsAndLoop(): void {
     this.running = false;
-    if (this.rafId !== null && typeof window !== 'undefined') {
-      window.cancelAnimationFrame(this.rafId);
-      this.rafId = null;
+    if (this.timerId !== null && typeof window !== 'undefined') {
+      window.clearTimeout(this.timerId);
+      this.timerId = null;
     }
     const streams = [this.canvasStream, this.micStream, this.combinedStream];
     for (const stream of streams) {
@@ -465,6 +523,15 @@ export class PresentationVideoRecorder {
     this.micStream = null;
     this.combinedStream = null;
     this.mediaRecorder = null;
+    if (this.compositeCanvas) {
+      try {
+        this.compositeCanvas.remove();
+      } catch {
+        // Ignore DOM removal errors
+      }
+      this.compositeCanvas = null;
+      this.compositeCtx = null;
+    }
   }
 
   private revokeObjectUrl(): void {

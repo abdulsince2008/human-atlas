@@ -54,9 +54,10 @@ export default function Home() {
   const [route, setRoute] = useState<AppRoute>(() =>
     typeof window !== 'undefined' ? parseRouteFromHash() : 'home',
   );
-  const [presentationIdIntent, setPresentationIdIntent] = useState<string | null>(() =>
-    parsePresentationIdFromHash(),
-  );
+  const [presentationIntent, setPresentationIntent] = useState<{ id: string; seq: number } | null>(() => {
+    const pid = parsePresentationIdFromHash();
+    return pid ? { id: pid, seq: 1 } : null;
+  });
   const [atlas, setAtlas] = useState<Atlas | null>(null);
   const [atlasError, setAtlasError] = useState('');
   const [selectedSystem, setSelectedSystem] = useState<CanonicalSystemId>('cardiovascular');
@@ -88,7 +89,11 @@ export default function Home() {
     const onHash = () => {
       setRoute(parseRouteFromHash());
       const pid = parsePresentationIdFromHash();
-      if (pid) setPresentationIdIntent(pid);
+      if (pid) {
+        setPresentationIntent((prev) => ({ id: pid, seq: (prev?.seq ?? 0) + 1 }));
+      } else {
+        setPresentationIntent(null);
+      }
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -194,7 +199,7 @@ export default function Home() {
   );
 
   const openPresentation = useCallback((presentationId: string) => {
-    setPresentationIdIntent(presentationId);
+    setPresentationIntent((prev) => ({ id: presentationId, seq: (prev?.seq ?? 0) + 1 }));
     const targetHash = `#/present?id=${encodeURIComponent(presentationId)}`;
     if (window.location.hash !== targetHash) {
       window.location.hash = targetHash;
@@ -341,7 +346,7 @@ export default function Home() {
               <PresentationStudioPage
                 atlas={atlas}
                 atlasError={atlasError}
-                initialPresentationId={presentationIdIntent}
+                initialPresentationIntent={presentationIntent}
                 onInspectConcept={inspectConceptIn3D}
                 onOpenClinical={() => navigate('clinical')}
               />
