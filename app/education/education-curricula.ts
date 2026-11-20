@@ -150,12 +150,12 @@ export const CURRICULUM_FRAMEWORKS: CurriculumFrameworkSpec[] = [
     country: 'Pakistan',
     geographicScope: 'National regulatory baseline for accredited Pakistani MBBS programmes',
     url: 'https://www.pmdc.pk/Documents/Others/PM%26DC%20GUIDELINES%20FOR%20UG%20M.EDUCATION-06242024035407.pdf',
-    academicYearOrVersion: '2024 Guidelines (~6,000 teaching hours over 5-year MBBS)',
+    academicYearOrVersion: '2024 Guidelines (minimum 6,200 contact hours over 5-year MBBS)',
     dateAccessed: '2026-11-19',
     applicableGradesOrYears: 'MBBS Years 1–5 (Pre-clinical, Paraclinical, and Clinical)',
     requirementType: 'professional_guideline',
     adoptionNote:
-      'Pakistan-specific national medical education guideline; subject-hour figures (~500h Anatomy, ~450h Physiology, ~250h Biochemistry, ~500h Pathology, ~300h Pharmacology, ~170h Community Medicine, ~100h Forensic Medicine, ~3,100h Medicine/Surgery & allied) are Pakistan-specific references, not global percentages.',
+      'Pakistan-specific national medical regulatory guideline (minimum 6,200 total contact hours: ~2,950h pre-clinical/paraclinical, 1,700h Medicine & Allied, 1,625h Surgery & Allied, plus longitudinal/elective balance). Individual subject minimums (e.g., Anatomy 500–600h, Physiology 450–600h, Biochemistry 250–300h, Pathology 500h, Pharmacology 300h, Community Medicine ~170h, Forensic Medicine 100h) are Pakistan-specific references, not global percentages.',
     supports: 'Medical Foundations, Clinical / Applied Medicine, ethics, research, and community health.',
     tracks: ['medical_foundations', 'clinical_applied', 'allied_health'],
   },
@@ -290,24 +290,33 @@ export const CURRICULUM_FRAMEWORKS: CurriculumFrameworkSpec[] = [
 ];
 
 /**
- * Pakistan-specific PM&DC MBBS subject-hour allocation reference (approximate
- * distribution from PM&DC 2024 guidelines / ~6,000 total teaching hours).
+ * Official PM&DC 2024 Undergraduate Medical Education (MBBS) minimum total
+ * contact hours benchmark (Pakistan-specific regulatory reference).
+ * Source: https://www.pmdc.pk/Documents/Others/PM%26DC%20GUIDELINES%20FOR%20UG%20M.EDUCATION-06242024035407.pdf
+ */
+export const PMDC_OFFICIAL_MIN_TOTAL_HOURS = 6200;
+
+export const PMDC_HOUR_AGGREGATION_NOTE =
+  'PM&DC 2024 Guidelines specify a minimum total of 6,200 contact hours across the 5-year MBBS (approximately 2,950h pre-clinical/paraclinical, 1,700h Medicine & Allied, and 1,625h Surgery & Allied, with remaining longitudinal/elective/self-directed hours allocated by institutions). Individual subject minimums listed below are published minimum thresholds/ranges and are NOT forced to sum mechanically to 6,200.';
+
+/**
+ * Pakistan-specific PM&DC MBBS minimum subject-hour reference entries.
  * Strictly Pakistan-specific — NOT a universal global percentage model.
  */
 export const PMDC_PAKISTAN_MBBS_HOUR_REFERENCE: {
   subject: string;
-  approxHours: number;
-  phase: 'Pre-Clinical' | 'Paraclinical' | 'Clinical' | 'Self-Directed';
+  minHours: number;
+  rangeNote: string;
+  phase: 'Pre-Clinical' | 'Paraclinical' | 'Clinical';
   mappedDomainIds: string[];
 }[] = [
-  { subject: 'Anatomy (Gross, Histology, Embryology)', approxHours: 500, phase: 'Pre-Clinical', mappedDomainIds: ['human_anatomy', 'histology', 'embryology'] },
-  { subject: 'Physiology', approxHours: 450, phase: 'Pre-Clinical', mappedDomainIds: ['human_physiology'] },
-  { subject: 'Biochemistry', approxHours: 250, phase: 'Pre-Clinical', mappedDomainIds: ['biochemistry', 'molecular_genetics'] },
-  { subject: 'Pathology & Microbiology', approxHours: 500, phase: 'Paraclinical', mappedDomainIds: ['pathology', 'microbiology_parasitology', 'immunology', 'haematology_lab'] },
-  { subject: 'Pharmacology & Therapeutics', approxHours: 300, phase: 'Paraclinical', mappedDomainIds: ['pharmacology'] },
-  { subject: 'Community Medicine & Public Health', approxHours: 170, phase: 'Paraclinical', mappedDomainIds: ['clinical_skills_public_health', 'nutrition_health'] },
-  { subject: 'Forensic Medicine & Toxicology', approxHours: 100, phase: 'Paraclinical', mappedDomainIds: ['clinical_skills_public_health', 'pharmacology'] },
-  { subject: 'Medicine & Allied Specialties', approxHours: 1500, phase: 'Clinical', mappedDomainIds: ['clinical_specialties', 'radiology_imaging'] },
-  { subject: 'Surgery & Allied Specialties', approxHours: 1600, phase: 'Clinical', mappedDomainIds: ['clinical_specialties', 'human_anatomy'] },
-  { subject: 'Self-Directed Learning & Skills', approxHours: 500, phase: 'Self-Directed', mappedDomainIds: ['clinical_skills_public_health'] },
+  { subject: 'Anatomy (Gross, Histology, Embryology)', minHours: 500, rangeNote: '500–600 h minimum range', phase: 'Pre-Clinical', mappedDomainIds: ['human_anatomy', 'histology', 'embryology'] },
+  { subject: 'Physiology', minHours: 450, rangeNote: '450–600 h minimum range', phase: 'Pre-Clinical', mappedDomainIds: ['human_physiology'] },
+  { subject: 'Biochemistry', minHours: 250, rangeNote: '250–300 h minimum range', phase: 'Pre-Clinical', mappedDomainIds: ['biochemistry', 'molecular_genetics'] },
+  { subject: 'Pathology (General, Special, Haematology, Microbiology & Parasitology)', minHours: 500, rangeNote: '500 h minimum', phase: 'Paraclinical', mappedDomainIds: ['pathology', 'microbiology_parasitology', 'immunology', 'haematology_lab'] },
+  { subject: 'Pharmacology & Therapeutics', minHours: 300, rangeNote: '300 h minimum', phase: 'Paraclinical', mappedDomainIds: ['pharmacology'] },
+  { subject: 'Community Medicine & Public Health', minHours: 170, rangeNote: '~170 h reference', phase: 'Paraclinical', mappedDomainIds: ['clinical_skills_public_health', 'nutrition_health'] },
+  { subject: 'Forensic Medicine & Toxicology', minHours: 100, rangeNote: '100 h minimum', phase: 'Paraclinical', mappedDomainIds: ['clinical_skills_public_health', 'pharmacology'] },
+  { subject: 'Medicine & Allied Specialties', minHours: 1700, rangeNote: '1,700 h clinical allocation', phase: 'Clinical', mappedDomainIds: ['clinical_specialties', 'radiology_imaging'] },
+  { subject: 'Surgery & Allied Specialties', minHours: 1625, rangeNote: '1,625 h clinical allocation', phase: 'Clinical', mappedDomainIds: ['clinical_specialties', 'human_anatomy'] },
 ];

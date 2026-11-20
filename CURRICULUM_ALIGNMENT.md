@@ -6,13 +6,15 @@
 
 ---
 
-## 1. Official Reference Frameworks Audited (11 Authorities)
+## 1. Curriculum References Audited (11 Distinct Authorities & Institutional Examples)
 
-| ID | Framework Title | Authority / Publisher | Country & Geographic Scope | Version / Academic Year | Requirement Type | Date Accessed | URL |
+> **Authority Distinction:** The 11 references below are **not** equivalent legal authorities. They include national statutory curricula (Pakistan NCC, England DfE, China MOE), a national medical regulator (PM&DC), state/national school examination boards (CBSE, Western Australia SCSA), an optional advanced programme (College Board AP), and individual university curricula (UHS Lahore, Harvard Medical School, University of Oxford).
+
+| ID | Reference Title | Authority / Publisher | Country & Geographic Scope | Version / Academic Year | Requirement Type | Date Accessed | URL |
 |---|---|---|---|---|---|---|---|
 | `pk_ncp_gs_4_8` | National Curriculum of Pakistan — General Science (Grades 4–8) | National Curriculum Council (NCC), Ministry of Federal Education & Professional Training | Pakistan (Federal/ICT baseline; provincial textbook board adoption varies) | NCP 2022–2023 notified framework | Compulsory | 2026-11-19 | https://www.ncc.gov.pk/Detail/MjM3NGE4Y2ItNjIyNC00ZTY5LTg0OTQtOWZhZWMzODRlYTQ2 |
 | `pk_ncp_bio_9_12` | National Curriculum of Pakistan — Biology (Grades IX–XII) | National Curriculum Council (NCC) | Pakistan (Federal/FBISE baseline; provincial BISE adoption is board-dependent / not uniformly verified) | NCP 2023/2026 rationalized SLO framework | Elective stream (Science / Pre-Medical) | 2026-11-19 | https://www.ncc.gov.pk/SiteImage/Misc/files/Biology.pdf |
-| `pk_pmdc_mbbs` | PM&DC Guidelines for Undergraduate Medical Education (MBBS) | Pakistan Medical and Dental Council (PM&DC) | Pakistan (National regulatory baseline for accredited MBBS programmes) | 2024 Guidelines (~6,000 total teaching hours over 5 years) | Professional guideline | 2026-11-19 | https://www.pmdc.pk/Documents/Others/PM%26DC%20GUIDELINES%20FOR%20UG%20M.EDUCATION-06242024035407.pdf |
+| `pk_pmdc_mbbs` | PM&DC Guidelines for Undergraduate Medical Education (MBBS) | Pakistan Medical and Dental Council (PM&DC) | Pakistan (National regulatory baseline for accredited MBBS programmes) | 2024 Guidelines (minimum 6,200 contact hours over 5 years) | Professional guideline | 2026-11-19 | https://www.pmdc.pk/Documents/Others/PM%26DC%20GUIDELINES%20FOR%20UG%20M.EDUCATION-06242024035407.pdf |
 | `pk_uhs_mbbs` | UHS Lahore — MBBS Modular Integrated Curriculum (2K23) | University of Health Sciences (UHS), Lahore | Pakistan — Punjab UHS-affiliated colleges (institution-specific) | Curriculum 2K23 v2.0 | Institutional example | 2026-11-19 | https://www.uhs.edu.pk/downloads/2k23mbbscurriculumv20.pdf |
 | `in_cbse_bio_11_12` | CBSE Biology Curriculum (Classes XI–XII) | Central Board of Secondary Education (CBSE) | India (CBSE-affiliated schools; not all Indian state boards) | Academic Year 2026–27 | Elective stream | 2026-11-19 | https://cbseacademic.nic.in/web_material/CurriculumMain27/SecPart2/Biology_SecP2_2026-27.pdf |
 | `en_nc_science` | National Curriculum in England — Science Programmes of Study | Department for Education (DfE) | **England only** (Scotland, Wales, and Northern Ireland have separate curricula) | Statutory Key Stages 3 & 4 | Compulsory | 2026-11-19 | https://www.gov.uk/government/publications/national-curriculum-in-england-science-programmes-of-study/national-curriculum-in-england-science-programmes-of-study |
@@ -34,24 +36,24 @@
    - Core SLO-based domains: Nature of Biology & Classification, Cell Biology & Tissues, Biomolecules & Enzymes, Bioenergetics, Human Life Processes (Nutrition, Gaseous Exchange, Transport, Homeostasis, Support & Movement, Coordination & Control, Reproduction, Growth & Development), Genetics & Chromosomes, Acellular Life / Prokaryotes / Fungi, Immunity, and Biotechnology.
    - **Adoption Caveat:** The NCP-2026 Biology framework is **not** universally implemented across every Pakistani school. Federal/ICT (FBISE) timelines differ from provincial textbook boards (Punjab, Sindh, KP, Balochistan), where adoption remains board-dependent.
 3. **Undergraduate Medical Education (PM&DC 2024 Guidelines & UHS Lahore Modular Curriculum 2K23):**
-   - 5-year MBBS (~6,000 total teaching hours) plus 1-year compulsory house job/internship.
+   - 5-year MBBS (**minimum 6,200 contact hours**: ~2,950 h pre-clinical/paraclinical, 1,700 h Medicine & Allied, 1,625 h Surgery & Allied, plus longitudinal/elective/self-directed balance allocated by institutions) plus 1-year compulsory house job/internship.
    - **UHS Modular 2K23** organizes years into horizontally and vertically integrated organ-system modules (Cardiovascular, Respiratory, Nervous, Renal, GI/Hepatobiliary, Musculoskeletal, Endocrine/Reproductive) paired with OSCE/OSPE and skills labs.
 
-### Pakistan-Specific PM&DC MBBS Subject-Hour Reference
-*(Strictly a Pakistan-specific reference — NOT a universal global percentage model)*
+### Pakistan-Specific PM&DC MBBS Subject-Minimum Hour Reference
+*(Strictly a Pakistan-specific regulatory reference — NOT a universal global percentage model. Individual subject minimums/ranges below do NOT sum mechanically to the 6,200-hour programme minimum because colleges allocate integrated, longitudinal, elective, and self-directed hours differently.)*
 
-| Subject Area | Approximate Teaching Hours | Phase | Mapped Anatomy 360 Domains |
-|---|---:|---|---|
-| Anatomy (Gross, Histology, Embryology) | ~500 h | Pre-Clinical | A (`human_anatomy`), C (`histology`), D (`embryology`) |
-| Physiology | ~450 h | Pre-Clinical | E (`human_physiology`) |
-| Biochemistry | ~250 h | Pre-Clinical | F (`biochemistry`), G (`molecular_genetics`) |
-| Pathology & Microbiology | ~500 h | Paraclinical | J (`pathology`), H (`microbiology_parasitology`), I (`immunology`), M (`haematology_lab`) |
-| Pharmacology & Therapeutics | ~300 h | Paraclinical | K (`pharmacology`) |
-| Community Medicine & Public Health | ~170 h | Paraclinical | P (`clinical_skills_public_health`), L (`nutrition_health`) |
-| Forensic Medicine & Toxicology | ~100 h | Paraclinical | P (`clinical_skills_public_health`), K (`pharmacology`) |
-| Medicine & Allied Specialties | ~1,500 h | Clinical | O (`clinical_specialties`), N (`radiology_imaging`) |
-| Surgery & Allied Specialties | ~1,600 h | Clinical | O (`clinical_specialties`), A (`human_anatomy`) |
-| Self-Directed Learning & Clinical Skills | ~500 h | Longitudinal | P (`clinical_skills_public_health`) |
+| Subject Area | Minimum / Reference Hours | Phase | Mapped Anatomy 360 Domains |
+|---|---|---|---|
+| Anatomy (Gross, Histology, Embryology) | 500–600 h minimum range | Pre-Clinical | A (`human_anatomy`), C (`histology`), D (`embryology`) |
+| Physiology | 450–600 h minimum range | Pre-Clinical | E (`human_physiology`) |
+| Biochemistry | 250–300 h minimum range | Pre-Clinical | F (`biochemistry`), G (`molecular_genetics`) |
+| Pathology (General, Special, Haematology, Microbiology & Parasitology) | 500 h minimum | Paraclinical | J (`pathology`), H (`microbiology_parasitology`), I (`immunology`), M (`haematology_lab`) |
+| Pharmacology & Therapeutics | 300 h minimum | Paraclinical | K (`pharmacology`) |
+| Community Medicine & Public Health | ~170 h reference | Paraclinical | P (`clinical_skills_public_health`), L (`nutrition_health`) |
+| Forensic Medicine & Toxicology | 100 h minimum | Paraclinical | P (`clinical_skills_public_health`), K (`pharmacology`) |
+| Medicine & Allied Specialties | 1,700 h clinical allocation | Clinical | O (`clinical_specialties`), N (`radiology_imaging`) |
+| Surgery & Allied Specialties | 1,625 h clinical allocation | Clinical | O (`clinical_specialties`), A (`human_anatomy`) |
+| **Overall 5-Year MBBS Programme Minimum** | **6,200 contact hours** | **All Phases** | Includes institutional longitudinal, elective & SDL balance |
 
 ---
 

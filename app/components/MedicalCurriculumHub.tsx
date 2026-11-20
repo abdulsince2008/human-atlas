@@ -15,18 +15,16 @@ import {
 import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import {
-  EDUCATION_TOPICS,
-  getDomainsForTrack,
+  filterTopicsForTrackAndFramework,
   getFrameworkById,
-  getTopicsByDomain,
   getTrackById,
+  getVisibleDomainsForFilter,
   resolveExplanationForTrack,
 } from '../education/education-content';
 import {
   CURRICULUM_FRAMEWORKS,
   EDUCATION_TRACKS,
 } from '../education/education-curricula';
-import { EDUCATION_DOMAINS } from '../education/education-domains';
 import type {
   CoverageStatus,
   CurriculumAuthorityId,
@@ -50,11 +48,11 @@ const COVERAGE_BADGE: Record<
   { label: string; className: string }
 > = {
   implemented_validated: {
-    label: 'Implemented · 3D Validated',
+    label: 'Core 3D Anatomy · Unreviewed by Faculty',
     className: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
   implemented_partial: {
-    label: 'Implemented · Foundational',
+    label: 'Introductory Overview (1–2 Modules)',
     className: 'bg-teal-50 text-teal-800 border-teal-200',
   },
   content_only_no_visual: {
@@ -112,40 +110,40 @@ export default function MedicalCurriculumHub({
     return map;
   }, [atlas]);
 
-  const visibleDomains = useMemo(() => {
-    const byTrack = getDomainsForTrack(selectedTrack);
-    if (frameworkFilter === 'all') return byTrack;
-    return byTrack.filter((d) => d.curriculumFrameworks.includes(frameworkFilter));
-  }, [selectedTrack, frameworkFilter]);
+  const visibleDomains = useMemo(
+    () => getVisibleDomainsForFilter(selectedTrack, frameworkFilter),
+    [selectedTrack, frameworkFilter],
+  );
 
   const activeDomain = useMemo(() => {
-    return (
-      visibleDomains.find((d) => d.id === activeDomainId) ??
-      visibleDomains[0] ??
-      EDUCATION_DOMAINS[0]
-    );
+    if (visibleDomains.length === 0) return null;
+    return visibleDomains.find((d) => d.id === activeDomainId) ?? visibleDomains[0];
   }, [visibleDomains, activeDomainId]);
 
   const domainTopics = useMemo(
-    () => getTopicsByDomain(activeDomain.id),
-    [activeDomain.id],
+    () =>
+      activeDomain
+        ? filterTopicsForTrackAndFramework(activeDomain.id, selectedTrack, frameworkFilter)
+        : [],
+    [activeDomain, selectedTrack, frameworkFilter],
   );
 
   const activeTopic = useMemo(() => {
-    return domainTopics.find((t) => t.id === activeTopicId) ?? domainTopics[0] ?? EDUCATION_TOPICS[0];
+    if (domainTopics.length === 0) return null;
+    return domainTopics.find((t) => t.id === activeTopicId) ?? domainTopics[0];
   }, [domainTopics, activeTopicId]);
 
   const depthInfo = useMemo(
-    () => resolveExplanationForTrack(activeTopic, selectedTrack),
+    () => (activeTopic ? resolveExplanationForTrack(activeTopic, selectedTrack) : null),
     [activeTopic, selectedTrack],
   );
 
   const activeTrackSpec = getTrackById(selectedTrack) ?? EDUCATION_TRACKS[1];
-  const isTopicDone = state.completedTopicIds.includes(activeTopic.id);
+  const isTopicDone = activeTopic ? state.completedTopicIds.includes(activeTopic.id) : false;
 
   const handleSelectDomain = (domId: EducationDomainId) => {
     setActiveDomainId(domId);
-    const firstTopic = getTopicsByDomain(domId)[0];
+    const firstTopic = filterTopicsForTrackAndFramework(domId, selectedTrack, frameworkFilter)[0];
     if (firstTopic) setActiveTopicId(firstTopic.id);
   };
 
@@ -161,10 +159,10 @@ export default function MedicalCurriculumHub({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
-              Curriculum-Aligned Human Biology &amp; Medical Sciences (16 Domains)
+              Biomedical Curriculum Overview (Introductory Reference Modules)
             </p>
             <h2 className="mt-1 text-xl font-bold text-slate-900">
-              Select Your Learning Level &amp; Curriculum Framework
+              Select Your Learning Level &amp; Curriculum Reference
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {activeTrackSpec.description}
@@ -176,7 +174,7 @@ export default function MedicalCurriculumHub({
               htmlFor="curriculum-framework-select"
               className="text-xs font-semibold uppercase tracking-wide text-slate-500"
             >
-              Curriculum Filter
+              Curriculum Reference Filter
             </label>
             <select
               id="curriculum-framework-select"
@@ -184,7 +182,7 @@ export default function MedicalCurriculumHub({
               onChange={(e) => setFrameworkFilter(e.target.value as CurriculumAuthorityId | 'all')}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-teal-600 focus:outline-none"
             >
-              <option value="all">All 11 Reference Curricula</option>
+              <option value="all">All 11 Curriculum References</option>
               {CURRICULUM_FRAMEWORKS.map((fw) => (
                 <option key={fw.id} value={fw.id}>
                   {fw.country} — {fw.title.replace(/^[^—]+—\s*/, '').slice(0, 48)}
@@ -251,9 +249,13 @@ export default function MedicalCurriculumHub({
 
           <div className="space-y-1.5">
             {visibleDomains.map((dom) => {
-              const isSelected = dom.id === activeDomain.id;
+              const isSelected = activeDomain?.id === dom.id;
               const badge = COVERAGE_BADGE[dom.coverageStatus];
-              const topicCount = getTopicsByDomain(dom.id).length;
+              const topicCount = filterTopicsForTrackAndFramework(
+                dom.id,
+                selectedTrack,
+                frameworkFilter,
+              ).length;
               return (
                 <button
                   key={dom.id}
@@ -295,6 +297,24 @@ export default function MedicalCurriculumHub({
 
         {/* Right Reader: Domain Overview + Active Topic */}
         <article className="space-y-5 lg:col-span-8">
+          {!activeDomain || !activeTopic || !depthInfo ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xs">
+              <p className="text-sm font-semibold text-slate-900">
+                No introductory modules match this learning level and curriculum reference.
+              </p>
+              <p className="mt-1 text-xs text-slate-600">
+                Try switching to a matching learning track or resetting the curriculum reference filter.
+              </p>
+              <button
+                type="button"
+                onClick={() => setFrameworkFilter('all')}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-teal-800"
+              >
+                Reset Curriculum Filter
+              </button>
+            </div>
+          ) : (
+            <>
           {/* Domain Header & Platform Connections */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -446,7 +466,7 @@ export default function MedicalCurriculumHub({
               </p>
             </div>
 
-            {/* Interactive 2D Conceptual Diagram */}
+            {/* Static 2D Conceptual Schematic */}
             {activeTopic.diagram && (
               <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -454,7 +474,7 @@ export default function MedicalCurriculumHub({
                     {activeTopic.diagram.title}
                   </h4>
                   <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                    2D Conceptual {activeTopic.diagram.kind}
+                    2D Conceptual Schematic · {activeTopic.diagram.kind}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-600">{activeTopic.diagram.caption}</p>
@@ -477,6 +497,37 @@ export default function MedicalCurriculumHub({
                     </div>
                   ))}
                 </div>
+
+                {activeTopic.diagram.links && activeTopic.diagram.links.length > 0 && (
+                  <div className="mt-3 rounded-lg border border-slate-200 bg-white/80 p-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Pathway Connections
+                    </p>
+                    <ul className="mt-1.5 space-y-1 text-xs text-slate-700">
+                      {activeTopic.diagram.links.map((lnk) => {
+                        const fromNode = activeTopic.diagram?.nodes.find((n) => n.id === lnk.from);
+                        const toNode = activeTopic.diagram?.nodes.find((n) => n.id === lnk.to);
+                        return (
+                          <li
+                            key={`${lnk.from}-${lnk.to}-${lnk.label ?? ''}`}
+                            className="flex flex-wrap items-center gap-1.5"
+                          >
+                            <span className="font-semibold text-slate-900">
+                              {fromNode?.label ?? lnk.from}
+                            </span>
+                            <ArrowRight size={12} className="shrink-0 text-teal-700" />
+                            <span className="font-semibold text-slate-900">
+                              {toNode?.label ?? lnk.to}
+                            </span>
+                            {lnk.label && (
+                              <span className="text-slate-500">({lnk.label})</span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
 
                 <p className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-500">
                   <AlertTriangle size={12} className="shrink-0" />
@@ -693,6 +744,8 @@ export default function MedicalCurriculumHub({
               </div>
             </div>
           </div>
+            </>
+          )}
         </article>
       </div>
     </div>

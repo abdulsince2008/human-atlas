@@ -2,12 +2,12 @@
 
 > Only features that have been implemented and verified are listed here.
 
-- [x] **Human Biology & Medical Sciences Curriculum Architecture (`#/learn`, `app/education/`, `app/components/MedicalCurriculumHub.tsx`):**
-  - Unified 16-domain biomedical & clinical taxonomy (Domains A–P: Human Anatomy, Cell Biology, Histology, Embryology, Physiology, Biochemistry, Molecular Genetics, Microbiology & Parasitology, Immunology, Pathology, Pharmacology, Nutrition & Health, Haematology & Lab Medicine, Radiology & Imaging Orientation, Clinical Specialties, Clinical Skills & Public Health)
-  - 5 level-differentiated learning tracks (`School Foundations 6–8`, `Secondary / Pre-Med 9–12`, `Medical Foundations`, `Clinical & Applied`, `Nursing & Allied Health`) with dynamic track depth switching
-  - 11 verified official curriculum frameworks with geographic/adoption accuracy caveats (Pakistan NCP 4–8 & IX–XII, PM&DC MBBS, UHS 2K23 MBBS, India CBSE XI–XII 2026–27, England NC Science KS3–4, US AP Biology, China MOE 2022 Biology, Australia WA Human Biology ATAR, Harvard Pathways, Oxford Pre-Clinical A100)
-  - 17 substantive modules across all 16 domains with interactive 2D conceptual diagrams, verified BodyParts3D FMA 3D inspection links, applied activities, self-assessment MCQs wired to `StudyContext`, topic completion tracking, and strict `asset_missing` disclosures for Histology microscopy and Radiology imaging
-  - Comprehensive curriculum & architecture documentation (`CURRICULUM_ALIGNMENT.md`, `EDUCATION_COVERAGE_MATRIX.md`, `EDUCATION_ARCHITECTURE.md`) and automated validation (`app/education/education-validation.ts`, `app/education.test.ts`, `scripts/test-platform.mjs` Section 7)
+- [x] **Biomedical Curriculum Overview (`#/learn`, `app/education/`, `app/components/MedicalCurriculumHub.tsx`):**
+  - Introductory overview modules across 16 biomedical & clinical domains (17 modules total — introductory overviews, not completed courses)
+  - 5 level-differentiated learning tracks with strict track+reference domain and topic filtering (zero silent fallback on unmatched combinations)
+  - 11 curriculum references (distinct regulators, statutory frameworks, exam boards, and university examples) with geographic/adoption caveats and verified PM&DC 6,200 minimum contact hours benchmark
+  - Static 2D conceptual schematics with rendered pathway connections, verified BodyParts3D FMA 3D inspection links, applied activities, self-assessment MCQs wired to `StudyContext`, topic completion tracking, and strict `asset_missing` disclosures for Histology microscopy and Radiology imaging
+  - Structural/referential automated validation (`app/education/education-validation.ts`, `app/education.test.ts`, `scripts/test-platform.mjs` Section 7 — structural checks only, not medical accuracy certification)
 - [x] **Repository Migration & Static Production Build:** Configured `vite.config.ts` (`0.0.0.0:3000`, `allowedHosts: true`), verified static `dist/` production output with lazy-loaded 3D chunks (`ExplorerView`, `PresentationStudioPage`, `scene`).
 - [x] **3D Graphics, PBR, UV, Shadows & Runtime LOD Pipeline (`app/graphics/`, `app/scene.tsx`, `app/tissue-materials.ts`):**
   - Natural Anatomy default visualization mode with 27 physically grounded tissue presets and per-part GPU roughness/metalness (`partMaterialTexture`)

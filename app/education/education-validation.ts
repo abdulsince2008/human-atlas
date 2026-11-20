@@ -17,6 +17,12 @@ export interface EducationValidationResult {
   };
 }
 
+/**
+ * Structural, referential, FMA-mesh, and governance validator for the education
+ * data layer. Passing this validator proves schema integrity and honest asset
+ * flags ONLY — it does NOT certify medical accuracy, clinical safety, or
+ * qualified human faculty review.
+ */
 export function validateEducationSystem(atlas?: Atlas | null): EducationValidationResult {
   const errors: string[] = [];
 

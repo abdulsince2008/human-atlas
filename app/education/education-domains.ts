@@ -73,7 +73,7 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
     assetDisclosure: {
       status: 'conceptual_diagram_only',
       summary:
-        'Delivered with structured level-differentiated lessons, interactive 2D conceptual diagrams, and self-checks. Electron-microscopy micrographs are not yet bundled.',
+        'Delivered with structured level-differentiated introductory lessons, static 2D conceptual schematics, and self-checks. Electron-microscopy micrographs are not yet bundled.',
       missingAssets: ['Licensed transmission/scanning electron microscopy (TEM/SEM) reference micrographs'],
     },
     curriculumFrameworks: [

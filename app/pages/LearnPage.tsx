@@ -32,9 +32,7 @@ export default function LearnPage({
   onNavigate,
   onOpenPresentation,
 }: Props) {
-  const [category, setCategory] = useState<LearningCategoryId>(() =>
-    initialSystemId || initialTopicId ? 'by-system' : 'curriculum-hub',
-  );
+  const [category, setCategory] = useState<LearningCategoryId>('by-system');
   const [systemLessonIntent, setSystemLessonIntent] = useState<CanonicalSystemId | null>(
     initialSystemId ?? null,
   );
@@ -81,11 +79,11 @@ export default function LearnPage({
   return (
     <div className="a360-page a360-learn-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Structured Curriculum · 16 Biomedical &amp; Clinical Domains</p>
-        <h1>Learn Human Biology &amp; Medical Sciences</h1>
+        <p className="a360-kicker">Interactive 3D Human Anatomy · MBBS Pilot Curriculum</p>
+        <h1>Learn Human Anatomy</h1>
         <p className="a360-lead">
-          Progress from School Foundations and Pre-Medical Biology (Matric, FSc, MDCAT, CBSE, AP, WA)
-          through MBBS/MD Foundations and Applied Clinical Sciences—connected directly to real 3D anatomy.
+          Study all 12 human body systems with synchronized 3D anatomy inspection, guided pathways,
+          and terminology — plus introductory reference modules across foundational biomedical subjects.
         </p>
       </header>
 

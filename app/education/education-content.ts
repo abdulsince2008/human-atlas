@@ -94,6 +94,53 @@ export function getTopicsForFramework(
   );
 }
 
+/**
+ * Returns only topics in `domainId` that explicitly belong to the selected
+ * learning track and (when not 'all') the selected curriculum reference,
+ * respecting whether the selected curriculum reference applies to `trackId`.
+ */
+export function filterTopicsForTrackAndFramework(
+  domainId: EducationDomainId,
+  trackId: EducationTrackId | 'all',
+  frameworkId: CurriculumAuthorityId | 'all',
+): EducationTopic[] {
+  if (trackId !== 'all' && frameworkId !== 'all') {
+    const fw = getFrameworkById(frameworkId);
+    if (!fw || !fw.tracks.includes(trackId)) return [];
+  }
+  return EDUCATION_TOPICS.filter((t) => {
+    if (t.domainId !== domainId) return false;
+    if (trackId !== 'all' && !t.targetTracks.includes(trackId)) return false;
+    if (
+      frameworkId !== 'all' &&
+      !t.curriculumMappings.some((m) => m.frameworkId === frameworkId)
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+/**
+ * Returns domains matching `trackId` and `frameworkId` that have at least one
+ * topic matching the same filter criteria. Returns an empty array when no
+ * domain/topic matches (never falls back silently to an unrelated domain).
+ */
+export function getVisibleDomainsForFilter(
+  trackId: EducationTrackId | 'all',
+  frameworkId: CurriculumAuthorityId | 'all',
+): EducationDomainSpec[] {
+  if (trackId !== 'all' && frameworkId !== 'all') {
+    const fw = getFrameworkById(frameworkId);
+    if (!fw || !fw.tracks.includes(trackId)) return [];
+  }
+  return EDUCATION_DOMAINS.filter((d) => {
+    if (trackId !== 'all' && !d.targetTracks.includes(trackId)) return false;
+    if (frameworkId !== 'all' && !d.curriculumFrameworks.includes(frameworkId)) return false;
+    return filterTopicsForTrackAndFramework(d.id, trackId, frameworkId).length > 0;
+  });
+}
+
 export function resolveExplanationForTrack(
   topic: EducationTopic,
   preferredTrack: EducationTrackId,

@@ -97,9 +97,9 @@ export default function HomePage({
           <p className="a360-kicker">Interactive 3D Human Anatomy Learning Platform</p>
           <h1>Study real 3D human anatomy with precision and clarity.</h1>
           <p className="a360-lead">
-            Built for FSc pre-medical, MDCAT, MBBS, nursing, and biology students. Rotate, zoom,
+            Built for MBBS, FSc pre-medical, MDCAT, nursing, and biology students. Rotate, zoom,
             dissect, and inspect 2,234 individually selectable anatomical meshes across 12 human
-            body systems — paired with verified explanations, relationship graphs, flashcards, and practical exams.
+            body systems — paired with structured anatomical notes, relationship graphs, flashcards, and practical spotter exercises.
           </p>
           <div className="a360-hero-actions">
             <button type="button" className="a360-btn-primary" onClick={onExplore}>
