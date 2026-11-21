@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Compass, GraduationCap, Layers, Type } from 'lucide-react';
+import { ArrowRight, BookOpen, ClipboardList, Compass, GraduationCap, Layers, Type } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CURATED_KNOWLEDGE } from '../anatomy-knowledge';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import EducatorToolkitPanel from '../components/EducatorToolkitPanel';
 import MedicalCurriculumHub from '../components/MedicalCurriculumHub';
 import type { AppRoute } from '../components/SiteHeader';
 import SystemLearnWorkspace from '../components/SystemLearnWorkspace';
@@ -33,6 +34,7 @@ export default function LearnPage({
   onOpenPresentation,
 }: Props) {
   const [category, setCategory] = useState<LearningCategoryId>('by-system');
+  const [educatorModeOpen, setEducatorModeOpen] = useState(false);
   const [systemLessonIntent, setSystemLessonIntent] = useState<CanonicalSystemId | null>(
     initialSystemId ?? null,
   );
@@ -79,13 +81,40 @@ export default function LearnPage({
   return (
     <div className="a360-page a360-learn-page">
       <header className="a360-page-header">
-        <p className="a360-kicker">Interactive 3D Human Anatomy · MBBS Pilot Curriculum</p>
-        <h1>Learn Human Anatomy</h1>
-        <p className="a360-lead">
-          Study all 12 human body systems with synchronized 3D anatomy inspection, guided pathways,
-          and terminology — plus introductory reference modules across foundational biomedical subjects.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="a360-kicker">Interactive 3D Human Anatomy · 9th–12th to PhD Progression</p>
+            <h1>Learn Human Anatomy</h1>
+            <p className="a360-lead">
+              Study all 12 human body systems with multi-tier depth (Grades 9–12, BS/MBBS, MPhil/PhD),
+              synchronized 3D inspection, 8 guided pathways, and terminology — plus 16 biomedical subjects.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-expanded={educatorModeOpen}
+            onClick={() => setEducatorModeOpen((v) => !v)}
+            className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
+              educatorModeOpen
+                ? 'border-teal-700 bg-teal-700 text-white'
+                : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+            }`}
+          >
+            <ClipboardList size={15} />
+            <span>{educatorModeOpen ? 'Close Educator Prep Mode' : 'Teacher & Professor Prep Mode'}</span>
+          </button>
+        </div>
       </header>
+
+      {educatorModeOpen && (
+        <EducatorToolkitPanel
+          activeSystemId={systemLessonIntent}
+          onSelectSystem={(sysId) => {
+            setSystemLessonIntent(sysId);
+            setCategory('by-system');
+          }}
+        />
+      )}
 
       <div className="a360-category-tabs" role="tablist" aria-label="Learning categories">
         {LEARNING_CATEGORIES.map((cat) => (
@@ -123,6 +152,8 @@ export default function LearnPage({
           initialSystemId={systemLessonIntent}
           initialTopicId={initialTopicId}
           onInspectConcept={onInspectConcept}
+          onNavigate={onNavigate}
+          onSystemChange={setSystemLessonIntent}
         />
       )}
 
@@ -244,7 +275,7 @@ export default function LearnPage({
       {category === 'terminology' && (
         <div className="a360-terms-section">
           <div className="a360-filter-row">
-            {['all', 'Plane', 'Directional', 'Root'].map((cat) => (
+            {['all', 'Plane', 'Directional', 'Movement', 'Root'].map((cat) => (
               <button
                 key={cat}
                 type="button"

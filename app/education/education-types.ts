@@ -6,7 +6,8 @@ export type EducationTrackId =
   | 'secondary_premed'
   | 'medical_foundations'
   | 'clinical_applied'
-  | 'allied_health';
+  | 'allied_health'
+  | 'graduate_research';
 
 export type EducationDomainId =
   | 'human_anatomy'
@@ -62,7 +63,9 @@ export type CurriculumAuthorityId =
   | 'cn_moe_bio_2022'
   | 'au_wa_human_bio'
   | 'hms_pathways'
-  | 'ox_preclinical';
+  | 'ox_preclinical'
+  | 'qaa_biosciences'
+  | 'anat_soc_core';
 
 export interface EducationTrackSpec {
   id: EducationTrackId;
@@ -158,6 +161,7 @@ export interface LevelDepthContent {
   medical_foundations?: string;
   clinical_applied?: string;
   allied_health?: string;
+  graduate_research?: string;
 }
 
 export interface EducationTopic {

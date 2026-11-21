@@ -253,11 +253,17 @@ function buildKnowledgeQuestionBank(catalog: SpotterCandidate[]): KnowledgeSeed[
   for (const q of QUIZ_QUESTIONS) {
     const cand = candidateMap.get(q.relatedConceptId);
     if (!cand) continue;
+    const mappedDifficulty =
+      q.difficulty === 'Grades 9–10 (Matric / O-Level)' || q.difficulty === 'FSc / MDCAT (11–12)'
+        ? 'foundational'
+        : q.difficulty === 'BS / MPhil / PhD Research'
+          ? 'advanced'
+          : 'intermediate';
     seeds.push({
       id: `know-quiz-${q.id}`,
       conceptId: cand.conceptId,
       systemId: q.systemId,
-      difficulty: q.difficulty === 'FSc / MDCAT' ? 'foundational' : 'intermediate',
+      difficulty: mappedDifficulty,
       aspect: 'function',
       prompt: q.prompt,
       options: q.options,

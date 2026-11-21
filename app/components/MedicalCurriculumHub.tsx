@@ -99,6 +99,7 @@ export default function MedicalCurriculumHub({
   const [activeDomainId, setActiveDomainId] = useState<EducationDomainId>('cell_biology');
   const [activeTopicId, setActiveTopicId] = useState<string>('edu-cell-organelles-transport');
   const [answersByQuestion, setAnswersByQuestion] = useState<Record<string, number>>({});
+  const [selectedDiagramNodeId, setSelectedDiagramNodeId] = useState<string | null>(null);
 
   const conceptNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -143,6 +144,7 @@ export default function MedicalCurriculumHub({
 
   const handleSelectDomain = (domId: EducationDomainId) => {
     setActiveDomainId(domId);
+    setSelectedDiagramNodeId(null);
     const firstTopic = filterTopicsForTrackAndFramework(domId, selectedTrack, frameworkFilter)[0];
     if (firstTopic) setActiveTopicId(firstTopic.id);
   };
@@ -182,7 +184,7 @@ export default function MedicalCurriculumHub({
               onChange={(e) => setFrameworkFilter(e.target.value as CurriculumAuthorityId | 'all')}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-teal-600 focus:outline-none"
             >
-              <option value="all">All 11 Curriculum References</option>
+              <option value="all">All {CURRICULUM_FRAMEWORKS.length} Curriculum References</option>
               {CURRICULUM_FRAMEWORKS.map((fw) => (
                 <option key={fw.id} value={fw.id}>
                   {fw.country} — {fw.title.replace(/^[^—]+—\s*/, '').slice(0, 48)}
@@ -192,7 +194,7 @@ export default function MedicalCurriculumHub({
           </div>
         </div>
 
-        {/* 5 Learning Track Pills */}
+        {/* Learning Track Tabs */}
         <div
           className="mt-4 flex flex-wrap gap-2"
           role="tablist"
@@ -399,7 +401,10 @@ export default function MedicalCurriculumHub({
                 <button
                   key={tp.id}
                   type="button"
-                  onClick={() => setActiveTopicId(tp.id)}
+                  onClick={() => {
+                    setActiveTopicId(tp.id);
+                    setSelectedDiagramNodeId(null);
+                  }}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${
                     tp.id === activeTopic.id
                       ? 'border-slate-900 bg-slate-900 text-white'
@@ -466,75 +471,129 @@ export default function MedicalCurriculumHub({
               </p>
             </div>
 
-            {/* Static 2D Conceptual Schematic */}
-            {activeTopic.diagram && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h4 className="text-sm font-bold text-slate-900">
-                    {activeTopic.diagram.title}
-                  </h4>
-                  <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                    2D Conceptual Schematic · {activeTopic.diagram.kind}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-slate-600">{activeTopic.diagram.caption}</p>
+            {/* Interactive 2D Conceptual Schematic */}
+            {activeTopic.diagram && (() => {
+              const allLinks = activeTopic.diagram.links ?? [];
+              const activeNodeExists = activeTopic.diagram.nodes.some(
+                (n) => n.id === selectedDiagramNodeId,
+              );
+              const activeNodeId = activeNodeExists ? selectedDiagramNodeId : null;
+              const visibleLinks = activeNodeId
+                ? allLinks.filter((l) => l.from === activeNodeId || l.to === activeNodeId)
+                : allLinks;
+              const connectedNodeIds = new Set<string>();
+              if (activeNodeId) {
+                connectedNodeIds.add(activeNodeId);
+                for (const l of visibleLinks) {
+                  connectedNodeIds.add(l.from);
+                  connectedNodeIds.add(l.to);
+                }
+              }
 
-                <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {activeTopic.diagram.nodes.map((node, idx) => (
-                    <div
-                      key={node.id}
-                      className={`rounded-lg border p-3 ${NODE_TONE_CLASSES[node.tone ?? 'slate']}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/80 text-[11px] font-bold text-slate-700">
-                          {idx + 1}
-                        </span>
-                        <span className="text-xs font-bold">{node.label}</span>
-                      </div>
-                      {node.sublabel && (
-                        <p className="mt-1 pl-7 text-xs opacity-85">{node.sublabel}</p>
+              return (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h4 className="text-sm font-bold text-slate-900">
+                      {activeTopic.diagram.title}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {activeNodeId && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDiagramNodeId(null)}
+                          className="rounded border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-teal-800 hover:bg-slate-100"
+                        >
+                          Show All Nodes
+                        </button>
                       )}
+                      <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+                        Interactive 2D Schematic · {activeTopic.diagram.kind}
+                      </span>
                     </div>
-                  ))}
-                </div>
-
-                {activeTopic.diagram.links && activeTopic.diagram.links.length > 0 && (
-                  <div className="mt-3 rounded-lg border border-slate-200 bg-white/80 p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                      Pathway Connections
-                    </p>
-                    <ul className="mt-1.5 space-y-1 text-xs text-slate-700">
-                      {activeTopic.diagram.links.map((lnk) => {
-                        const fromNode = activeTopic.diagram?.nodes.find((n) => n.id === lnk.from);
-                        const toNode = activeTopic.diagram?.nodes.find((n) => n.id === lnk.to);
-                        return (
-                          <li
-                            key={`${lnk.from}-${lnk.to}-${lnk.label ?? ''}`}
-                            className="flex flex-wrap items-center gap-1.5"
-                          >
-                            <span className="font-semibold text-slate-900">
-                              {fromNode?.label ?? lnk.from}
-                            </span>
-                            <ArrowRight size={12} className="shrink-0 text-teal-700" />
-                            <span className="font-semibold text-slate-900">
-                              {toNode?.label ?? lnk.to}
-                            </span>
-                            {lnk.label && (
-                              <span className="text-slate-500">({lnk.label})</span>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
                   </div>
-                )}
+                  <p className="mt-1 text-xs text-slate-600">
+                    {activeTopic.diagram.caption}{' '}
+                    <span className="text-teal-800 font-medium">
+                      Click any stage below to trace its incoming &amp; outgoing pathway links.
+                    </span>
+                  </p>
 
-                <p className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-500">
-                  <AlertTriangle size={12} className="shrink-0" />
-                  <span>{activeTopic.diagram.disclaimer}</span>
-                </p>
-              </div>
-            )}
+                  <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {activeTopic.diagram.nodes.map((node, idx) => {
+                      const isFocused = activeNodeId === node.id;
+                      const isDimmed = Boolean(activeNodeId && !connectedNodeIds.has(node.id));
+                      return (
+                        <button
+                          key={node.id}
+                          type="button"
+                          aria-pressed={isFocused}
+                          onClick={() =>
+                            setSelectedDiagramNodeId((prev) => (prev === node.id ? null : node.id))
+                          }
+                          className={`rounded-lg border p-3 text-left transition-all ${
+                            NODE_TONE_CLASSES[node.tone ?? 'slate']
+                          } ${
+                            isFocused
+                              ? 'ring-2 ring-teal-700 shadow-xs'
+                              : isDimmed
+                                ? 'opacity-45 hover:opacity-85'
+                                : 'hover:shadow-xs'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/85 text-[11px] font-bold text-slate-700">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs font-bold">{node.label}</span>
+                          </div>
+                          {node.sublabel && (
+                            <p className="mt-1 pl-7 text-xs opacity-85">{node.sublabel}</p>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {visibleLinks.length > 0 && (
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-white/85 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        {activeNodeId
+                          ? 'Focused Stage Connections'
+                          : `Pathway Connections (${visibleLinks.length})`}
+                      </p>
+                      <ul className="mt-1.5 space-y-1 text-xs text-slate-700">
+                        {visibleLinks.map((lnk) => {
+                          const fromNode = activeTopic.diagram?.nodes.find((n) => n.id === lnk.from);
+                          const toNode = activeTopic.diagram?.nodes.find((n) => n.id === lnk.to);
+                          return (
+                            <li
+                              key={`${lnk.from}-${lnk.to}-${lnk.label ?? ''}`}
+                              className="flex flex-wrap items-center gap-1.5"
+                            >
+                              <span className="font-semibold text-slate-900">
+                                {fromNode?.label ?? lnk.from}
+                              </span>
+                              <ArrowRight size={12} className="shrink-0 text-teal-700" />
+                              <span className="font-semibold text-slate-900">
+                                {toNode?.label ?? lnk.to}
+                              </span>
+                              {lnk.label && (
+                                <span className="text-slate-600">— {lnk.label}</span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  <p className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+                    <AlertTriangle size={12} className="shrink-0" />
+                    <span>{activeTopic.diagram.disclaimer}</span>
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Key Terminology & Key Facts */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

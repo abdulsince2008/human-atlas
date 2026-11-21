@@ -55,6 +55,7 @@ const {
   evaluateRespiratorySimulation,
   evaluateRenalSimulation,
   evaluateMusculoskeletalSimulation,
+  evaluateAcidBaseOxygenSimulation,
 } = await import('../app/data/physiology-data.ts');
 
 // ---------------------------------------------------------------------------
@@ -205,6 +206,11 @@ assert.equal(renal.gfrApprox, 125);
 const elbow = evaluateMusculoskeletalSimulation({ elbowAngle: 90, bicepsDrive: 70 });
 assert.equal(elbow.mechanicalAdvantagePct, 100);
 
+const normalAbg = evaluateAcidBaseOxygenSimulation({ paco2: 40, hco3: 24, pao2: 95 });
+assert.ok(Math.abs(normalAbg.pH - 7.40) < 0.02, `Expected pH ~7.40, got ${normalAbg.pH}`);
+const acidemiaAbg = evaluateAcidBaseOxygenSimulation({ paco2: 60, hco3: 24, pao2: 68 });
+assert.ok(acidemiaAbg.pH < 7.30 && acidemiaAbg.p50 > 26.8, 'Acidemia must lower pH and right-shift Bohr P50');
+
 // ---------------------------------------------------------------------------
 // 6. Clinical Mechanism & 3D Presentation Integrity Tests
 // ---------------------------------------------------------------------------
@@ -250,10 +256,10 @@ assert.equal(
   true,
   `Education taxonomy validation failed: ${eduRes.errors.join('; ')}`,
 );
-assert.equal(eduRes.summary.tracks, 5);
-assert.equal(eduRes.summary.frameworks, 11);
+assert.equal(eduRes.summary.tracks, 6);
+assert.equal(eduRes.summary.frameworks, 13);
 assert.equal(eduRes.summary.domains, 16);
-assert.ok(eduRes.summary.topics >= 16);
+assert.ok(eduRes.summary.topics >= 17);
 
 console.log(
   'All automated platform tests passed: search-engine, knowledge-graph, SM-2 scheduler, ' +

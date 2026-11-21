@@ -38,16 +38,16 @@ export const PLATFORM_RESOURCE_MAPPINGS: ExistingPlatformMapping[] = [
   {
     domainId: 'human_anatomy',
     moduleName: 'System Anatomy Lessons & Practical Lab',
-    countSummary: '12 chapters · 28 topics · 4 guided 3D pathways · 100 curated structures (97 in 3D)',
+    countSummary: '12 chapters · 28 topics · 8 guided 3D pathways · 43 multi-tier quizzes',
     route: 'learn',
-    note: 'Synchronized with 3D inspection, flashcards, and Practical Spotter Lab.',
+    note: 'Synchronized with 3D inspection, flashcards, Practical Spotter Lab, and Teacher/Professor Prep worksheets.',
   },
   {
     domainId: 'human_physiology',
     moduleName: 'Physiology Simulation Lab',
-    countSummary: '4 interactive quantitative models + 1 planned endocrine spec',
+    countSummary: '5 interactive quantitative models + 1 planned endocrine spec',
     route: 'physiology',
-    note: 'Cardiac, Respiratory, Renal, and Musculoskeletal evaluators with equations and bounds.',
+    note: 'Cardiac, Respiratory, Renal, Musculoskeletal, and Acid–Base/O₂ Curve evaluators with equations and bounds.',
   },
   {
     domainId: 'histology',
@@ -151,6 +151,7 @@ export function resolveExplanationForTrack(
   const fallbackOrder: EducationTrackId[] = [
     'secondary_premed',
     'medical_foundations',
+    'graduate_research',
     'school_foundations',
     'clinical_applied',
     'allied_health',

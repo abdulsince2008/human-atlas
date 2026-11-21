@@ -1038,17 +1038,99 @@ export const GUIDED_PATHWAYS: GuidedPathway[] = [
       { stepNumber: 5, title: 'Tibia', conceptId: 'FMA24476', note: 'Medial shinbone carrying vertical load to the ankle.' },
     ],
   },
+  {
+    id: 'pathway-nervous-axis',
+    title: 'Central Nervous & Cranial Projection Axis',
+    systemId: 'nervous',
+    summary: 'Trace cortical processing down through brainstem and spinal cord alongside cranial optic outflow.',
+    steps: [
+      { stepNumber: 1, title: 'Brain (Cerebrum)', conceptId: 'FMA50801', note: 'Governs conscious perception, executive cognition, and voluntary motor planning.' },
+      { stepNumber: 2, title: 'Cerebellum', conceptId: 'FMA67944', note: 'Compares motor commands with proprioceptive feedback for fine coordination.' },
+      { stepNumber: 3, title: 'Brainstem', conceptId: 'FMA79876', note: 'Midbrain, pons, and medulla sustain vital autonomic cardiorespiratory drives.' },
+      { stepNumber: 4, title: 'Spinal Cord', conceptId: 'FMA7647', note: 'Conveys ascending/descending tracts and executes segmental spinal reflexes.' },
+      { stepNumber: 5, title: 'Optic Nerve', conceptId: 'FMA50863', note: 'CNS myelinated visual tract exiting the posterior globe to the optic chiasm.' },
+    ],
+  },
+  {
+    id: 'pathway-urinary-filtration',
+    title: 'Renal Blood Supply & Urine Drainage',
+    systemId: 'urinary',
+    summary: 'Follow renal arterial inflow through kidney filtration and peristaltic urine storage.',
+    steps: [
+      { stepNumber: 1, title: 'Renal Artery', conceptId: 'FMA14751', note: 'Supplies high-pressure aortic blood directly into the kidney hilum for filtration.' },
+      { stepNumber: 2, title: 'Kidney', conceptId: 'FMA7203', note: 'Filters ~180 L/day of plasma ultrafiltrate and concentrates nitrogenous waste.' },
+      { stepNumber: 3, title: 'Renal Vein', conceptId: 'FMA14334', note: 'Returns cleaned, electrolyte-balanced blood to the inferior vena cava.' },
+      { stepNumber: 4, title: 'Ureter', conceptId: 'FMA9704', note: 'Peristaltic smooth-muscle conduit carrying urine retroperitoneally.' },
+      { stepNumber: 5, title: 'Urinary Bladder', conceptId: 'FMA15900', note: 'Distensible detrusor reservoir storing urine prior to micturition.' },
+    ],
+  },
+  {
+    id: 'pathway-endocrine-axis',
+    title: 'Neuroendocrine & Metabolic Signaling Axis',
+    systemId: 'endocrine',
+    summary: 'Connect central intracranial regulators with peripheral metabolic and steroid glands.',
+    steps: [
+      { stepNumber: 1, title: 'Pituitary Gland', conceptId: 'FMA13889', note: 'Master hypophyseal gland seated in the sella turcica below the hypothalamus.' },
+      { stepNumber: 2, title: 'Pineal Body', conceptId: 'FMA62033', note: 'Epithalamic transducer secreting nocturnal melatonin for circadian alignment.' },
+      { stepNumber: 3, title: 'Adrenal Gland', conceptId: 'FMA9604', note: 'Suprarenal cortex (cortisol/aldosterone) and medulla (catecholamines).' },
+      { stepNumber: 4, title: 'Pancreas', conceptId: 'FMA7198', note: 'Endocrine islets regulating systemic glucose via insulin and glucagon.' },
+      { stepNumber: 5, title: 'Testis', conceptId: 'FMA7210', note: 'Gonadal Leydig steroidogenesis responding to anterior pituitary LH/FSH.' },
+    ],
+  },
+  {
+    id: 'pathway-upper-limb-chain',
+    title: 'Upper-Limb Musculoskeletal Lever Chain',
+    systemId: 'muscular',
+    summary: 'Inspect bone-to-muscle mechanical force transfer from scapula through humerus and forearm.',
+    steps: [
+      { stepNumber: 1, title: 'Scapula', conceptId: 'FMA13394', note: 'Dynamic posterior shoulder blade providing glenoid socket and muscle attachments.' },
+      { stepNumber: 2, title: 'Deltoid', conceptId: 'FMA34676', note: 'Multipennate shoulder cap abducting the arm past the first 15 degrees.' },
+      { stepNumber: 3, title: 'Long Head of Biceps Brachii', conceptId: 'FMA37682', note: 'Anterior compartment flexor and forearm supinator pulling across the elbow.' },
+      { stepNumber: 4, title: 'Long Head of Triceps Brachii', conceptId: 'FMA37692', note: 'Posterior antagonist straightening the elbow joint.' },
+      { stepNumber: 5, title: 'Radius', conceptId: 'FMA23463', note: 'Lateral rotating forearm bone transmitting biceps supination torque.' },
+    ],
+  },
 ];
 
 export const TERMINOLOGY_ENTRIES: TerminologyEntry[] = [
+  // Planes (5)
   { term: 'Anatomical Position', category: 'Plane', definition: 'Standard reference posture: standing upright, facing forward, arms at sides with palms facing anteriorly (forward), and feet flat.', example: 'In this position, the radius is always lateral to the ulna.' },
   { term: 'Sagittal Plane', category: 'Plane', definition: 'Vertical plane dividing the body into left and right portions (median/midsagittal divides into equal halves).', example: 'Viewing the body in Left or Right profile aligns with a sagittal view.' },
   { term: 'Coronal (Frontal) Plane', category: 'Plane', definition: 'Vertical plane dividing the body into anterior (front) and posterior (back) sections.', example: 'Front and Back camera presets look perpendicular to the coronal plane.' },
   { term: 'Transverse (Axial) Plane', category: 'Plane', definition: 'Horizontal plane dividing the body into superior (upper) and inferior (lower) parts.', example: 'The diaphragm lies near a transverse boundary between thorax and abdomen.' },
+  { term: 'Oblique Plane', category: 'Plane', definition: 'Any planar section angled between sagittal, coronal, and transverse axes to track curved organs or vessels.', example: 'Echocardiographic long-axis views slice the heart along an oblique plane.' },
+
+  // Directional (9)
   { term: 'Anterior / Posterior', category: 'Directional', definition: 'Toward the front (ventral) vs. toward the back (dorsal) of the body.', example: 'The sternum is anterior to the heart; the esophagus is posterior to the trachea.' },
   { term: 'Superior / Inferior', category: 'Directional', definition: 'Closer to the head (cranial) vs. closer to the feet (caudal).', example: 'The lungs are superior to the diaphragm; the urinary bladder is inferior to the kidneys.' },
   { term: 'Medial / Lateral', category: 'Directional', definition: 'Closer to the midline of the body vs. farther from the midline.', example: 'The ulna is medial in the forearm; the fibula is lateral in the lower leg.' },
-  { term: 'Proximal / Distal', category: 'Directional', definition: 'Closer to the trunk/point of attachment vs. farther away along a limb.', example: 'The humerus is proximal to the radius and ulna.' },
-  { term: 'Superficial / Deep', category: 'Directional', definition: 'Closer to the outer skin surface vs. farther inside the body.', example: 'The skin is superficial to skeletal muscles, which are superficial to bones.' },
+  { term: 'Proximal / Distal', category: 'Directional', definition: 'Closer to the trunk/point of attachment vs. farther away along a limb or tubular structure.', example: 'The humerus is proximal to the radius; the duodenum is proximal to the colon.' },
+  { term: 'Superficial / Deep', category: 'Directional', definition: 'Closer to the outer skin surface vs. farther inside toward visceral cavities or bone.', example: 'Pectoralis major is superficial to pectoralis minor and the ribcage.' },
+  { term: 'Ipsilateral / Contralateral', category: 'Directional', definition: 'Situated on the same side of the body midline vs. on the opposite side.', example: 'The liver and appendix are ipsilateral (both predominantly right-sided).' },
+  { term: 'Rostral / Caudal', category: 'Directional', definition: 'In neuroanatomy and embryology: toward the anterior nose/forebrain vs. toward the tail/inferior spinal cord.', example: 'The frontal lobe sits rostral to the brainstem along the neuraxis.' },
+  { term: 'Visceral / Parietal', category: 'Directional', definition: 'Directly investing the surface of an internal organ vs. lining the outer body-cavity wall.', example: 'Visceral pleura clings to lung tissue while parietal pleura lines the ribs.' },
+  { term: 'Afferent / Efferent', category: 'Directional', definition: 'Carrying signal or fluid inward toward a center/organ vs. carrying it outward away.', example: 'Afferent arterioles feed the glomerulus; motor efferent nerves drive skeletal muscle.' },
+
+  // Movement (10 — previously missing!)
+  { term: 'Flexion / Extension', category: 'Movement', definition: 'Decreasing vs. increasing the sagittal-plane angle between two articulating bones at a joint.', example: 'Biceps brachii produces elbow flexion; triceps brachii drives elbow extension.' },
+  { term: 'Abduction / Adduction', category: 'Movement', definition: 'Moving a limb away from the coronal midline vs. drawing it back toward the midline.', example: 'Deltoid abducts the humerus; pectoralis major adducts the arm.' },
+  { term: 'Medial / Lateral Rotation', category: 'Movement', definition: 'Pivoting a bone around its own longitudinal axis toward the midline (internal) vs. away (external).', example: 'Rotator cuff muscles stabilize humeral head rotation inside the glenoid.' },
+  { term: 'Pronation / Supination', category: 'Movement', definition: 'Forearm rotation turning the palm posteriorly/downward (radius crosses ulna) vs. anteriorly/upward (bones parallel).', example: 'Biceps brachii is the strongest forearm supinator when the elbow is flexed.' },
+  { term: 'Dorsiflexion / Plantarflexion', category: 'Movement', definition: 'Lifting the top (dorsum) of the foot toward the shin vs. pointing toes downward by pressing the ball of the foot.', example: 'Gastrocnemius and soleus contract during push-off plantarflexion.' },
+  { term: 'Inversion / Eversion', category: 'Movement', definition: 'Tilting the sole of the foot inward toward the midline vs. outward away from the midline at subtalar joints.', example: 'Excessive forced inversion stresses the lateral ankle ligaments.' },
+  { term: 'Circumduction', category: 'Movement', definition: 'Conical circular sweep combining sequential flexion, abduction, extension, and adduction at a ball-and-socket joint.', example: 'Drawing a large circle in the air with an outstretched arm.' },
+  { term: 'Protraction / Retraction', category: 'Movement', definition: 'Gliding a structure anteriorly vs. posteriorly along a horizontal plane.', example: 'Serratus anterior protracts the scapula during pushing; rhomboids and trapezius retract it.' },
+  { term: 'Elevation / Depression', category: 'Movement', definition: 'Lifting a structure superiorly vs. lowering it inferiorly.', example: 'Upper trapezius elevates the scapula when shrugging the shoulders.' },
+  { term: 'Opposition / Reposition', category: 'Movement', definition: 'Bringing the thumb pad across the palm to meet another fingertip vs. returning it to anatomical rest.', example: 'Precision grip relies on carpometacarpal opposition of the pollex.' },
+
+  // Classical & Scientific Roots (8)
   { term: 'Hepato- / Reno- / Cardio- / Pulmo-', category: 'Root', definition: 'Classical Greek/Latin roots referring to Liver, Kidney, Heart, and Lung respectively.', example: 'Hepatic portal vein (liver), Renal hilum (kidney), Myocardium (heart), Pulmonary circuit (lungs).' },
+  { term: 'Osteo- / Chondro- / Myo- / Arthro-', category: 'Root', definition: 'Musculoskeletal tissue roots denoting Bone, Cartilage, Muscle, and Joint.', example: 'Osteon (compact bone unit), Costal chondritis, Myofibril, Diarthrosis.' },
+  { term: 'Encephalo- / Myelo- / Neuro-', category: 'Root', definition: 'Neural and marrow roots referring to Brain, Spinal Cord/Marrow, and Nerve.', example: 'Diencephalon, Poliomyelitis (spinal cord grey horn), Optic neuropathy.' },
+  { term: 'Angio- / Vaso- / Phlebo- / Hemo-', category: 'Root', definition: 'Vascular roots denoting Blood Vessel, Duct/Vessel, Vein, and Blood.', example: 'Coronary angiography, Vasoconstriction, Phlebitis, Haemostasis.' },
+  { term: 'Gastro- / Entero- / Colo- / Chole-', category: 'Root', definition: 'Digestive roots for Stomach, Small Intestine, Large Intestine, and Bile/Gallbladder.', example: 'Gastroesophageal, Enterocyte, Colectomy, Cholecystitis.' },
+  { term: 'Nephro- / Uro- / Cysto-', category: 'Root', definition: 'Renal/urinary roots denoting Functional Kidney Unit, Urine/Urinary Tract, and Sac/Bladder.', example: 'Nephron, Ureteric peristalsis, Cystoscopy.' },
+  { term: 'Hyper- / Hypo- / Iso- / Endo- / Exo-', category: 'Root', definition: 'Quantitative/directional Greek prefixes: Above/Excessive, Below/Deficient, Equal, Within, and Outward.', example: 'Hypercapnia, Hypoxemia, Isovolumetric contraction, Endocrine vs. Exocrine secretion.' },
+  { term: '-ectomy / -otomy / -ostomy / -pathy', category: 'Root', definition: 'Surgical and pathological suffixes: Surgical Removal, Incision into, Creating an Opening, and Disease Process.', example: 'Appendectomy, Tracheotomy, Colostomy, Cardiomyopathy.' },
 ];
+

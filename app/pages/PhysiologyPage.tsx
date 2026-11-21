@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import {
+  evaluateAcidBaseOxygenSimulation,
   evaluateCardiacSimulation,
   evaluateMusculoskeletalSimulation,
   evaluateRenalSimulation,
@@ -88,9 +89,15 @@ export default function PhysiologyPage({ onInspectConcept, onOpenLearnSystem }: 
   const respEval = activeMod.id === 'respiratory-ventilation' ? evaluateRespiratorySimulation(vals) : null;
   const renalEval = activeMod.id === 'renal-filtration' ? evaluateRenalSimulation(vals) : null;
   const mskEval = activeMod.id === 'antagonistic-elbow' ? evaluateMusculoskeletalSimulation(vals) : null;
+  const acidBaseEval = activeMod.id === 'acid-base-oxygen' ? evaluateAcidBaseOxygenSimulation(vals) : null;
 
   const activeReadouts =
-    cardiacEval?.readouts ?? respEval?.readouts ?? renalEval?.readouts ?? mskEval?.readouts ?? [];
+    cardiacEval?.readouts ??
+    respEval?.readouts ??
+    renalEval?.readouts ??
+    mskEval?.readouts ??
+    acidBaseEval?.readouts ??
+    [];
 
   const activeSys = CANONICAL_SYSTEMS.find((s) => s.id === activeMod.systemId);
 
@@ -120,15 +127,17 @@ export default function PhysiologyPage({ onInspectConcept, onOpenLearnSystem }: 
           >
             <Activity size={15} />
             <span>
-              {m.systemId === 'cardiovascular'
-                ? 'Cardiovascular'
-                : m.systemId === 'respiratory'
-                  ? 'Respiratory'
-                  : m.systemId === 'urinary'
-                    ? 'Renal'
-                    : m.systemId === 'muscular'
-                      ? 'Musculoskeletal'
-                      : 'Endocrine (Spec)'}
+              {m.id === 'acid-base-oxygen'
+                ? 'Acid–Base & O₂ Curve'
+                : m.systemId === 'cardiovascular'
+                  ? 'Cardiovascular'
+                  : m.systemId === 'respiratory'
+                    ? 'Respiratory'
+                    : m.systemId === 'urinary'
+                      ? 'Renal'
+                      : m.systemId === 'muscular'
+                        ? 'Musculoskeletal'
+                        : 'Endocrine (Spec)'}
             </span>
           </button>
         ))}
@@ -368,6 +377,62 @@ export default function PhysiologyPage({ onInspectConcept, onOpenLearnSystem }: 
                           </text>
                           <text x="195" y="185" textAnchor="end" fontSize="11.5" fontWeight="600" fill="#0f5c6e">
                             Triceps Brachii (Extensor)
+                          </text>
+                        </>
+                      );
+                    })()}
+                  </svg>
+                )}
+
+                {/* 5. Acid-Base & O2-Haemoglobin Hill/Bohr Stage */}
+                {acidBaseEval && (
+                  <svg
+                    viewBox="0 0 640 310"
+                    className="a360-sim-svg"
+                    role="img"
+                    aria-label="Oxygen-haemoglobin dissociation curve with live Bohr pH shift"
+                  >
+                    <rect x="20" y="20" width="600" height="270" rx="12" fill="#f8fafc" stroke="#dce4ec" />
+                    {/* Plot grid axes: X (0..120 mmHg) -> 90..560, Y (0..100%) -> 240..58 */}
+                    <line x1="90" y1="240" x2="560" y2="240" stroke="#64748b" strokeWidth="1.5" />
+                    <line x1="90" y1="58" x2="90" y2="240" stroke="#64748b" strokeWidth="1.5" />
+                    <line x1="90" y1="149" x2="560" y2="149" stroke="#cbd5e1" strokeDasharray="4 4" />
+                    <text x="50" y="65" fontSize="10.5" fill="#475569">100%</text>
+                    <text x="50" y="153" fontSize="10.5" fill="#475569">50%</text>
+                    <text x="50" y="242" fontSize="10.5" fill="#475569">0%</text>
+                    <text x="325" y="272" textAnchor="middle" fontSize="11" fontWeight="600" fill="#334155">
+                      Partial Pressure of O₂ (PaO₂ mmHg) · {acidBaseEval.acidBaseStatus}
+                    </text>
+
+                    {/* Standard pH 7.40 reference dashed curve */}
+                    <polyline
+                      fill="none"
+                      stroke="#94a3b8"
+                      strokeWidth="2"
+                      strokeDasharray="5 4"
+                      points={acidBaseEval.curvePoints
+                        .map((pt) => `${90 + (pt.po2 / 120) * 470},${240 - (pt.stdSao2 / 100) * 182}`)
+                        .join(' ')}
+                    />
+                    {/* Active Bohr-shifted curve */}
+                    <polyline
+                      fill="none"
+                      stroke="#0f5c6e"
+                      strokeWidth="3.5"
+                      points={acidBaseEval.curvePoints
+                        .map((pt) => `${90 + (pt.po2 / 120) * 470},${240 - (pt.sao2 / 100) * 182}`)
+                        .join(' ')}
+                    />
+                    {/* Operating point marker */}
+                    {(() => {
+                      const cx = 90 + ((vals.pao2 ?? 95) / 120) * 470;
+                      const cy = 240 - (acidBaseEval.sao2Pct / 100) * 182;
+                      return (
+                        <>
+                          <line x1={cx} y1="240" x2={cx} y2={cy} stroke="#b91c1c" strokeDasharray="3 3" strokeWidth="1.5" />
+                          <circle cx={cx} cy={cy} r="6.5" fill="#b91c1c" stroke="#ffffff" strokeWidth="2" />
+                          <text x="330" y="42" textAnchor="middle" fontSize="11.5" fontWeight="700" fill="#0f5c6e">
+                            {acidBaseEval.bohrShiftDirection}
                           </text>
                         </>
                       );

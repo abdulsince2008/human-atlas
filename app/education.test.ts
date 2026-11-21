@@ -29,14 +29,14 @@ test('education system passes full structural, curriculum, atlas FMA, quiz, and 
   const result = validateEducationSystem(atlas);
   assert.deepEqual(result.errors, [], `Education validation errors:\n${result.errors.join('\n')}`);
   assert.equal(result.valid, true);
-  assert.equal(result.summary.tracks, 5);
-  assert.equal(result.summary.frameworks, 11);
+  assert.equal(result.summary.tracks, 6);
+  assert.equal(result.summary.frameworks, 13);
   assert.equal(result.summary.domains, 16);
-  assert.ok(result.summary.topics >= 16, 'Every domain must have at least one topic');
-  assert.ok(result.summary.selfChecks >= 16, 'Every topic must have at least one self-check');
+  assert.ok(result.summary.topics >= 17, 'Every domain must have at least one topic');
+  assert.ok(result.summary.selfChecks >= 32, 'Multi-tier curriculum topics must provide expanded self-checks');
 });
 
-test('all 5 learning tracks, 11 curriculum references, and PM&DC 6,200h benchmark are consistent', () => {
+test('all 6 learning tracks, 13 curriculum references, and PM&DC 6,200h benchmark are consistent', () => {
   for (const track of EDUCATION_TRACKS) {
     const domains = getDomainsForTrack(track.id);
     assert.ok(domains.length >= 4, `Track ${track.id} should map to multiple domains`);
@@ -52,6 +52,12 @@ test('all 5 learning tracks, 11 curriculum references, and PM&DC 6,200h benchmar
 
   const pmdcTopics = getTopicsForFramework('pk_pmdc_mbbs');
   assert.ok(pmdcTopics.length >= 8, 'PM&DC MBBS must map across pre-clinical and clinical domains');
+
+  const qaaTopics = getTopicsForFramework('qaa_biosciences');
+  assert.ok(qaaTopics.length >= 8, 'QAA Subject Benchmark Biosciences must map across BS/MPhil/PhD domains');
+
+  const anatSocTopics = getTopicsForFramework('anat_soc_core');
+  assert.ok(anatSocTopics.length >= 3, 'Anatomical Society core syllabus must map across anatomy/histology/embryology');
 
   assert.equal(PMDC_OFFICIAL_MIN_TOTAL_HOURS, 6200, 'Official PM&DC 2024 MBBS minimum total is 6,200 contact hours');
   assert.ok(PMDC_HOUR_AGGREGATION_NOTE.includes('6,200'), 'Aggregation note must document the 6,200h total transparently');
@@ -74,19 +80,32 @@ test('strict curriculum filtering filters both domains and topics and never fall
     }
   }
 
+  const gradQaaDomains = getVisibleDomainsForFilter('graduate_research', 'qaa_biosciences');
+  assert.ok(gradQaaDomains.length >= 6, 'Graduate Research + QAA Biosciences must return matching domains');
+
   // Incompatible combination: School (6–8) + Harvard Pathways MD should return empty (no fallback domain)
   const emptyDomains = getVisibleDomainsForFilter('school_foundations', 'hms_pathways');
   assert.deepEqual(emptyDomains, [], 'Incompatible track + framework must return [] with no silent fallback');
 });
 
-test('level-appropriate depth resolver returns differentiated explanations and honest asset disclosures', () => {
+test('level-appropriate depth resolver returns differentiated explanations, schematic links, and honest asset disclosures', () => {
   const cellTopic = EDUCATION_TOPICS.find((t) => t.id === 'edu-cell-organelles-transport');
   assert.ok(cellTopic);
   const school = resolveExplanationForTrack(cellTopic, 'school_foundations');
   const med = resolveExplanationForTrack(cellTopic, 'medical_foundations');
+  const grad = resolveExplanationForTrack(cellTopic, 'graduate_research');
   assert.equal(school.trackUsed, 'school_foundations');
   assert.equal(med.trackUsed, 'medical_foundations');
+  assert.equal(grad.trackUsed, 'graduate_research');
   assert.notEqual(school.text, med.text, 'School and medical explanations must differ in depth');
+  assert.notEqual(med.text, grad.text, 'Medical and graduate_research explanations must differ in depth');
+
+  for (const tp of EDUCATION_TOPICS) {
+    assert.ok(
+      tp.diagram && tp.diagram.links && tp.diagram.links.length >= 1,
+      `Topic ${tp.id} diagram must include explicit directed links for interactive node filtering`,
+    );
+  }
 
   const histDomain = EDUCATION_DOMAINS.find((d) => d.id === 'histology');
   const radDomain = EDUCATION_DOMAINS.find((d) => d.id === 'radiology_imaging');

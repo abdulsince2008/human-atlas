@@ -16,13 +16,14 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     title: 'Innate vs Adaptive Immunity, MHC Presentation & Vaccination',
     summary:
       'Physical/cellular innate barriers, complement, antigen presentation via MHC I & II, humoral (B-cell/antibody) and cell-mediated (T-cell) immunity, immunological memory, and hypersensitivity concepts.',
-    targetTracks: ['school_foundations', 'secondary_premed', 'medical_foundations', 'clinical_applied'],
+    targetTracks: ['school_foundations', 'secondary_premed', 'medical_foundations', 'clinical_applied', 'graduate_research'],
     curriculumMappings: [
       { frameworkId: 'pk_ncp_gs_4_8', gradeOrYear: 'Grades 6–8', unitOrModule: 'Immunity & Diseases', status: 'compulsory' },
       { frameworkId: 'pk_ncp_bio_9_12', gradeOrYear: 'Grade XI', unitOrModule: 'Immunity (First, Second & Third Lines of Defence)', status: 'elective' },
       { frameworkId: 'in_cbse_bio_11_12', gradeOrYear: 'Class XII (Unit VIII)', unitOrModule: 'Human Health and Disease — Immunity & Vaccination', status: 'elective' },
       { frameworkId: 'au_wa_human_bio', gradeOrYear: 'Year 12 (Unit 4)', unitOrModule: 'Body Defences & Immunity', status: 'elective' },
       { frameworkId: 'hms_pathways', gradeOrYear: 'MD Year 1', unitOrModule: 'Immunity in Defense and Disease', status: 'institution_specific' },
+      { frameworkId: 'qaa_biosciences', gradeOrYear: 'BS Hons / MPhil', unitOrModule: 'V(D)J Recombination, Affinity Maturation & Immune Checkpoint Biology', status: 'recommended' },
     ],
     learningObjectives: [
       'Contrast rapid, non-specific innate immunity with antigen-specific adaptive immunity and immunological memory.',
@@ -38,6 +39,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         'Pattern-recognition receptors (TLRs) on dendritic cells bridge innate sensing to adaptive priming. Endogenous cytosolic peptides load onto MHC Class I (all nucleated cells → CD8+ T cells), whereas exogenous phagocytosed peptides load onto MHC Class II (APCs → CD4+ T cells). Dysregulated immunity produces Gell-Coombs Types I–IV hypersensitivity, autoimmunity, or immunodeficiency.',
       clinical_applied:
         'Distinguishing active immunisation from passive antibody transfer, recognizing anaphylaxis (Type I IgE-mediated mast-cell degranulation), and understanding immunosuppression risks are central to clinical practice.',
+      graduate_research:
+        'Germinal-center affinity maturation pairs AID-driven somatic hypermutation of V(D)J immunoglobulin exons with follicular helper T-cell (Tfh) positive selection in dark/light lymphoid zones, while peripheral CTLA-4 and PD-1 inhibitory checkpoints attenuate effector T-cell exhaustion and autoimmunity.',
     },
     keyConcepts: [
       { term: 'MHC Class I vs II', definition: 'MHC I presents intracellular antigens to CD8+ T cells; MHC II on APCs presents extracellular antigens to CD4+ T cells.' },
@@ -67,6 +70,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'im3', label: 'Adaptive Effectors', sublabel: 'CD4+ Th, CD8+ CTL, B-cell plasma antibodies', tone: 'blue' },
         { id: 'im4', label: 'Immunological Memory', sublabel: 'Rapid IgG secondary response (Vaccination)', tone: 'emerald' },
       ],
+      links: [
+        { from: 'im1', to: 'im2', label: 'PAMP/TLR activation promotes CCR7+ dendritic migration' },
+        { from: 'im2', to: 'im3', label: 'Signal 1 (MHC-TCR) + Signal 2 (CD80/86-CD28) co-stimulation' },
+        { from: 'im3', to: 'im4', label: 'Germinal center class-switching & long-lived memory cells' },
+      ],
     },
     assetDisclosure: {
       status: 'partial',
@@ -80,6 +88,19 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         correctIndex: 1,
         explanation: 'MHC Class II molecules on professional APCs present processed exogenous antigens specifically to CD4+ helper T lymphocytes.',
         level: 'medical_foundations',
+      },
+      {
+        id: 'q-edu-imm-2',
+        question: 'Somatic hypermutation driving antibody affinity maturation in secondary lymphoid germinal centres is initiated enzymatically by:',
+        options: [
+          'RAG1/RAG2 recombinase in the bone marrow',
+          'Activation-induced cytidine deaminase (AID)',
+          'C3 convertase',
+          'Perforin and granzyme B',
+        ],
+        correctIndex: 1,
+        explanation: 'AID deaminates cytidines in rearranged immunoglobulin variable exons and switch regions within germinal-centre B cells.',
+        level: 'graduate_research',
       },
     ],
     sources: [
@@ -98,12 +119,13 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     title: 'Cellular Adaptation, Injury, Inflammation, Thrombosis & Ischaemia',
     summary:
       'Foundational disease mechanisms: hypertrophy/hyperplasia/atrophy/metaplasia, reversible vs irreversible cell injury, acute vs chronic inflammation, Virchow’s triad, ischaemia/infarction, and neoplasia concepts.',
-    targetTracks: ['medical_foundations', 'clinical_applied'],
+    targetTracks: ['medical_foundations', 'clinical_applied', 'graduate_research'],
     curriculumMappings: [
       { frameworkId: 'pk_pmdc_mbbs', gradeOrYear: 'MBBS Years 3–4', unitOrModule: 'General & Systemic Pathology (~500 hrs Pakistan reference)', status: 'compulsory' },
       { frameworkId: 'pk_uhs_mbbs', gradeOrYear: 'MBBS Years 3–4', unitOrModule: 'Integrated Pathology Modules', status: 'institution_specific' },
       { frameworkId: 'hms_pathways', gradeOrYear: 'MD Year 1–2', unitOrModule: 'Human Pathophysiology', status: 'institution_specific' },
       { frameworkId: 'ox_preclinical', gradeOrYear: 'Year 2', unitOrModule: 'Principles of Pathology', status: 'institution_specific' },
+      { frameworkId: 'qaa_biosciences', gradeOrYear: 'BS Hons / MPhil', unitOrModule: 'Ischaemia–Reperfusion Injury & Clonal Oncogenesis Mechanisms', status: 'recommended' },
     ],
     learningObjectives: [
       'Distinguish cellular adaptations (hypertrophy, hyperplasia, atrophy, metaplasia) from irreversible cell death.',
@@ -115,6 +137,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         'Cells respond to physiological or pathological stress by adapting (e.g., left ventricular hypertrophy in hypertension, squamous metaplasia in smoker airways). When stress exceeds adaptive capacity, ATP depletion and membrane/mitochondrial damage transition reversible swelling into irreversible necrosis (coagulative in most solid organs, liquefactive in brain) or apoptosis. Acute inflammation increases microvascular permeability and recruits neutrophils; persistent injury shifts to chronic mononuclear inflammation and tissue fibrosis.',
       clinical_applied:
         'Linking general pathology to organ anatomy explains bedside syndromes: coronary atherosclerotic plaque rupture triggers thrombosis (Virchow’s triad), downstream myocardial ischaemia, and coagulative necrosis—explored spatially in Anatomy 360’s Coronary Ischemia 3D Explainer.',
+      graduate_research:
+        'Ischaemia–reperfusion injury amplifies tissue damage when sudden oxygen restoration generates reactive oxygen species (xanthine oxidase/mitochondrial reverse electron transport) alongside Ca2+ overload triggering mitochondrial permeability transition pore (mPTP) opening. Multi-step oncogenesis tracks driver somatic alterations against tumour microenvironment hypoxia and immune evasion.',
     },
     keyConcepts: [
       { term: 'Virchow’s Triad', definition: 'Three predisposing factors for thrombosis: endothelial injury, stasis/turbulence, and hypercoagulability.' },
@@ -144,6 +168,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'pt3', label: 'Reversible Injury', sublabel: '↓ ATP, Na+/K+ pump failure, cellular swelling', tone: 'blue' },
         { id: 'pt4', label: 'Irreversible Necrosis', sublabel: 'Membrane rupture, enzyme release, inflammation', tone: 'slate' },
       ],
+      links: [
+        { from: 'pt1', to: 'pt2', label: 'Luminal thrombus critically impairs oxygen delivery' },
+        { from: 'pt2', to: 'pt3', label: 'Oxidative phosphorylation halts; lactate rises & pH drops' },
+        { from: 'pt3', to: 'pt4', label: 'Sustained Ca2+ influx & mPTP opening rupture membranes' },
+      ],
     },
     assetDisclosure: {
       status: 'asset_required',
@@ -164,6 +193,19 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         explanation: 'Virchow’s triad defines the three classic factors promoting thrombus formation: endothelial damage, stasis or turbulent flow, and hypercoagulability.',
         level: 'medical_foundations',
       },
+      {
+        id: 'q-edu-path-2',
+        question: 'Paradoxical extension of tissue necrosis immediately following coronary revascularization is mediated largely by cytosolic Ca2+ overload and reactive oxygen species opening which structure?',
+        options: [
+          'Nuclear pore complex',
+          'Mitochondrial permeability transition pore (mPTP)',
+          'Golgi cis-cisternae',
+          'Gap-junction connexons only',
+        ],
+        correctIndex: 1,
+        explanation: 'Reperfusion restores pH while ROS and mitochondrial Ca2+ overload trigger mPTP opening, collapsing inner-membrane ΔΨ and sealing necrotic or apoptotic cell death.',
+        level: 'graduate_research',
+      },
     ],
     sources: [
       { title: 'Robbins & Cotran Pathologic Basis of Disease (Reference Framework)', authority: 'Elsevier (Conceptual Curriculum Reference)', supports: 'General pathology principles: cellular adaptation, injury, inflammation, and thrombosis' },
@@ -183,11 +225,12 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     title: 'Pharmacokinetics (ADME), Pharmacodynamics & Receptor Signalling',
     summary:
       'Core drug disposition (Absorption, Distribution, Metabolism, Excretion), bioavailability, half-life, agonist/antagonist receptor interactions, therapeutic index, and autonomic drug-class principles.',
-    targetTracks: ['medical_foundations', 'clinical_applied', 'allied_health'],
+    targetTracks: ['medical_foundations', 'clinical_applied', 'allied_health', 'graduate_research'],
     curriculumMappings: [
       { frameworkId: 'pk_pmdc_mbbs', gradeOrYear: 'MBBS Year 3', unitOrModule: 'Pharmacology & Therapeutics (~300 hrs Pakistan reference)', status: 'compulsory' },
       { frameworkId: 'pk_uhs_mbbs', gradeOrYear: 'MBBS Year 3', unitOrModule: 'General & Systemic Pharmacology', status: 'institution_specific' },
       { frameworkId: 'ox_preclinical', gradeOrYear: 'Year 1', unitOrModule: 'Physiology and Pharmacology', status: 'institution_specific' },
+      { frameworkId: 'qaa_biosciences', gradeOrYear: 'BS Hons / MPhil', unitOrModule: 'Receptor Theory, Clearance Models & Bias Agonism', status: 'recommended' },
     ],
     learningObjectives: [
       'Differentiate pharmacokinetics (what the body does to the drug: ADME) from pharmacodynamics (what the drug does to the body).',
@@ -201,6 +244,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         'Drugs with a narrow therapeutic index (e.g., warfarin, digoxin, aminoglycosides) require careful monitoring because toxic concentrations lie close to therapeutic ones. Renal or hepatic impairment alters clearance and prolongs elimination half-life.',
       allied_health:
         'Medication safety relies on understanding route bioavailability (IV = 100% vs oral first-pass), adverse drug reactions, and CYP450 drug-drug interaction risks.',
+      graduate_research:
+        'Quantitative receptor pharmacology integrates Schild-regression competitive antagonism plots (pA2), operational Black–Leff agonism models (κ vs. τ efficacy), and hepatic extraction ratios (E_H = f_u · CL_int / (Q_H + f_u · CL_int)) distinguishing flow-limited vs. capacity-limited elimination.',
     },
     keyConcepts: [
       { term: 'First-Pass Metabolism', definition: 'Hepatic/intestinal biotransformation of an orally absorbed drug via the portal vein before reaching systemic circulation.' },
@@ -230,6 +275,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'ph3', label: 'Target Action (PD)', sublabel: 'Receptor binding (Agonist / Antagonist)', tone: 'emerald' },
         { id: 'ph4', label: 'Metabolism & Excretion', sublabel: 'Liver Phase I/II & Renal clearance (t1/2)', tone: 'amber' },
       ],
+      links: [
+        { from: 'ph1', to: 'ph2', label: 'Portal first-pass fraction reaches systemic circulation' },
+        { from: 'ph2', to: 'ph3', label: 'Unbound plasma fraction equilibrates at tissue receptors' },
+        { from: 'ph2', to: 'ph4', label: 'Hepatic extraction & glomerular/tubular elimination' },
+      ],
     },
     assetDisclosure: {
       status: 'conceptual_diagram_only',
@@ -243,6 +293,19 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         correctIndex: 2,
         explanation: 'At constant dosing without a loading dose, ~94–97% of steady state is achieved after 4–5 elimination half-lives.',
         level: 'medical_foundations',
+      },
+      {
+        id: 'q-edu-pharm-2',
+        question: 'For a drug with a very high hepatic extraction ratio (E_H > 0.7), steady-state hepatic clearance is predominantly sensitive to changes in:',
+        options: [
+          'Hepatic blood flow (Q_H)',
+          'Microsomal CYP450 Km only',
+          'Renal collecting-duct aquaporin density',
+          'Serum albumin osmotic pressure alone',
+        ],
+        correctIndex: 0,
+        explanation: 'When intrinsic clearance markedly exceeds hepatic blood flow (f_u · CL_int >> Q_H), total hepatic clearance approaches perfusion rate Q_H (flow-limited elimination).',
+        level: 'graduate_research',
       },
     ],
     sources: [
@@ -313,6 +376,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'nu3', label: 'Jejunum', sublabel: 'Major macronutrients & folate uptake', tone: 'blue' },
         { id: 'nu4', label: 'Terminal Ileum', sublabel: 'Vitamin B12 & bile-salt reabsorption', tone: 'emerald' },
       ],
+      links: [
+        { from: 'nu1', to: 'nu2', label: 'Acid chyme & B12–R-binder delivered across pylorus' },
+        { from: 'nu2', to: 'nu3', label: 'Pancreatic enzyme/bile micelle chyme passes duodenojejunal flexure' },
+        { from: 'nu3', to: 'nu4', label: 'Residual ileal ASBT bile-salt & IF–B12 cubilin endocytosis' },
+      ],
     },
     assetDisclosure: {
       status: 'conceptual_diagram_only',
@@ -326,6 +394,19 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         correctIndex: 1,
         explanation: 'Vitamins A, D, E, and K are fat-soluble and depend on bile salts and dietary lipids for intestinal absorption.',
         level: 'school_foundations',
+      },
+      {
+        id: 'q-edu-nutr-2',
+        question: 'Surgical resection of the terminal ileum directly impairs which essential vitamin absorption step?',
+        options: [
+          'Duodenal ferric iron reduction',
+          'Intrinsic-factor–cobalamin (Vitamin B12) receptor-mediated endocytosis',
+          'Gastric pepsinogen activation',
+          'Salivary amylase hydrolysis',
+        ],
+        correctIndex: 1,
+        explanation: 'The terminal ileum exclusively expresses the cubam (cubilin–amnionless) receptor complex for intrinsic-factor-bound Vitamin B12 and ASBT for bile acids.',
+        level: 'medical_foundations',
       },
     ],
     sources: [
@@ -344,11 +425,12 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     title: 'Blood Components, Haemostasis, ABO/Rh Groups & Basic Lab Concepts',
     summary:
       'Erythrocytes, leukocytes, platelets, plasma, primary/secondary haemostasis, ABO/Rh transfusion compatibility, and educational interpretation concepts for CBC, urinalysis, renal/liver panels, and electrolytes.',
-    targetTracks: ['secondary_premed', 'medical_foundations', 'clinical_applied', 'allied_health'],
+    targetTracks: ['secondary_premed', 'medical_foundations', 'clinical_applied', 'allied_health', 'graduate_research'],
     curriculumMappings: [
       { frameworkId: 'pk_ncp_bio_9_12', gradeOrYear: 'Grade IX & XI', unitOrModule: 'Transport in Humans — Blood & ABO Blood Groups', status: 'elective' },
       { frameworkId: 'in_cbse_bio_11_12', gradeOrYear: 'Class XI (Unit V)', unitOrModule: 'Body Fluids and Circulation', status: 'elective' },
       { frameworkId: 'pk_pmdc_mbbs', gradeOrYear: 'MBBS Years 1–4', unitOrModule: 'Haematology & Clinical Pathology', status: 'compulsory' },
+      { frameworkId: 'qaa_biosciences', gradeOrYear: 'BS Hons / MPhil', unitOrModule: 'Haemopoiesis, Shear-Dependent Coagulation & Biomarker Validation', status: 'recommended' },
     ],
     learningObjectives: [
       'Describe the cellular composition of blood and the physiological roles of haemoglobin, leukocytes, and platelets.',
@@ -364,6 +446,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         'Educational lab panels map to organ physiology: creatinine/BUN/eGFR track renal filtration; AST/ALT/ALP/bilirubin differentiate hepatocellular vs cholestatic liver patterns; troponin reflects cardiomyocyte injury; HbA1c reflects ~3-month glycaemic exposure.',
       allied_health:
         'Accurate specimen collection, understanding basic reference concepts, and verifying blood-product compatibility protocols are vital patient-safety pillars.',
+      graduate_research:
+        'Cell-based coagulation models replace linear cascade waterfalls with tissue-factor initiation, tenase/prothrombinase assembly on phosphatidylserine-exposed platelet membranes, thrombin feedback amplification, and shear-stress vWF A1-domain unfolding via ADAMTS13 regulation.',
     },
     keyConcepts: [
       { term: 'MCV (Mean Corpuscular Volume)', definition: 'Average red blood cell volume (typically ~80–100 fL in adults), used to classify anaemia.' },
@@ -393,6 +477,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'h3', label: '3. Secondary Haemostasis', sublabel: 'Thrombin → cross-linked fibrin mesh', tone: 'teal' },
         { id: 'h4', label: '4. Fibrinolysis', sublabel: 'tPA → plasmin degrades clot during repair', tone: 'emerald' },
       ],
+      links: [
+        { from: 'h1', to: 'h2', label: 'Reduced shear aids GPIb–vWF tethering' },
+        { from: 'h2', to: 'h3', label: 'Activated platelet phosphatidylserine accelerates prothrombinase' },
+        { from: 'h3', to: 'h4', label: 'Fibrin binds tPA & plasminogen for localized clot lysis' },
+      ],
     },
     assetDisclosure: {
       status: 'asset_required',
@@ -407,6 +496,19 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         correctIndex: 0,
         explanation: 'Low MCV defines microcytic erythrocytes, classically caused by impaired haemoglobin synthesis such as iron deficiency or thalassaemia.',
         level: 'medical_foundations',
+      },
+      {
+        id: 'q-edu-haem-2',
+        question: 'In the cell-based model of haemostasis, exposed anionic phosphatidylserine on activated platelets primarily provides:',
+        options: [
+          'A catalytic phospholipid scaffold assembling Ca2+-dependent tenase and prothrombinase complexes',
+          'Direct enzymatic lysis of Factor XIIIa cross-links',
+          'Antibody-mediated opsonization of normal RBCs',
+          'Conversion of biliverdin into conjugated bilirubin',
+        ],
+        correctIndex: 0,
+        explanation: 'Ca2+ bridges Gla domains of vitamin K–dependent clotting factors onto platelet phosphatidylserine surfaces to drive the thrombin burst.',
+        level: 'graduate_research',
       },
     ],
     sources: [
@@ -427,11 +529,12 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     title: 'X-Ray, CT, MRI & Ultrasound Principles and Axial Viewing Convention',
     summary:
       'Physical basis of major imaging modalities (ionising vs non-ionising), tissue appearance (radiodensity, Hounsfield units, T1/T2 MRI, echogenicity), and how standard axial slices orient relative to 3D anatomy.',
-    targetTracks: ['medical_foundations', 'clinical_applied'],
+    targetTracks: ['medical_foundations', 'clinical_applied', 'graduate_research'],
     curriculumMappings: [
       { frameworkId: 'pk_pmdc_mbbs', gradeOrYear: 'MBBS Years 1–5', unitOrModule: 'Radiological Anatomy & Diagnostic Imaging Orientation', status: 'recommended' },
       { frameworkId: 'pk_uhs_mbbs', gradeOrYear: 'MBBS Years 1–5', unitOrModule: 'Vertical Integration — Radiological Anatomy', status: 'institution_specific' },
       { frameworkId: 'hms_pathways', gradeOrYear: 'MD Years 1–2', unitOrModule: 'Integrated Anatomy & Imaging Correlation', status: 'institution_specific' },
+      { frameworkId: 'anat_soc_core', gradeOrYear: 'BS / Graduate', unitOrModule: 'Cross-Sectional Reconstruction, Attenuation & MRI Relaxation Physics', status: 'recommended' },
     ],
     learningObjectives: [
       'Classify X-ray/CT/nuclear medicine (ionising) versus MRI/ultrasound (non-ionising) modalities.',
@@ -443,6 +546,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         'Plain X-ray and CT rely on differential X-ray attenuation (air = black, fat = dark grey, soft tissue/fluid = grey, bone/contrast = white). Ultrasound uses high-frequency sound waves (safe in pregnancy, real-time bedside imaging). MRI aligns hydrogen protons in a strong magnetic field to achieve superior soft-tissue contrast (brain, spinal cord, ligaments) without ionising radiation.',
       clinical_applied:
         'Standard axial CT/MRI orientation views the patient from inferiorly ("from the feet"): anterior is at the top, posterior at the bottom, and the patient’s right side appears on the viewer’s left. Modality choice balances diagnostic resolution, speed, cost, and radiation safety (ALARA principle).',
+      graduate_research:
+        'CT filtered back-projection / iterative reconstruction converts linear attenuation μ into Hounsfield Units (HU = 1000 × (μ − μ_water)/(μ_water − μ_air)), whereas MRI spin-echo sequences separate longitudinal T1 spin-lattice recovery from transverse T2 spin-spin dephasing and diffusion tensor fractional anisotropy (DTI) along white-matter fiber tracts.',
     },
     keyConcepts: [
       { term: 'Radiological Axial Convention', definition: 'Axial CT/MRI slices are displayed as if looking from the patient’s feet upward (patient right = viewer left).' },
@@ -471,6 +576,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'r3', label: 'MRI', sublabel: 'Non-ionising · High brain/soft-tissue contrast', tone: 'blue' },
         { id: 'r4', label: 'Ultrasound', sublabel: 'Non-ionising · Real-time bedside & obstetrics', tone: 'teal' },
       ],
+      links: [
+        { from: 'r1', to: 'r2', label: 'Single 2D X-ray summation extended to 3D rotational CT' },
+        { from: 'r2', to: 'r3', label: 'Avoids ionising photons; optimizes parenchymal soft-tissue contrast' },
+        { from: 'r3', to: 'r4', label: 'Static high-field sequences complemented by real-time Doppler waves' },
+      ],
     },
     assetDisclosure: {
       status: 'asset_required',
@@ -486,6 +596,14 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         correctIndex: 1,
         explanation: 'MRI (magnetic fields/radiofrequency pulses) and Ultrasound (acoustic waves) do not expose patients to ionising radiation.',
         level: 'medical_foundations',
+      },
+      {
+        id: 'q-edu-rad-2',
+        question: 'On a standard T2-weighted MRI brain scan (without FLAIR suppression), cerebrospinal fluid within the lateral ventricles appears:',
+        options: ['Hypointense (dark)', 'Hyperintense (bright white)', 'Isointense with cortical bone', 'Completely attenuated identically to air'],
+        correctIndex: 1,
+        explanation: 'Free water has a long transverse T2 relaxation time, retaining strong high signal (bright) on T2-weighted MRI sequences.',
+        level: 'graduate_research',
       },
     ],
     sources: [
@@ -551,6 +669,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'sp3', label: 'Maternal & Child', sublabel: 'Obstetrics & Gynaecology, Paediatrics & Neonatology', tone: 'amber' },
         { id: 'sp4', label: 'Acute & Community', sublabel: 'Emergency, Anaesthesia, Family & Community Medicine', tone: 'emerald' },
       ],
+      links: [
+        { from: 'sp1', to: 'sp2', label: 'Multidisciplinary medical–surgical co-management (e.g., sellar tumors)' },
+        { from: 'sp4', to: 'sp1', label: 'Emergency triage & primary care referral into organ specialties' },
+        { from: 'sp3', to: 'sp2', label: 'Obstetric/paediatric surgical coordination' },
+      ],
     },
     assetDisclosure: {
       status: 'partial',
@@ -589,12 +712,13 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     title: 'Clinical Reasoning, Medical Ethics, Diagnostic Accuracy & Epidemiology',
     summary:
       'Structured history/examination principles, four pillars of biomedical ethics, informed consent, patient safety, incidence vs prevalence, sensitivity/specificity, and hierarchy of clinical evidence.',
-    targetTracks: ['medical_foundations', 'clinical_applied', 'allied_health'],
+    targetTracks: ['medical_foundations', 'clinical_applied', 'allied_health', 'graduate_research'],
     curriculumMappings: [
       { frameworkId: 'pk_pmdc_mbbs', gradeOrYear: 'MBBS Years 1–5', unitOrModule: 'Community Medicine (~170h), Forensic/Ethics (~100h) & Research Skills', status: 'compulsory' },
       { frameworkId: 'pk_uhs_mbbs', gradeOrYear: 'MBBS Years 1–5', unitOrModule: 'Behavioural Sciences, Ethics, EBM & OSCE Foundations', status: 'institution_specific' },
       { frameworkId: 'hms_pathways', gradeOrYear: 'MD Years 1–2', unitOrModule: 'Practice of Medicine (POM) & Essentials of the Profession', status: 'institution_specific' },
       { frameworkId: 'ox_preclinical', gradeOrYear: 'Year 1', unitOrModule: 'Medical Sociology & Patient-Doctor Course', status: 'institution_specific' },
+      { frameworkId: 'qaa_biosciences', gradeOrYear: 'BS Hons / MPhil / PhD', unitOrModule: 'Experimental Biostatistics, Power Analysis & Research Ethics', status: 'recommended' },
     ],
     learningObjectives: [
       'Apply the four core principles of biomedical ethics (autonomy, beneficence, non-maleficence, justice) to informed consent and confidentiality.',
@@ -608,6 +732,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         'Evidence-based medicine (EBM) integrates best research evidence (systematic reviews/RCTs > cohort > case-control > case series) with clinical expertise and patient values. Understanding sensitivity = TP/(TP+FN), specificity = TN/(TN+FP), and how disease prevalence shifts positive/negative predictive values prevents diagnostic over-interpretation.',
       allied_health:
         'Vital-sign monitoring, infection prevention, clear handover communication (e.g., SBAR), informed consent, and patient-safety culture apply across nursing and all allied-health professions.',
+      graduate_research:
+        'Translational research methodology applies Bayesian likelihood-ratio updating (LR+ = sensitivity / (1 − specificity)), pre-registered power calculations (Type I α vs. Type II β error), CONSORT/STROBE reporting rigor, and Institutional Review Board (IRB) human-subjects protections.',
     },
     keyConcepts: [
       { term: 'Four Pillars of Ethics', definition: 'Autonomy (self-determination/consent), Beneficence (acting for patient good), Non-Maleficence (avoiding harm), Justice (fairness).' },
@@ -637,6 +763,11 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         { id: 'cs3', label: '3. Differential & Tests', sublabel: 'Pre-test probability, sensitivity/specificity', tone: 'amber' },
         { id: 'cs4', label: '4. Ethics & EBM Review', sublabel: 'Evidence hierarchy & patient safety', tone: 'emerald' },
       ],
+      links: [
+        { from: 'cs1', to: 'cs2', label: 'Focused exam hypotheses guided by patient history' },
+        { from: 'cs2', to: 'cs3', label: 'Bayes pre-test probability updated by diagnostic LRs' },
+        { from: 'cs3', to: 'cs4', label: 'Shared decision-making & informed consent review' },
+      ],
     },
     assetDisclosure: {
       status: 'conceptual_diagram_only',
@@ -656,6 +787,19 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
         correctIndex: 1,
         explanation: 'Point prevalence captures all existing cases (both new and pre-existing) divided by the total population at a given moment.',
         level: 'clinical_applied',
+      },
+      {
+        id: 'q-edu-prac-2',
+        question: 'When evaluating a diagnostic test across low-prevalence population screening versus specialty referral clinics, which metric remains intrinsically independent of disease prevalence?',
+        options: [
+          'Positive Predictive Value (PPV)',
+          'Sensitivity and Specificity (and thus Likelihood Ratios)',
+          'Population Attributable Risk',
+          'Pre-test disease odds',
+        ],
+        correctIndex: 1,
+        explanation: 'Sensitivity and specificity are intrinsic test properties, whereas PPV and NPV shift markedly with underlying pre-test disease prevalence.',
+        level: 'graduate_research',
       },
     ],
     sources: [

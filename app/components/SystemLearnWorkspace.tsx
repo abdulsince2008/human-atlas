@@ -29,7 +29,17 @@ import {
 import { lookupStructureKnowledge } from '../anatomy-knowledge';
 import { CANONICAL_SYSTEMS, canonicalSystemForMeshSystem, type CanonicalSystemId } from '../anatomy-systems';
 import { ANATOMY_LESSONS, type AnatomyLesson, type LessonTopic } from '../learning-data';
+import {
+  ACADEMIC_DEPTH_LABELS,
+  getQuestionsForTopicOrSystem,
+  SYSTEM_TEACHING_METADATA,
+  TOPIC_DEPTH_SUPPLEMENTS,
+  type AcademicDepthTier,
+} from '../learning-supplements';
+import { QUIZ_QUESTIONS } from '../quiz-data';
+import type { AppRoute } from './SiteHeader';
 import { useStudy } from './StudyContext';
+import StudyResourceList from './StudyResourceList';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -41,6 +51,8 @@ interface Props {
   initialSystemId?: CanonicalSystemId | null;
   initialTopicId?: string | null;
   onInspectConcept: (conceptId: string) => void;
+  onNavigate?: (route: AppRoute) => void;
+  onSystemChange?: (systemId: CanonicalSystemId) => void;
 }
 
 type ContextMode = 'body' | 'system' | 'isolate';
@@ -69,14 +81,18 @@ export default function SystemLearnWorkspace({
   initialSystemId,
   initialTopicId,
   onInspectConcept,
+  onNavigate,
+  onSystemChange,
 }: Props) {
-  const { isBookmarked, setTopicCompleted, toggleBookmark } = useStudy();
+  const { isBookmarked, recordQuizResult, setTopicCompleted, toggleBookmark } = useStudy();
   const [activeSystemId, setActiveSystemId] = useState<CanonicalSystemId>(
     initialSystemId ?? 'cardiovascular',
   );
   const [activeTopicId, setActiveTopicId] = useState<string>(
     initialTopicId ?? 'topic-cardio-heart-chambers',
   );
+  const [depthMode, setDepthMode] = useState<'all' | AcademicDepthTier>('bs_mbbs');
+  const [inlineAnswers, setInlineAnswers] = useState<Record<string, number>>({});
   const [focusedConceptId, setFocusedConceptId] = useState<string | null>(null);
   const [clicked3D, setClicked3D] = useState<ClickedSelection | null>(null);
 
@@ -182,6 +198,7 @@ export default function SystemLearnWorkspace({
         : undefined;
       const targetTopic = matchingTopic ?? nextLessons[0]?.topics[0];
       setActiveSystemId(sysId);
+      onSystemChange?.(sysId);
       if (targetTopic) {
         setActiveTopicId(targetTopic.id);
         setView(targetTopic.preferredView ?? 'three-quarter');
@@ -190,7 +207,7 @@ export default function SystemLearnWorkspace({
       setClicked3D(null);
       setFocusRequest((n) => n + 1);
     },
-    [lessonsBySystem],
+    [lessonsBySystem, onSystemChange],
   );
 
   useEffect(() => {
@@ -477,6 +494,70 @@ export default function SystemLearnWorkspace({
 
                 <p className="a360-topic-explanation">{activeTopic.explanation.en}</p>
 
+                {/* Multi-Tier Academic Depth Lens (9th-12th · BS/MBBS · MPhil/PhD) */}
+                {(() => {
+                  const sup = TOPIC_DEPTH_SUPPLEMENTS[activeTopic.id];
+                  if (!sup) return null;
+                  const tiersToShow: AcademicDepthTier[] =
+                    depthMode === 'all'
+                      ? ['school_9_12', 'bs_mbbs', 'phd_research']
+                      : [depthMode];
+                  return (
+                    <div
+                      className="rounded-xl border border-teal-200 bg-teal-50/45 p-4 space-y-3"
+                      aria-label="Study depth tier selector"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-teal-800">
+                          Study Depth Lens
+                        </span>
+                        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Study depth level">
+                          {(
+                            [
+                              ['school_9_12', 'Grades 9–12'],
+                              ['bs_mbbs', 'BS / MBBS'],
+                              ['phd_research', 'MPhil / PhD'],
+                              ['all', 'Compare All 3'],
+                            ] as ['all' | AcademicDepthTier, string][]
+                          ).map(([mode, label]) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              aria-pressed={depthMode === mode}
+                              onClick={() => setDepthMode(mode)}
+                              className={`rounded-md border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                                depthMode === mode
+                                  ? 'border-teal-700 bg-teal-700 text-white'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {tiersToShow.map((t) => (
+                          <div
+                            key={t}
+                            className="rounded-lg border border-teal-100 bg-white/90 p-3 text-xs leading-relaxed text-slate-800"
+                          >
+                            <p className="font-bold text-teal-900">
+                              {ACADEMIC_DEPTH_LABELS[t].full}
+                            </p>
+                            <p className="mt-1">{sup[t]}</p>
+                          </div>
+                        ))}
+                        <p className="rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-[11px] text-slate-700">
+                          <strong className="text-slate-900">Quantitative &amp; Research Note:</strong>{' '}
+                          {sup.quantitativeOrExperimentalNote}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="a360-topic-columns">
                   <div className="a360-topic-subcard">
                     <h4>Anatomical Relationships</h4>
@@ -567,6 +648,123 @@ export default function SystemLearnWorkspace({
                     ))}
                   </div>
                 )}
+
+                {/* Inline Concept Self-Check linked to Quiz Bank */}
+                {(() => {
+                  const checks = getQuestionsForTopicOrSystem(activeSystem.id, activeTopic.id, 2);
+                  if (checks.length === 0) return null;
+                  return (
+                    <div
+                      className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3"
+                      aria-label="Topic concept check"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          Inline Concept Check ({activeTopic.title.en})
+                        </h4>
+                        {onNavigate && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigate('quiz')}
+                            className="text-xs font-semibold text-teal-800 hover:underline"
+                          >
+                            Open Full {QUIZ_QUESTIONS.length}-Question Quiz Bank →
+                          </button>
+                        )}
+                      </div>
+                      <div className="space-y-3">
+                        {checks.map((q) => {
+                          const chosen = inlineAnswers[q.id];
+                          const answered = chosen !== undefined;
+                          const isCorrect = chosen === q.correctIndex;
+                          return (
+                            <div key={q.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                              <p className="text-[11px] font-semibold text-teal-800">
+                                {q.difficulty} · {q.relatedStructureName}
+                              </p>
+                              <p className="mt-1 text-xs font-semibold text-slate-900">{q.prompt}</p>
+                              <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                                {q.options.map((opt, optIdx) => {
+                                  const selected = chosen === optIdx;
+                                  let style = 'border-slate-200 bg-slate-50/60 text-slate-800 hover:border-teal-500';
+                                  if (answered) {
+                                    if (optIdx === q.correctIndex) {
+                                      style = 'border-emerald-500 bg-emerald-50 text-emerald-950 font-semibold';
+                                    } else if (selected) {
+                                      style = 'border-rose-400 bg-rose-50 text-rose-950';
+                                    }
+                                  }
+                                  return (
+                                    <button
+                                      key={opt}
+                                      type="button"
+                                      onClick={() => {
+                                        setInlineAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
+                                        recordQuizResult(
+                                          q.id,
+                                          optIdx === q.correctIndex,
+                                          q.relatedStructureName,
+                                        );
+                                      }}
+                                      className={`rounded-md border px-2.5 py-1.5 text-left text-xs transition-colors ${style}`}
+                                    >
+                                      {opt}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {answered && (
+                                <p
+                                  className={`mt-2 rounded px-2.5 py-1.5 text-xs ${
+                                    isCorrect
+                                      ? 'bg-emerald-50 text-emerald-900'
+                                      : 'bg-rose-50 text-rose-900'
+                                  }`}
+                                >
+                                  <strong>{isCorrect ? 'Correct:' : 'Review:'}</strong> {q.explanation}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Connected Simulations, Histology & Clinical Case Labs */}
+                {(() => {
+                  const guide = SYSTEM_TEACHING_METADATA[activeSystem.id];
+                  if (!guide || guide.connectedLabs.length === 0 || !onNavigate) return null;
+                  return (
+                    <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Connected Labs &amp; Next Practice for {activeSystem.name.en}
+                      </h4>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {guide.connectedLabs.map((lab) => (
+                          <button
+                            key={lab.label}
+                            type="button"
+                            onClick={() => onNavigate(lab.route)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50/70 px-3 py-1.5 text-xs font-semibold text-teal-900 hover:bg-teal-100"
+                          >
+                            <span>{lab.label}</span>
+                            <span className="font-normal text-teal-700">· {lab.note}</span>
+                            <ArrowRight size={12} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <StudyResourceList
+                  canonicalSystem={activeSystem.id}
+                  module="learn"
+                  limit={3}
+                  compact
+                />
 
                 {/* Previous / Next Topic Controls */}
                 <footer className="a360-topic-nav">

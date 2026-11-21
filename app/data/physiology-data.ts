@@ -27,7 +27,13 @@ export interface SimulationReadout {
 }
 
 export interface PhysiologyModuleSpec {
-  id: 'cardiac-cycle' | 'respiratory-ventilation' | 'renal-filtration' | 'antagonistic-elbow' | 'endocrine-feedback-planned';
+  id:
+    | 'cardiac-cycle'
+    | 'respiratory-ventilation'
+    | 'renal-filtration'
+    | 'antagonistic-elbow'
+    | 'acid-base-oxygen'
+    | 'endocrine-feedback-planned';
   systemId: CanonicalSystemId;
   title: string;
   subtitle: string;
@@ -254,6 +260,64 @@ export const PHYSIOLOGY_MODULES: PhysiologyModuleSpec[] = [
       { id: 'extended', label: 'Extended (Triceps Active)', description: 'Angle 20° · Triceps dominant', values: { elbowAngle: 20, bicepsDrive: 15 } },
       { id: 'mid', label: '90° Peak Torque Lever', description: 'Angle 90° · Optimal biceps angle', values: { elbowAngle: 90, bicepsDrive: 80 } },
       { id: 'flexed', label: 'Full Flexion', description: 'Angle 135° · Biceps shortened', values: { elbowAngle: 135, bicepsDrive: 95 } },
+    ],
+  },
+  {
+    id: 'acid-base-oxygen',
+    systemId: 'respiratory',
+    title: 'Acid–Base Equilibrium & O₂–Haemoglobin Dissociation',
+    subtitle: 'Henderson–Hasselbalch arterial pH & Bohr-shifted Hill haemoglobin saturation curve',
+    status: 'interactive',
+    explanation:
+      'Pulmonary CO₂ elimination (PaCO₂) and renal bicarbonate reabsorption ([HCO₃⁻]) jointly set arterial pH. Acidemia reduces haemoglobin oxygen affinity (rightward Bohr shift, raising P₅₀) to enhance O₂ unloading to metabolically active tissues.',
+    formulaNote: 'pH = 6.1 + log₁₀([HCO₃⁻] / (0.03 × PaCO₂)) · SaO₂ = PaO₂ⁿ / (PaO₂ⁿ + P₅₀ⁿ), n ≈ 2.7',
+    assumptions: [
+      'Uses standard textbook CO₂ solubility α = 0.03 mmol/(L·mmHg), carbonic acid pKa = 6.1, and cooperative Hill coefficient n = 2.7.',
+      'Bohr affinity shift approximates P₅₀(pH) = 26.8 × 10^(0.48 × (7.40 − pH)) at 37 °C without independent temperature or 2,3-BPG sliders.',
+    ],
+    disclaimer: 'Idealized biophysical educational model illustrating Henderson–Hasselbalch and Hill-Bohr principles; not a clinical blood-gas interpreter.',
+    linkedConcepts: [
+      { conceptId: 'FMA7309', label: 'Right lung' },
+      { conceptId: 'FMA7088', label: 'Heart' },
+      { conceptId: 'FMA7203', label: 'Kidney' },
+    ],
+    parameters: [
+      {
+        id: 'paco2',
+        label: 'Arterial PCO₂ (Respiratory Axis)',
+        unit: 'mmHg',
+        min: 20,
+        max: 70,
+        step: 1,
+        defaultValue: 40,
+        scientificBasis: 'Normal arterial PaCO₂ is 35–45 mmHg; hypoventilation retains CO₂ and lowers pH.',
+      },
+      {
+        id: 'hco3',
+        label: 'Plasma [HCO₃⁻] (Renal Axis)',
+        unit: 'mEq/L',
+        min: 10,
+        max: 40,
+        step: 1,
+        defaultValue: 24,
+        scientificBasis: 'Normal plasma bicarbonate concentration averages ~24 mEq/L (22–26 mEq/L).',
+      },
+      {
+        id: 'pao2',
+        label: 'Arterial PO₂',
+        unit: 'mmHg',
+        min: 20,
+        max: 120,
+        step: 1,
+        defaultValue: 95,
+        scientificBasis: 'Normal arterial PaO₂ ~80–100 mmHg on the flat upper plateau of the O₂–Hb curve; venous ~40 mmHg.',
+      },
+    ],
+    presets: [
+      { id: 'normal-abg', label: 'Normal Resting Baseline', description: 'PaCO₂ 40 · HCO₃⁻ 24 · pH 7.40', values: { paco2: 40, hco3: 24, pao2: 95 } },
+      { id: 'hypovent', label: 'Acute Hypoventilation', description: 'CO₂ retention (PaCO₂ 60) → Bohr right shift', values: { paco2: 60, hco3: 24, pao2: 68 } },
+      { id: 'hypervent', label: 'Hyperventilation', description: 'CO₂ washout (PaCO₂ 26) → Bohr left shift', values: { paco2: 26, hco3: 24, pao2: 108 } },
+      { id: 'met-acid', label: 'Compensated Metabolic Acidosis', description: 'HCO₃⁻ 15 with PaCO₂ 30 hyperventilation', values: { paco2: 30, hco3: 15, pao2: 100 } },
     ],
   },
   {
@@ -484,3 +548,83 @@ export function evaluateMusculoskeletalSimulation(v: Record<string, number>): {
     ],
   };
 }
+
+export function evaluateAcidBaseOxygenSimulation(v: Record<string, number>): {
+  readouts: SimulationReadout[];
+  pH: number;
+  p50: number;
+  sao2Pct: number;
+  acidBaseStatus: string;
+  bohrShiftDirection: string;
+  curvePoints: { po2: number; sao2: number; stdSao2: number }[];
+} {
+  const paco2 = Math.max(10, v.paco2 ?? 40);
+  const hco3 = Math.max(4, v.hco3 ?? 24);
+  const pao2 = Math.max(5, v.pao2 ?? 95);
+
+  const pH = 6.1 + Math.log10(hco3 / (0.03 * paco2));
+  const p50 = 26.8 * Math.pow(10, 0.48 * (7.4 - pH));
+  const n = 2.7;
+  const hillSat = (po2: number, halfSat: number) =>
+    (Math.pow(po2, n) / (Math.pow(po2, n) + Math.pow(halfSat, n))) * 100;
+
+  const sao2Pct = hillSat(pao2, p50);
+
+  let acidBaseStatus = 'Balanced Acid–Base Equilibrium (pH 7.35–7.45)';
+  if (pH < 7.35) {
+    acidBaseStatus =
+      paco2 > 45 ? 'Acidemia (Elevated PaCO₂ / Respiratory Axis)' : 'Acidemia (Reduced [HCO₃⁻] / Metabolic Axis)';
+  } else if (pH > 7.45) {
+    acidBaseStatus =
+      paco2 < 35 ? 'Alkalemia (Reduced PaCO₂ / Respiratory Axis)' : 'Alkalemia (Elevated [HCO₃⁻] / Metabolic Axis)';
+  }
+
+  let bohrShiftDirection = 'Baseline affinity (P₅₀ ≈ 26.8 mmHg)';
+  if (p50 > 28.2) {
+    bohrShiftDirection = 'Bohr Right-Shift: reduced O₂ affinity aids tissue O₂ unloading';
+  } else if (p50 < 25.4) {
+    bohrShiftDirection = 'Bohr Left-Shift: tighter O₂ binding favors pulmonary loading';
+  }
+
+  const curvePoints: { po2: number; sao2: number; stdSao2: number }[] = [];
+  for (let po2 = 0; po2 <= 120; po2 += 10) {
+    curvePoints.push({
+      po2,
+      sao2: hillSat(po2, p50),
+      stdSao2: hillSat(po2, 26.8),
+    });
+  }
+
+  return {
+    pH,
+    p50,
+    sao2Pct,
+    acidBaseStatus,
+    bohrShiftDirection,
+    curvePoints,
+    readouts: [
+      {
+        label: 'Arterial pH',
+        value: pH.toFixed(2),
+        unit: 'pH units',
+        status: pH < 7.35 ? 'low' : pH > 7.45 ? 'elevated' : 'nominal',
+        statusLabel: pH < 7.35 ? 'Acidemia' : pH > 7.45 ? 'Alkalemia' : 'Normal (7.35–7.45)',
+      },
+      {
+        label: 'Hb Saturation (SaO₂)',
+        value: sao2Pct.toFixed(1),
+        unit: '%',
+        status: sao2Pct < 90 ? 'low' : 'nominal',
+        statusLabel: sao2Pct < 90 ? 'Steep unloading zone' : 'Upper plateau',
+      },
+      {
+        label: 'Effective P₅₀ (Bohr)',
+        value: p50.toFixed(1),
+        unit: 'mmHg',
+        status: p50 > 28.2 ? 'elevated' : p50 < 25.4 ? 'low' : 'nominal',
+        statusLabel: p50 > 28.2 ? 'Right shift (unloading)' : p50 < 25.4 ? 'Left shift (binding)' : 'Standard (~26.8)',
+      },
+    ],
+  };
+}
+

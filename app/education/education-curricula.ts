@@ -107,6 +107,31 @@ export const EDUCATION_TRACKS: EducationTrackSpec[] = [
     ],
     typicalCurricula: ['pk_pmdc_mbbs', 'au_wa_human_bio'],
   },
+  {
+    id: 'graduate_research',
+    label: 'Graduate & Doctoral Research (BS Hons · MPhil · PhD)',
+    shortLabel: 'MPhil / PhD Research',
+    stageSummary: 'BS Hons, MPhil, and PhD mechanistic biomedicine, biomechanics & quantitative modeling',
+    description:
+      'Mechanistic cell signaling, trabecular/vascular biomechanics, quantitative hemodynamic/acid-base modeling, structural ontologies (FMA/TA2), and experimental study design aligned with higher-education bioscience benchmarks.',
+    recommendedDomains: [
+      'human_anatomy',
+      'cell_biology',
+      'histology',
+      'embryology',
+      'human_physiology',
+      'biochemistry',
+      'molecular_genetics',
+      'microbiology_parasitology',
+      'immunology',
+      'pathology',
+      'pharmacology',
+      'haematology_lab',
+      'radiology_imaging',
+      'clinical_skills_public_health',
+    ],
+    typicalCurricula: ['qaa_biosciences', 'anat_soc_core', 'ox_preclinical'],
+  },
 ];
 
 export const CURRICULUM_FRAMEWORKS: CurriculumFrameworkSpec[] = [
@@ -286,6 +311,38 @@ export const CURRICULUM_FRAMEWORKS: CurriculumFrameworkSpec[] = [
       'Representative traditional split pre-clinical/clinical medical degree covering Organization of the Body, Physiology & Pharmacology, Biochemistry & Medical Genetics, Applied Physiology, Principles of Pathology, and Medical Sociology.',
     supports: 'Deep basic medical science foundations prior to clinical hospital training.',
     tracks: ['medical_foundations'],
+  },
+  {
+    id: 'qaa_biosciences',
+    title: 'UK Quality Assurance Agency (QAA) — Subject Benchmark Statement: Biosciences',
+    authority: 'Quality Assurance Agency for Higher Education (QAA)',
+    country: 'United Kingdom',
+    geographicScope: 'Higher-education quality reference for BSc (Hons), Master’s/MPhil, and doctoral bioscience attributes',
+    url: 'https://www.qaa.ac.uk/the-quality-code/subject-benchmark-statements/biosciences',
+    academicYearOrVersion: '2023 Subject Benchmark Statement (BSc Hons · Master’s / MPhil / Research)',
+    dateAccessed: '2026-11-21',
+    applicableGradesOrYears: 'BS (Hons) Years 1–4, MPhil & PhD Bioscience Research Foundations',
+    requirementType: 'professional_guideline',
+    adoptionNote:
+      'Establishes graduate and postgraduate threshold expectations in experimental design, quantitative biological modeling, critical evaluation of primary literature, and molecular/systems mechanisms.',
+    supports: 'BS Honours, MPhil, and PhD research-level depth across cell biology, physiology, biochemistry, genetics, immunology, and quantitative biosciences.',
+    tracks: ['graduate_research', 'medical_foundations'],
+  },
+  {
+    id: 'anat_soc_core',
+    title: 'Anatomical Society Core Regional & Systemic Anatomy Syllabi',
+    authority: 'The Anatomical Society (UK & Ireland)',
+    country: 'United Kingdom & Ireland',
+    geographicScope: 'Published academic core syllabi for medical, allied-health, and anatomical-science undergraduates/postgraduates',
+    url: 'https://www.anatsoc.org.uk',
+    academicYearOrVersion: 'Published Core Syllabi Reference (Medicine, Allied Health & Science)',
+    dateAccessed: '2026-11-21',
+    applicableGradesOrYears: 'BS Anatomical Sciences, Pre-Clinical Medicine & Graduate Anatomy Demonstrators',
+    requirementType: 'professional_guideline',
+    adoptionNote:
+      'Defines learning outcomes for regional human anatomy, embryology, and structural relationships used by anatomy faculty and postgraduate teaching fellows.',
+    supports: 'Structured anatomical nomenclature (FMA/TA2), embryological derivatives, neuroanatomy, and imaging orientation.',
+    tracks: ['graduate_research', 'medical_foundations', 'allied_health'],
   },
 ];
 

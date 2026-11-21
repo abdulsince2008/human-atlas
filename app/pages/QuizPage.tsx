@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Bookmark, CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
 import { CANONICAL_SYSTEMS } from '../anatomy-systems';
 import { useStudy } from '../components/StudyContext';
-import { QUIZ_QUESTIONS } from '../quiz-data';
+import { QUIZ_DIFFICULTY_LEVELS, QUIZ_QUESTIONS } from '../quiz-data';
 
 interface Props {
   onInspectConcept: (conceptId: string) => void;
@@ -33,6 +33,7 @@ export default function QuizPage({ onInspectConcept }: Props) {
   const { isBookmarked, recordQuizResult, toggleBookmark } = useStudy();
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
+  const [unsolvedOnly, setUnsolvedOnly] = useState(false);
   const [index, setIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [progress, setProgress] = useState<SavedProgress>(() => loadProgress());
@@ -50,9 +51,10 @@ export default function QuizPage({ onInspectConcept }: Props) {
       QUIZ_QUESTIONS.filter(
         (q) =>
           (systemFilter === 'all' || q.systemId === systemFilter) &&
-          (difficultyFilter === 'all' || q.difficulty === difficultyFilter),
+          (difficultyFilter === 'all' || q.difficulty === difficultyFilter) &&
+          (!unsolvedOnly || !progress.correctIds.includes(q.id)),
       ),
-    [systemFilter, difficultyFilter],
+    [systemFilter, difficultyFilter, unsolvedOnly, progress.correctIds],
   );
 
   const safeIndex = pool.length > 0 ? Math.min(index, pool.length - 1) : 0;
@@ -89,19 +91,25 @@ export default function QuizPage({ onInspectConcept }: Props) {
     }
   };
 
-  const availableSystems = useMemo(() => {
-    const ids = new Set(QUIZ_QUESTIONS.map((q) => q.systemId));
-    return CANONICAL_SYSTEMS.filter((s) => ids.has(s.id));
-  }, []);
+  const systemCoverageSummary = useMemo(
+    () =>
+      CANONICAL_SYSTEMS.map((sys) => {
+        const qs = QUIZ_QUESTIONS.filter((q) => q.systemId === sys.id);
+        const solved = qs.filter((q) => progress.correctIds.includes(q.id)).length;
+        return { sys, total: qs.length, solved };
+      }),
+    [progress.correctIds],
+  );
 
   return (
     <div className="a360-page a360-narrow">
       <header className="a360-page-header">
-        <p className="a360-kicker">Active Recall & Exam Revision</p>
-        <h1>Anatomy Quizzes</h1>
+        <p className="a360-kicker">Active Recall &amp; Leveled Exam Revision</p>
+        <h1>Anatomy Quizzes (All 12 Systems)</h1>
         <p className="a360-lead">
-          Verified multiple-choice questions for FSc, MDCAT, MBBS, and nursing study. Every
-          explanation links straight to the tested 3D structure.
+          Curriculum-referenced multiple-choice questions spanning Grades 9–10, FSc / MDCAT,
+          MBBS / Nursing, and BS / MPhil / PhD research reasoning. Every explanation links straight
+          to the tested 3D structure.
         </p>
       </header>
 
@@ -109,15 +117,46 @@ export default function QuizPage({ onInspectConcept }: Props) {
         <div>
           <span className="a360-stat-label">Browser Revision Progress</span>
           <strong className="a360-tabular-count">
-            {progress.correctIds.length} / {QUIZ_QUESTIONS.length} verified correct ·{' '}
+            {progress.correctIds.length} / {QUIZ_QUESTIONS.length} answered correctly ·{' '}
             {progress.answeredIds.length} attempted
           </strong>
-          <span className="a360-stat-note">Saved locally in this browser only.</span>
+          <span className="a360-stat-note">
+            Saved locally in this browser only · Content is educational reference (not faculty-certified).
+          </span>
         </div>
         <button type="button" className="a360-btn-secondary" onClick={resetProgress}>
           <RotateCcw size={14} />
           Reset Progress
         </button>
+      </div>
+
+      {/* 12-System Quick Coverage & Mastery Strip */}
+      <div className="mb-4 flex flex-wrap gap-1.5" aria-label="System quiz coverage summary">
+        <button
+          type="button"
+          className={`a360-filter-btn ${systemFilter === 'all' ? 'active' : ''}`}
+          onClick={() => {
+            setSystemFilter('all');
+            setIndex(0);
+            setSelectedOption(null);
+          }}
+        >
+          All 12 Systems ({progress.correctIds.length}/{QUIZ_QUESTIONS.length})
+        </button>
+        {systemCoverageSummary.map(({ sys, total, solved }) => (
+          <button
+            key={sys.id}
+            type="button"
+            className={`a360-filter-btn ${systemFilter === sys.id ? 'active' : ''}`}
+            onClick={() => {
+              setSystemFilter(sys.id);
+              setIndex(0);
+              setSelectedOption(null);
+            }}
+          >
+            {sys.name.en.replace(' System', '')} ({solved}/{total})
+          </button>
+        ))}
       </div>
 
       <div className="a360-quiz-filters">
@@ -131,8 +170,8 @@ export default function QuizPage({ onInspectConcept }: Props) {
               setSelectedOption(null);
             }}
           >
-            <option value="all">All Systems ({QUIZ_QUESTIONS.length})</option>
-            {availableSystems.map((s) => (
+            <option value="all">All 12 Systems ({QUIZ_QUESTIONS.length})</option>
+            {CANONICAL_SYSTEMS.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name.en}
               </option>
@@ -141,7 +180,7 @@ export default function QuizPage({ onInspectConcept }: Props) {
         </label>
 
         <label className="a360-select-field">
-          <span>Level</span>
+          <span>Academic Level</span>
           <select
             value={difficultyFilter}
             onChange={(e) => {
@@ -150,16 +189,46 @@ export default function QuizPage({ onInspectConcept }: Props) {
               setSelectedOption(null);
             }}
           >
-            <option value="all">All Levels</option>
-            <option value="FSc / MDCAT">FSc / MDCAT</option>
-            <option value="MBBS / Nursing">MBBS / Nursing</option>
+            <option value="all">All 4 Academic Tiers ({QUIZ_QUESTIONS.length})</option>
+            {QUIZ_DIFFICULTY_LEVELS.map((lvl) => (
+              <option key={lvl} value={lvl}>
+                {lvl}
+              </option>
+            ))}
           </select>
         </label>
+
+        <div className="a360-filter-toggle-wrap">
+          <button
+            type="button"
+            className={`a360-filter-btn ${unsolvedOnly ? 'active' : ''}`}
+            onClick={() => {
+              setUnsolvedOnly((v) => !v);
+              setIndex(0);
+              setSelectedOption(null);
+            }}
+          >
+            Unsolved Only
+          </button>
+        </div>
       </div>
 
       {!current ? (
         <div className="a360-empty-box">
-          <p>No questions match the selected system and difficulty filter.</p>
+          <p>
+            {unsolvedOnly
+              ? 'All questions matching your selected system and academic tier have been answered correctly.'
+              : 'No questions match the selected system and academic level filter.'}
+          </p>
+          {unsolvedOnly && (
+            <button
+              type="button"
+              className="a360-btn-secondary mt-2"
+              onClick={() => setUnsolvedOnly(false)}
+            >
+              Show All Matching Questions
+            </button>
+          )}
         </div>
       ) : (
         <article className="a360-quiz-card">
