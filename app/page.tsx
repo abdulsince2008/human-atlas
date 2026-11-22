@@ -3,10 +3,13 @@ import type { Atlas, SystemId } from './anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from './anatomy-systems';
 import SiteHeader, { type AppRoute } from './components/SiteHeader';
 import { StudyProvider } from './components/StudyContext';
+import type { CurriculumAuthorityId, EducationDomainId } from './education/education-types';
+import type { LearningCategoryId } from './learning-data';
 import AboutPage from './pages/AboutPage';
 import AtlasManagerPage from './pages/AtlasManagerPage';
 import ClinicalPage from './pages/ClinicalPage';
 import DashboardPage from './pages/DashboardPage';
+import EducatorPage from './pages/EducatorPage';
 import HistologyPage from './pages/HistologyPage';
 import HomePage from './pages/HomePage';
 import LearnPage from './pages/LearnPage';
@@ -16,6 +19,7 @@ import QuizPage from './pages/QuizPage';
 import RelationshipsPage from './pages/RelationshipsPage';
 import RevisionPage from './pages/RevisionPage';
 import SearchPage from './pages/SearchPage';
+import SyllabusNavigatorPage from './pages/SyllabusNavigatorPage';
 import SystemsPage from './pages/SystemsPage';
 
 const ExplorerView = lazy(() => import('./components/ExplorerView'));
@@ -37,27 +41,41 @@ function parseRouteFromHash(): AppRoute {
   if (hash === 'clinical') return 'clinical';
   if (hash === 'quiz' || hash === 'quizzes') return 'quiz';
   if (hash === 'atlases') return 'atlases';
+  if (hash === 'syllabus' || hash === 'syllabi' || hash === 'curricula') return 'syllabus';
+  if (hash === 'educator' || hash === 'teacher' || hash === 'professor') return 'educator';
   if (hash === 'search') return 'search';
   if (hash === 'about') return 'about';
   return 'home';
 }
 
+function parseHashParams(): URLSearchParams {
+  if (typeof window === 'undefined') return new URLSearchParams();
+  const query = window.location.hash.split('?')[1] ?? '';
+  return new URLSearchParams(query);
+}
+
 function parsePresentationIdFromHash(): string | null {
-  if (typeof window === 'undefined') return null;
-  const query = window.location.hash.split('?')[1];
-  if (!query) return null;
-  const params = new URLSearchParams(query);
-  return params.get('id');
+  return parseHashParams().get('id');
+}
+
+interface EducatorIntentState {
+  sourceKind?: 'domain' | 'framework' | 'custom_syllabus';
+  domainId?: EducationDomainId;
+  frameworkId?: CurriculumAuthorityId;
+  customSyllabusId?: string;
 }
 
 export default function Home() {
   const [route, setRoute] = useState<AppRoute>(() =>
     typeof window !== 'undefined' ? parseRouteFromHash() : 'home',
   );
-  const [presentationIntent, setPresentationIntent] = useState<{ id: string; seq: number } | null>(() => {
-    const pid = parsePresentationIdFromHash();
-    return pid ? { id: pid, seq: 1 } : null;
-  });
+  const [presentationIntent, setPresentationIntent] = useState<{ id: string; seq: number } | null>(
+    () => {
+      const r = typeof window !== 'undefined' ? parseRouteFromHash() : 'home';
+      const pid = parsePresentationIdFromHash();
+      return r === 'present' && pid ? { id: pid, seq: 1 } : null;
+    },
+  );
   const [atlas, setAtlas] = useState<Atlas | null>(null);
   const [atlasError, setAtlasError] = useState('');
   const [selectedSystem, setSelectedSystem] = useState<CanonicalSystemId>('cardiovascular');
@@ -65,11 +83,35 @@ export default function Home() {
   const [focusConceptId, setFocusConceptId] = useState<string | null>(null);
   const [focusPartId, setFocusPartId] = useState<string | null>(null);
   const [visibleMeshSystems, setVisibleMeshSystems] = useState<SystemId[] | null>(null);
+
+  const [learnCategoryIntent, setLearnCategoryIntent] = useState<LearningCategoryId | null>(null);
+  const [learnDomainIntent, setLearnDomainIntent] = useState<EducationDomainId | null>(null);
   const [learnSystemIntent, setLearnSystemIntent] = useState<CanonicalSystemId | null>(null);
   const [learnTopicIntent, setLearnTopicIntent] = useState<string | null>(null);
+  const [learnFrameworkIntent, setLearnFrameworkIntent] = useState<CurriculumAuthorityId | null>(
+    null,
+  );
+
+  const [searchQueryIntent, setSearchQueryIntent] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    if (parseRouteFromHash() === 'search') return parseHashParams().get('q');
+    return null;
+  });
+  const [syllabusFrameworkIntent, setSyllabusFrameworkIntent] =
+    useState<CurriculumAuthorityId | null>(() => {
+      if (typeof window === 'undefined') return null;
+      if (parseRouteFromHash() === 'syllabus') {
+        return (parseHashParams().get('id') as CurriculumAuthorityId | null) ?? null;
+      }
+      return null;
+    });
+  const [educatorIntent, setEducatorIntent] = useState<EducatorIntentState>({});
+
   const [relationshipConceptId, setRelationshipConceptId] = useState<string | null>(null);
   const [referenceConceptId, setReferenceConceptId] = useState<string | null>(null);
-  const [flashcardSystemIntent, setFlashcardSystemIntent] = useState<CanonicalSystemId | 'all'>('all');
+  const [flashcardSystemIntent, setFlashcardSystemIntent] = useState<CanonicalSystemId | 'all'>(
+    'all',
+  );
 
   useEffect(() => {
     const abort = new AbortController();
@@ -87,12 +129,56 @@ export default function Home() {
 
   useEffect(() => {
     const onHash = () => {
-      setRoute(parseRouteFromHash());
-      const pid = parsePresentationIdFromHash();
-      if (pid) {
-        setPresentationIntent((prev) => ({ id: pid, seq: (prev?.seq ?? 0) + 1 }));
+      const nextRoute = parseRouteFromHash();
+      const params = parseHashParams();
+      setRoute(nextRoute);
+
+      if (nextRoute === 'present') {
+        const pid = params.get('id');
+        if (pid) {
+          setPresentationIntent((prev) => ({ id: pid, seq: (prev?.seq ?? 0) + 1 }));
+        } else {
+          setPresentationIntent(null);
+        }
       } else {
         setPresentationIntent(null);
+      }
+
+      if (nextRoute === 'search') {
+        const q = params.get('q');
+        if (q !== null) setSearchQueryIntent(q);
+      }
+
+      if (nextRoute === 'syllabus') {
+        const fid = params.get('id') as CurriculumAuthorityId | null;
+        if (fid) setSyllabusFrameworkIntent(fid);
+      }
+
+      if (nextRoute === 'learn') {
+        const dom = params.get('domain') as EducationDomainId | null;
+        const tp = params.get('topic');
+        const sys = params.get('system') as CanonicalSystemId | null;
+        const fw = params.get('framework') as CurriculumAuthorityId | null;
+        if (dom) {
+          setLearnDomainIntent(dom);
+          setLearnCategoryIntent(dom === 'human_anatomy' ? 'by-system' : 'curriculum-hub');
+        }
+        if (tp) setLearnTopicIntent(tp);
+        if (sys) setLearnSystemIntent(sys);
+        if (fw) setLearnFrameworkIntent(fw);
+      }
+
+      if (nextRoute === 'educator') {
+        const dom = params.get('domain') as EducationDomainId | null;
+        const fw = params.get('framework') as CurriculumAuthorityId | null;
+        const custom = params.get('custom');
+        if (custom) {
+          setEducatorIntent({ sourceKind: 'custom_syllabus', customSyllabusId: custom });
+        } else if (fw) {
+          setEducatorIntent({ sourceKind: 'framework', frameworkId: fw });
+        } else if (dom) {
+          setEducatorIntent({ sourceKind: 'domain', domainId: dom });
+        }
       }
     };
     window.addEventListener('hashchange', onHash);
@@ -167,12 +253,67 @@ export default function Home() {
 
   const openSystemInLearn = useCallback(
     (systemId: CanonicalSystemId, topicId?: string) => {
+      setLearnCategoryIntent('by-system');
+      setLearnDomainIntent('human_anatomy');
       setLearnSystemIntent(systemId);
       setLearnTopicIntent(topicId ?? null);
       navigate('learn');
     },
     [navigate],
   );
+
+  const openDomainInLearn = useCallback(
+    (domainId: EducationDomainId, topicId?: string) => {
+      setLearnDomainIntent(domainId);
+      setLearnTopicIntent(topicId ?? null);
+      setLearnFrameworkIntent(null);
+      if (domainId === 'human_anatomy') {
+        setLearnCategoryIntent('by-system');
+      } else {
+        setLearnCategoryIntent('curriculum-hub');
+      }
+      navigate('learn');
+    },
+    [navigate],
+  );
+
+  const openSearchWithQuery = useCallback((query: string) => {
+    const trimmed = query.trim();
+    setSearchQueryIntent(trimmed);
+    const targetHash = trimmed ? `#/search?q=${encodeURIComponent(trimmed)}` : '#/search';
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+    setRoute('search');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
+
+  const openSyllabusNavigator = useCallback((frameworkId?: CurriculumAuthorityId) => {
+    setSyllabusFrameworkIntent(frameworkId ?? null);
+    const targetHash = frameworkId
+      ? `#/syllabus?id=${encodeURIComponent(frameworkId)}`
+      : '#/syllabus';
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+    setRoute('syllabus');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
+
+  const openEducatorWorkspace = useCallback((intent: EducatorIntentState = {}) => {
+    setEducatorIntent(intent);
+    const params = new URLSearchParams();
+    if (intent.customSyllabusId) params.set('custom', intent.customSyllabusId);
+    else if (intent.frameworkId) params.set('framework', intent.frameworkId);
+    else if (intent.domainId) params.set('domain', intent.domainId);
+    const qs = params.toString();
+    const targetHash = qs ? `#/educator?${qs}` : '#/educator';
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+    setRoute('educator');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, []);
 
   const openRelationships = useCallback(
     (conceptId: string) => {
@@ -208,13 +349,66 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, []);
 
+  const openUniversalTopic = useCallback(
+    (params: {
+      route: AppRoute;
+      domainId?: EducationDomainId;
+      topicId?: string;
+      systemId?: string;
+      conceptId?: string;
+      presentationId?: string;
+      frameworkId?: CurriculumAuthorityId;
+    }) => {
+      if (params.route === 'explorer' && params.conceptId) {
+        inspectConceptIn3D(params.conceptId);
+        return;
+      }
+      if (params.route === 'present' && params.presentationId) {
+        openPresentation(params.presentationId);
+        return;
+      }
+      if (params.route === 'syllabus') {
+        openSyllabusNavigator(params.frameworkId);
+        return;
+      }
+      if (params.route === 'educator') {
+        openEducatorWorkspace({
+          sourceKind: 'domain',
+          domainId: params.domainId ?? 'human_anatomy',
+        });
+        return;
+      }
+      if (params.route === 'learn') {
+        if (params.domainId && params.domainId !== 'human_anatomy') {
+          setLearnCategoryIntent('curriculum-hub');
+          setLearnDomainIntent(params.domainId);
+          setLearnTopicIntent(params.topicId ?? null);
+          setLearnSystemIntent(null);
+        } else if (params.systemId) {
+          setLearnCategoryIntent('by-system');
+          setLearnDomainIntent('human_anatomy');
+          setLearnSystemIntent(params.systemId as CanonicalSystemId);
+          setLearnTopicIntent(params.topicId ?? null);
+        } else {
+          setLearnCategoryIntent('curriculum-hub');
+          setLearnDomainIntent(params.domainId ?? null);
+          setLearnTopicIntent(params.topicId ?? null);
+        }
+        navigate('learn');
+        return;
+      }
+      navigate(params.route);
+    },
+    [inspectConceptIn3D, navigate, openEducatorWorkspace, openPresentation, openSyllabusNavigator],
+  );
+
   return (
     <StudyProvider>
       <div className={`a360-shell ${route === 'explorer' ? 'is-explorer' : ''}`}>
         <SiteHeader
           route={route}
           onNavigate={navigate}
-          onOpenSearch={() => navigate('search')}
+          onOpenSearch={() => openSearchWithQuery('')}
         />
 
         <main className="a360-main">
@@ -225,6 +419,37 @@ export default function Home() {
               onNavigate={navigate}
               onInspectConcept={inspectConceptIn3D}
               onExploreSystem={exploreSystemIn3D}
+              onOpenSearchWithQuery={openSearchWithQuery}
+              onOpenDomain={(domainId) => openDomainInLearn(domainId)}
+              onOpenSyllabusFramework={(fwId) => openSyllabusNavigator(fwId)}
+              onOpenEducatorDomain={(domainId) =>
+                openEducatorWorkspace({ sourceKind: 'domain', domainId })
+              }
+            />
+          )}
+
+          {route === 'syllabus' && (
+            <SyllabusNavigatorPage
+              initialFrameworkId={syllabusFrameworkIntent}
+              onNavigate={navigate}
+              onOpenTopic={openUniversalTopic}
+              onOpenEducatorForFramework={(fwId) =>
+                openEducatorWorkspace({ sourceKind: 'framework', frameworkId: fwId })
+              }
+              onOpenEducatorForCustomSyllabus={(customId) =>
+                openEducatorWorkspace({ sourceKind: 'custom_syllabus', customSyllabusId: customId })
+              }
+            />
+          )}
+
+          {route === 'educator' && (
+            <EducatorPage
+              initialSourceKind={educatorIntent.sourceKind}
+              initialDomainId={educatorIntent.domainId}
+              initialFrameworkId={educatorIntent.frameworkId}
+              initialCustomSyllabusId={educatorIntent.customSyllabusId}
+              onNavigate={navigate}
+              onOpenTopic={openUniversalTopic}
             />
           )}
 
@@ -258,23 +483,42 @@ export default function Home() {
             <LearnPage
               atlas={atlas}
               atlasError={atlasError}
+              initialCategory={learnCategoryIntent}
+              initialDomainId={learnDomainIntent}
               initialSystemId={learnSystemIntent}
               initialTopicId={learnTopicIntent}
+              initialFrameworkId={learnFrameworkIntent}
               onInspectConcept={inspectConceptIn3D}
               onNavigate={navigate}
               onOpenPresentation={openPresentation}
+              onOpenEducatorWorkspace={(domainId) =>
+                openEducatorWorkspace({
+                  sourceKind: 'domain',
+                  domainId: domainId ?? 'human_anatomy',
+                })
+              }
             />
           )}
 
           {route === 'search' && (
             <SearchPage
               atlas={atlas}
+              initialQuery={searchQueryIntent}
               onInspectConcept={inspectConceptIn3D}
               onInspectPart={inspectPartIn3D}
               onOpenRelationships={openRelationships}
               onOpenLearnSystem={openSystemInLearn}
               onOpenFlashcards={openFlashcards}
               onOpenPracticalLab={() => navigate('practical-lab')}
+              onOpenTopic={openUniversalTopic}
+              onOpenSyllabus={openSyllabusNavigator}
+              onOpenEducator={(domainId) =>
+                openEducatorWorkspace({
+                  sourceKind: 'domain',
+                  domainId: domainId ?? 'human_anatomy',
+                })
+              }
+              onOpenPresentation={openPresentation}
             />
           )}
 

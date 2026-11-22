@@ -209,10 +209,19 @@ for (const pilot of FUNCTIONAL_MUSCLE_PILOTS) {
   assert.ok(mRes.matchedPartIds.length >= 6, `Muscle pilot ${pilot.id}: expected >= 6 mapped muscles`);
 }
 
+const { validateKnowledgeRegistry } = await import('../app/registry/registry-validation.ts');
+const registryCheck = validateKnowledgeRegistry(atlas);
+assert.equal(
+  registryCheck.valid,
+  true,
+  `Knowledge Registry validation failed: ${registryCheck.errors.join('; ')}`,
+);
+
 console.log(
   `Content validation passed: ${KNOWLEDGE_GRAPH_V2.length} V2 knowledge structures, ` +
     `${VERIFIED_RELATIONSHIPS.length} verified relationships, ${ANATOMY_LESSONS.length} lessons ` +
     `(${ANATOMY_LESSONS.reduce((s, l) => s + l.topics.length, 0)} topics), ` +
+    `${registryCheck.metrics.domainsCount} registry domains (${registryCheck.metrics.topicsCount} topics, ${registryCheck.metrics.curriculumFrameworksCount} frameworks), ` +
     `${QUIZ_QUESTIONS.length} quiz questions, ${PHYSIOLOGY_MODULES.length} physiology specs, ` +
     `${HISTOLOGY_ENTRIES.length} histology entries, ${CLINICAL_CASES.length} clinical scenarios, ` +
     `${PROVENANCE_LAYERS.length} provenance layers (${EDUCATIONAL_EVIDENCE_RECORDS.length} evidence records), ` +

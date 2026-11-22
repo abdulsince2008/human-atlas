@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ClipboardList,
   Compass,
   ExternalLink,
   GraduationCap,
@@ -37,10 +38,15 @@ import { useStudy } from './StudyContext';
 
 interface Props {
   atlas: Atlas | null;
+  initialDomainId?: EducationDomainId | null;
+  initialTopicId?: string | null;
+  initialTrackId?: EducationTrackId | null;
+  initialFrameworkId?: CurriculumAuthorityId | null;
   onInspectConcept: (conceptId: string) => void;
   onNavigate: (route: AppRoute) => void;
   onOpenSystemLesson: (systemId: CanonicalSystemId) => void;
   onOpenPresentation: (presentationId: string) => void;
+  onOpenEducatorWorkspace?: (domainId: EducationDomainId) => void;
 }
 
 const COVERAGE_BADGE: Record<
@@ -88,18 +94,61 @@ const NODE_TONE_CLASSES: Record<NonNullable<DiagramNode['tone']>, string> = {
 
 export default function MedicalCurriculumHub({
   atlas,
+  initialDomainId,
+  initialTopicId,
+  initialTrackId,
+  initialFrameworkId,
   onInspectConcept,
   onNavigate,
   onOpenSystemLesson,
   onOpenPresentation,
+  onOpenEducatorWorkspace,
 }: Props) {
   const { state, setTopicCompleted, recordQuizResult } = useStudy();
-  const [selectedTrack, setSelectedTrack] = useState<EducationTrackId>('secondary_premed');
-  const [frameworkFilter, setFrameworkFilter] = useState<CurriculumAuthorityId | 'all'>('all');
-  const [activeDomainId, setActiveDomainId] = useState<EducationDomainId>('cell_biology');
-  const [activeTopicId, setActiveTopicId] = useState<string>('edu-cell-organelles-transport');
+  const [selectedTrack, setSelectedTrack] = useState<EducationTrackId>(
+    initialTrackId ?? 'secondary_premed',
+  );
+  const [frameworkFilter, setFrameworkFilter] = useState<CurriculumAuthorityId | 'all'>(
+    initialFrameworkId ?? 'all',
+  );
+  const [activeDomainId, setActiveDomainId] = useState<EducationDomainId>(
+    initialDomainId ?? 'cell_biology',
+  );
+  const [activeTopicId, setActiveTopicId] = useState<string>(
+    initialTopicId ?? 'edu-cell-organelles-transport',
+  );
   const [answersByQuestion, setAnswersByQuestion] = useState<Record<string, number>>({});
   const [selectedDiagramNodeId, setSelectedDiagramNodeId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialFrameworkId) {
+      setFrameworkFilter(initialFrameworkId);
+    } else if (initialDomainId || initialTopicId) {
+      // Clear restrictive curriculum filters when deep-linking directly to a domain/topic
+      setFrameworkFilter('all');
+    }
+    if (initialTrackId) {
+      setSelectedTrack(initialTrackId);
+    } else if (initialDomainId) {
+      // Ensure selected track actually includes this domain so it stays visible
+      const matched = filterTopicsForTrackAndFramework(initialDomainId, 'all', 'all')[0];
+      if (matched && !matched.targetTracks.includes(selectedTrack)) {
+        setSelectedTrack(matched.targetTracks[0]);
+      }
+    }
+    if (initialDomainId) {
+      setActiveDomainId(initialDomainId);
+      setSelectedDiagramNodeId(null);
+      if (!initialTopicId) {
+        const firstTopic = filterTopicsForTrackAndFramework(initialDomainId, 'all', 'all')[0];
+        if (firstTopic) setActiveTopicId(firstTopic.id);
+      }
+    }
+    if (initialTopicId) {
+      setActiveTopicId(initialTopicId);
+      setSelectedDiagramNodeId(null);
+    }
+  }, [initialDomainId, initialTopicId, initialTrackId, initialFrameworkId]);
 
   const conceptNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -339,31 +388,39 @@ export default function MedicalCurriculumHub({
               {activeDomain.overview}
             </p>
 
-            {/* Platform Deep-Links */}
-            {activeDomain.platformLinks.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {activeDomain.platformLinks.map((pl) => (
-                  <button
-                    key={pl.label}
-                    type="button"
-                    onClick={() => {
-                      if (pl.presentationId) {
-                        onOpenPresentation(pl.presentationId);
-                      } else if (pl.systemId) {
-                        onOpenSystemLesson(pl.systemId);
-                      } else {
-                        onNavigate(pl.route);
-                      }
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-900 hover:bg-teal-100"
-                  >
-                    <Compass size={13} />
-                    <span>{pl.label}</span>
-                    <ArrowRight size={13} />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Platform Deep-Links & Educator Workspace */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {activeDomain.platformLinks.map((pl) => (
+                <button
+                  key={pl.label}
+                  type="button"
+                  onClick={() => {
+                    if (pl.presentationId) {
+                      onOpenPresentation(pl.presentationId);
+                    } else if (pl.systemId) {
+                      onOpenSystemLesson(pl.systemId);
+                    } else {
+                      onNavigate(pl.route);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-900 hover:bg-teal-100 whitespace-nowrap"
+                >
+                  <Compass size={13} />
+                  <span>{pl.label}</span>
+                  <ArrowRight size={13} />
+                </button>
+              ))}
+              {onOpenEducatorWorkspace && (
+                <button
+                  type="button"
+                  onClick={() => onOpenEducatorWorkspace(activeDomain.id)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"
+                >
+                  <ClipboardList size={13} />
+                  <span>Prepare Lesson in Educator Workspace</span>
+                </button>
+              )}
+            </div>
 
             {/* Honest Asset Disclosure Banner */}
             <div

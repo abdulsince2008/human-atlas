@@ -9,6 +9,7 @@ import {
   type FlashcardReviewState,
   type ReviewRating,
 } from './spaced-repetition';
+import type { CustomSyllabusProfile } from './syllabus/syllabus-types';
 
 export const STUDY_SCHEMA_VERSION = 1;
 const IDB_DB_NAME = 'Anatomy360StudyDB';
@@ -69,6 +70,8 @@ export interface StudyStateV1 {
   bookmarks: Record<string, BookmarkItem>;
   recentSearches: string[];
   activityLog: StudyActivityEntry[];
+  customSyllabi: CustomSyllabusProfile[];
+  educatorSequences: Record<string, string[]>;
 }
 
 export function createEmptyStudyState(): StudyStateV1 {
@@ -91,6 +94,8 @@ export function createEmptyStudyState(): StudyStateV1 {
     bookmarks: {},
     recentSearches: [],
     activityLog: [],
+    customSyllabi: [],
+    educatorSequences: {},
   };
 }
 
@@ -234,6 +239,30 @@ export function validateAndSanitizeStudyState(raw: unknown): {
         .slice(0, 40)
     : [];
 
+  const customSyllabi: CustomSyllabusProfile[] = Array.isArray(obj.customSyllabi)
+    ? (obj.customSyllabi as CustomSyllabusProfile[])
+        .filter(
+          (s) =>
+            Boolean(s) &&
+            typeof s === 'object' &&
+            typeof s.id === 'string' &&
+            s.metadata &&
+            typeof s.metadata === 'object' &&
+            typeof s.metadata.courseName === 'string' &&
+            Array.isArray(s.items),
+        )
+        .slice(0, 25)
+    : [];
+
+  const educatorSequences: Record<string, string[]> = {};
+  if (obj.educatorSequences && typeof obj.educatorSequences === 'object') {
+    for (const [k, v] of Object.entries(obj.educatorSequences as Record<string, unknown>)) {
+      if (Array.isArray(v)) {
+        educatorSequences[k] = v.filter((x): x is string => typeof x === 'string').slice(0, 80);
+      }
+    }
+  }
+
   return {
     ok: true,
     state: {
@@ -263,6 +292,8 @@ export function validateAndSanitizeStudyState(raw: unknown): {
       bookmarks,
       recentSearches,
       activityLog,
+      customSyllabi,
+      educatorSequences,
     },
   };
 }

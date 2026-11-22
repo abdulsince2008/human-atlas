@@ -4,6 +4,13 @@ import {
   canonicalSystemForMeshSystem,
   type CanonicalSystemId,
 } from './anatomy-systems';
+import type { AppRoute } from './components/SiteHeader';
+import { CLINICAL_CASES } from './data/clinical-data';
+import { HISTOLOGY_ENTRIES } from './data/histology-data';
+import { PHYSIOLOGY_MODULES } from './data/physiology-data';
+import { EDUCATION_TOPICS } from './education/education-content';
+import { CURRICULUM_FRAMEWORKS } from './education/education-curricula';
+import type { CurriculumAuthorityId, EducationDomainId, EducationTrackId } from './education/education-types';
 import {
   KNOWLEDGE_GRAPH_V2,
   type ModelCoverageTier,
@@ -11,6 +18,14 @@ import {
   type StructureKnowledgeV2,
 } from './knowledge-graph';
 import { ANATOMY_LESSONS, TERMINOLOGY_ENTRIES } from './learning-data';
+import { SYSTEM_TEACHING_METADATA } from './learning-supplements';
+import { BUILTIN_PRESENTATIONS } from './presentation/builtin-presentations';
+import { QUIZ_QUESTIONS } from './quiz-data';
+import {
+  REGISTRY_COVERAGE_LABELS,
+  REGISTRY_SUBJECTS,
+  REGISTRY_TOPICS,
+} from './registry/knowledge-registry';
 
 export interface SearchFilterOptions {
   system?: CanonicalSystemId | 'all';
@@ -388,3 +403,593 @@ export function resolveRelatedNames(conceptIds: string[], atlas: Atlas | null): 
     })
     .filter((x): x is { id: string; name: string } => Boolean(x));
 }
+
+// ---------------------------------------------------------------------------
+// Unified Multi-Domain Educational Search (Universal Knowledge Registry)
+// ---------------------------------------------------------------------------
+
+export type UnifiedSearchCategory =
+  | 'all'
+  | 'subject'
+  | 'topic'
+  | 'structure'
+  | 'terminology'
+  | 'physiology'
+  | 'histology'
+  | 'clinical'
+  | 'presentation'
+  | 'quiz'
+  | 'curriculum'
+  | 'educator';
+
+export interface UnifiedSearchFilters {
+  category?: UnifiedSearchCategory;
+  domainId?: EducationDomainId | 'all';
+  trackId?: EducationTrackId | 'all';
+  modelOnly?: boolean;
+  limit?: number;
+}
+
+export interface UnifiedSearchResultItem {
+  key: string;
+  category: Exclude<UnifiedSearchCategory, 'all'>;
+  categoryLabel: string;
+  score: number;
+  matchReason: string;
+  title: string;
+  subtitle: string;
+  summary: string;
+  domainId?: EducationDomainId;
+  domainLabel?: string;
+  systemId?: CanonicalSystemId;
+  topicId?: string;
+  conceptId?: string;
+  partId?: string;
+  presentationId?: string;
+  frameworkId?: CurriculumAuthorityId;
+  route: AppRoute;
+  academicTracks: string[];
+  coverageStatusLabel: string;
+  inModel?: boolean;
+  metadataLine: string;
+  keywords: string[];
+}
+
+export const UNIFIED_SEARCH_SUGGESTIONS: string[] = [
+  'Pharmacology',
+  'Heart',
+  'Cell Biology',
+  'Pathology',
+  'Acid-Base',
+  'Microbiology',
+  'Femur',
+  'Immunology',
+  'Embryology',
+  'Renal filtration',
+];
+
+const SEARCH_SYNONYM_MAP: Record<string, string[]> = {
+  pk: ['pharmacology', 'pharmacokinetics', 'adme'],
+  pd: ['pharmacology', 'pharmacodynamics', 'receptor'],
+  adme: ['pharmacology', 'pharmacokinetics', 'absorption', 'metabolism'],
+  abg: ['acid-base', 'ph', 'oxygen', 'haemoglobin'],
+  cvs: ['cardiovascular', 'heart', 'coronary'],
+  cns: ['nervous', 'brain', 'neuroanatomy', 'spinal'],
+  gi: ['digestive', 'gastrointestinal', 'liver', 'hepatic'],
+  cor: ['heart', 'cardiac'],
+  haem: ['haematology', 'blood', 'coagulation'],
+  cbc: ['haematology', 'laboratory', 'blood'],
+};
+
+function expandSearchQueryTokens(rawLower: string): string[] {
+  const base = rawLower
+    .split(/[^a-z0-9]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 2);
+  const out = new Set<string>(base);
+  for (const tok of base) {
+    const extra = SEARCH_SYNONYM_MAP[tok];
+    if (extra) {
+      for (const e of extra) out.add(e);
+    }
+  }
+  return Array.from(out);
+}
+
+function scoreTextMatch(
+  term: string,
+  tokens: string[],
+  title: string,
+  subtitle: string,
+  body: string,
+  defaultFeatureScore = 30,
+): { score: number; reason: string } {
+  if (!term) return { score: defaultFeatureScore, reason: 'Featured directory entry' };
+
+  const titleL = title.toLowerCase();
+  const subL = subtitle.toLowerCase();
+  const bodyL = body.toLowerCase();
+
+  if (titleL === term) return { score: 130, reason: 'Exact title match' };
+  if (titleL.startsWith(term)) return { score: 112, reason: 'Starts with query' };
+  if (titleL.includes(term)) return { score: 96, reason: 'Title match' };
+  if (subL.includes(term)) return { score: 82, reason: 'Domain / subtitle match' };
+
+  let tokScore = 0;
+  let matchedWords = 0;
+  for (const tok of tokens) {
+    if (titleL.includes(tok)) {
+      tokScore += 32;
+      matchedWords++;
+    } else if (subL.includes(tok)) {
+      tokScore += 22;
+      matchedWords++;
+    } else if (bodyL.includes(tok)) {
+      tokScore += 14;
+      matchedWords++;
+    }
+  }
+  if (tokScore > 0) {
+    return {
+      score: Math.min(92, tokScore),
+      reason:
+        bodyL.includes(term)
+          ? 'Outcome / content match'
+          : `${matchedWords} keyword match${matchedWords > 1 ? 'es' : ''}`,
+    };
+  }
+  if (bodyL.includes(term)) return { score: 64, reason: 'Content / learning outcome match' };
+  if (fuzzyWordMatch(term, `${titleL} ${subL}`)) return { score: 42, reason: 'Fuzzy spelling match' };
+  return { score: 0, reason: '' };
+}
+
+export function searchUnifiedEducationCatalog(
+  rawQuery: string,
+  atlas: Atlas | null,
+  filters: UnifiedSearchFilters = {},
+): {
+  results: UnifiedSearchResultItem[];
+  totalBeforeLimit: number;
+  categoryCounts: Record<Exclude<UnifiedSearchCategory, 'all'>, number>;
+} {
+  const term = rawQuery.trim().toLowerCase();
+  const tokens = term ? expandSearchQueryTokens(term) : [];
+  const catFilter = filters.category ?? 'all';
+  const domFilter = filters.domainId ?? 'all';
+  const trackFilter = filters.trackId ?? 'all';
+  const modelOnly = Boolean(filters.modelOnly);
+  const limit = filters.limit ?? 80;
+
+  const subjectByDomain = new Map(REGISTRY_SUBJECTS.map((s) => [s.domainId, s]));
+  const items: UnifiedSearchResultItem[] = [];
+  const seenKeys = new Set<string>();
+
+  const pushUnique = (entry: UnifiedSearchResultItem) => {
+    if (seenKeys.has(entry.key)) return;
+    if (domFilter !== 'all' && entry.domainId !== domFilter) return;
+    if (trackFilter !== 'all' && !entry.academicTracks.includes(trackFilter)) return;
+    if (modelOnly && entry.inModel === false) return;
+    seenKeys.add(entry.key);
+    items.push(entry);
+  };
+
+  // 1. 16 Biomedical & Clinical Domains (Subjects)
+  for (const subj of REGISTRY_SUBJECTS) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      subj.title,
+      `${subj.shortTitle} Domain ${subj.code}`,
+      `${subj.overview} ${subj.group.replace(/_/g, ' ')}`,
+      58,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `subj-${subj.domainId}`,
+        category: 'subject',
+        categoryLabel: 'Subject Domain',
+        score: res.score + 8,
+        matchReason: res.reason,
+        title: subj.title,
+        subtitle: `Domain ${subj.code} · ${subj.topicCount} curriculum topics`,
+        summary: subj.overview,
+        domainId: subj.domainId,
+        domainLabel: subj.shortTitle,
+        systemId: subj.relatedSystems[0],
+        route: 'learn',
+        academicTracks: subj.targetTracks,
+        coverageStatusLabel: subj.coverageLabel,
+        metadataLine: `Domain ${subj.code} · ${subj.chapterIds.length} chapters · ${subj.topicCount} topics · ${subj.coverageLabel}`,
+        keywords: [subj.shortTitle, subj.code],
+      });
+    }
+  }
+
+  // 2. Universal Registry Topics (Chapters, Lesson Topics, Biomedical Modules & Outcomes)
+  for (const tp of REGISTRY_TOPICS) {
+    const subj = subjectByDomain.get(tp.domainId);
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      tp.title,
+      `${subj?.shortTitle ?? tp.domainId} · ${tp.chapterTitle}`,
+      `${tp.summary} ${tp.keyTerms.join(' ')} ${tp.learningOutcomes.map((o) => o.statement).join(' ')}`,
+      46,
+    );
+    if (res.score > 0) {
+      const covLabel = REGISTRY_COVERAGE_LABELS[tp.coverageStatus];
+      pushUnique({
+        key: `topic-${tp.id}`,
+        category: 'topic',
+        categoryLabel: tp.sourceKind === 'planned_module' ? 'Planned Module' : 'Curriculum Topic',
+        score: res.score + (tp.sourceKind === 'anatomy_lesson_topic' ? 3 : 5),
+        matchReason: res.reason,
+        title: tp.title,
+        subtitle: `${subj?.shortTitle ?? 'Subject'} · ${tp.chapterTitle}`,
+        summary: tp.summary,
+        domainId: tp.domainId,
+        domainLabel: subj?.shortTitle,
+        systemId: tp.systemId,
+        topicId: tp.id,
+        conceptId: tp.relatedConceptIds[0],
+        route: tp.navigationTarget.route,
+        academicTracks: tp.academicTracks,
+        coverageStatusLabel: covLabel,
+        inModel: tp.relatedConceptIds.length > 0 ? true : undefined,
+        metadataLine: `${subj?.shortTitle ?? ''} · ${covLabel} · ${tp.learningOutcomes.length} outcomes · ${tp.difficultyTiers.slice(0, 3).join(' / ')}`,
+        keywords: tp.keyTerms.slice(0, 5),
+      });
+    }
+  }
+
+  // 3. 3D Anatomical Structures (KG V2 + Atlas FMA Concepts via searchAnatomyCatalog — deduplicated)
+  const anatSearch = searchAnatomyCatalog(rawQuery, atlas, {
+    limit: term ? 45 : 12,
+    modelOnly,
+  });
+  for (const sr of anatSearch.results) {
+    if (sr.partId && !sr.conceptId) continue;
+    const dedupeConcept = sr.conceptId ?? sr.key;
+    pushUnique({
+      key: `struct-${dedupeConcept}`,
+      category: 'structure',
+      categoryLabel: '3D Structure',
+      score: sr.score,
+      matchReason: sr.matchReason,
+      title: sr.anatomicalName,
+      subtitle: `${sr.systemLabel} · ${sr.region}${sr.latinName ? ` · ${sr.latinName}` : ''}`,
+      summary: sr.shortDefinition,
+      domainId: 'human_anatomy',
+      domainLabel: 'Human Anatomy',
+      systemId: sr.canonicalSystem,
+      conceptId: sr.conceptId,
+      partId: sr.partId,
+      route: 'explorer',
+      academicTracks: ['school_foundations', 'secondary_premed', 'medical_foundations', 'allied_health', 'graduate_research'],
+      coverageStatusLabel: sr.inModel ? `3D Mesh (${sr.piecesCount} part${sr.piecesCount === 1 ? '' : 's'})` : 'Text reference only',
+      inModel: sr.inModel,
+      metadataLine: `Human Anatomy · ${sr.systemLabel} · ${sr.inModel ? `${sr.piecesCount} 3D mesh(es)` : 'Planned reference'}`,
+      keywords: sr.synonyms.slice(0, 4),
+    });
+  }
+
+  // 4. Anatomical Terminology Entries
+  for (const t of TERMINOLOGY_ENTRIES) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      t.term,
+      'Anatomical Terminology & Planes',
+      `${t.definition} ${t.example}`,
+      25,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `term-${t.term.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        category: 'terminology',
+        categoryLabel: 'Terminology',
+        score: res.score,
+        matchReason: res.reason,
+        title: t.term,
+        subtitle: `Standard Anatomical Nomenclature`,
+        summary: `${t.definition} Example: ${t.example}`,
+        domainId: 'human_anatomy',
+        domainLabel: 'Human Anatomy',
+        route: 'learn',
+        academicTracks: ['school_foundations', 'secondary_premed', 'medical_foundations', 'allied_health'],
+        coverageStatusLabel: 'Available reference',
+        metadataLine: `Terminology · ${t.term}`,
+        keywords: [t.term],
+      });
+    }
+  }
+
+  // 5. Physiology Simulations (5 interactive + 1 planned)
+  for (const mod of PHYSIOLOGY_MODULES) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      mod.title,
+      `${mod.subtitle} · Physiology Lab`,
+      `${mod.explanation} ${mod.formulaNote} ${mod.assumptions.join(' ')}`,
+      38,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `phys-${mod.id}`,
+        category: 'physiology',
+        categoryLabel: mod.status === 'specification_ready' ? 'Planned Simulation' : 'Physiology Sim',
+        score: res.score + 4,
+        matchReason: res.reason,
+        title: mod.title,
+        subtitle: mod.subtitle,
+        summary: mod.explanation,
+        domainId: 'human_physiology',
+        domainLabel: 'Physiology',
+        systemId: mod.systemId,
+        conceptId: mod.linkedConcepts[0]?.conceptId,
+        route: 'physiology',
+        academicTracks: ['secondary_premed', 'medical_foundations', 'clinical_applied', 'allied_health', 'graduate_research'],
+        coverageStatusLabel: mod.status === 'specification_ready' ? 'Planned specification' : 'Interactive simulation',
+        metadataLine: `Physiology · ${mod.status === 'specification_ready' ? 'Planned spec' : 'Interactive model'}`,
+        keywords: [mod.formulaNote],
+      });
+    }
+  }
+
+  // 6. Histology Microanatomy Entries (honest asset_missing disclosure)
+  for (const h of HISTOLOGY_ENTRIES) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      h.title,
+      `${h.category} histology · ${h.specimenSlot.stainProtocol}`,
+      `${h.summary} ${h.microscopicStructures.join(' ')} ${h.diagnosticFeatures.join(' ')}`,
+      28,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `hist-${h.id}`,
+        category: 'histology',
+        categoryLabel: 'Histology Guide',
+        score: res.score,
+        matchReason: res.reason,
+        title: h.title,
+        subtitle: `Microscopic Anatomy · ${h.specimenSlot.stainProtocol}`,
+        summary: h.summary,
+        domainId: 'histology',
+        domainLabel: 'Histology',
+        systemId: h.canonicalSystem,
+        conceptId: h.linkedConceptIds[0],
+        route: 'histology',
+        academicTracks: ['secondary_premed', 'medical_foundations', 'allied_health', 'graduate_research'],
+        coverageStatusLabel: 'Text & self-check · Asset required (microscopy image pending)',
+        metadataLine: `Histology · ${h.specimenSlot.stainProtocol} · Asset required`,
+        keywords: h.microscopicStructures.slice(0, 4),
+      });
+    }
+  }
+
+  // 7. Clinical Case Correlations
+  for (const cs of CLINICAL_CASES) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      cs.title,
+      `${cs.categoryLabel} · ${cs.level}`,
+      `${cs.educationalScenario} ${cs.anatomicalExplanation} ${cs.learningObjectives.join(' ')}`,
+      34,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `clin-${cs.id}`,
+        category: 'clinical',
+        categoryLabel: 'Clinical Case',
+        score: res.score + 2,
+        matchReason: res.reason,
+        title: cs.title,
+        subtitle: `${cs.categoryLabel} · ${cs.level}`,
+        summary: cs.educationalScenario,
+        domainId: 'clinical_specialties',
+        domainLabel: 'Clinical Specialties',
+        systemId: cs.systemId,
+        conceptId: cs.relevantConcepts[0]?.conceptId,
+        route: 'clinical',
+        academicTracks: ['medical_foundations', 'clinical_applied', 'allied_health'],
+        coverageStatusLabel: 'Interactive case study',
+        metadataLine: `Clinical Correlation · ${cs.level}`,
+        keywords: cs.relevantConcepts.map((r) => r.label).slice(0, 4),
+      });
+    }
+  }
+
+  // 8. Built-in Guided 3D Presentations
+  for (const pres of BUILTIN_PRESENTATIONS) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      pres.title,
+      `${pres.region} · ${pres.steps.length} guided 3D steps`,
+      `${pres.summary} ${pres.learningObjectives.join(' ')} ${pres.mechanismProfile?.mechanism ?? ''}`,
+      36,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `pres-${pres.id}`,
+        category: 'presentation',
+        categoryLabel: '3D Walkthrough',
+        score: res.score + 4,
+        matchReason: res.reason,
+        title: pres.title,
+        subtitle: `${pres.region} · ${pres.difficultyLevel}`,
+        summary: pres.summary,
+        domainId: pres.category === 'pathophysiology' ? 'pathology' : 'human_anatomy',
+        domainLabel: pres.category === 'pathophysiology' ? 'Pathology' : 'Human Anatomy',
+        presentationId: pres.id,
+        route: 'present',
+        academicTracks: ['medical_foundations', 'clinical_applied', 'allied_health'],
+        coverageStatusLabel: `${pres.steps.length}-stage 3D explainer`,
+        inModel: true,
+        metadataLine: `3D Presentation · ${pres.steps.length} steps · ${pres.region}`,
+        keywords: [pres.region, pres.category],
+      });
+    }
+  }
+
+  // 9. Quiz MCQs + Biomedical Module Self-Checks
+  for (const q of QUIZ_QUESTIONS) {
+    const res = scoreTextMatch(term, tokens, q.prompt, `${q.difficulty} · Anatomy Quiz`, q.explanation, 12);
+    if (res.score > 0) {
+      pushUnique({
+        key: `quiz-anat-${q.id}`,
+        category: 'quiz',
+        categoryLabel: 'Assessment MCQ',
+        score: res.score - 6,
+        matchReason: res.reason,
+        title: q.prompt,
+        subtitle: `${q.difficulty} · Active Recall Quiz`,
+        summary: q.explanation,
+        domainId: 'human_anatomy',
+        domainLabel: 'Human Anatomy',
+        systemId: q.systemId,
+        conceptId: q.relatedConceptId,
+        route: 'quiz',
+        academicTracks:
+          q.difficulty === 'BS / MPhil / PhD Research'
+            ? ['graduate_research']
+            : q.difficulty === 'MBBS / Nursing'
+              ? ['medical_foundations', 'allied_health']
+              : ['school_foundations', 'secondary_premed'],
+        coverageStatusLabel: '4-option MCQ with rationale',
+        metadataLine: `Assessment · ${q.difficulty}`,
+        keywords: [q.difficulty],
+      });
+    }
+  }
+  for (const et of EDUCATION_TOPICS) {
+    const subj = subjectByDomain.get(et.domainId);
+    for (const sc of et.selfChecks) {
+      const res = scoreTextMatch(
+        term,
+        tokens,
+        sc.question,
+        `${subj?.shortTitle ?? et.domainId} Self-Check · ${et.title}`,
+        sc.explanation,
+        10,
+      );
+      if (res.score > 0) {
+        pushUnique({
+          key: `quiz-edu-${sc.id}`,
+          category: 'quiz',
+          categoryLabel: 'Module Self-Check',
+          score: res.score - 4,
+          matchReason: res.reason,
+          title: sc.question,
+          subtitle: `${subj?.shortTitle ?? ''} · ${et.title}`,
+          summary: sc.explanation,
+          domainId: et.domainId,
+          domainLabel: subj?.shortTitle,
+          topicId: et.id,
+          route: 'learn',
+          academicTracks: et.targetTracks,
+          coverageStatusLabel: 'Self-check MCQ',
+          metadataLine: `Self-Check · ${subj?.shortTitle ?? ''}`,
+          keywords: [et.title],
+        });
+      }
+    }
+  }
+
+  // 10. Official Curriculum Frameworks (13 worldwide/institutional frameworks)
+  for (const fw of CURRICULUM_FRAMEWORKS) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      fw.title,
+      `${fw.country} · ${fw.authority}`,
+      `${fw.supports} ${fw.adoptionNote} ${fw.applicableGradesOrYears}`,
+      32,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `curr-${fw.id}`,
+        category: 'curriculum',
+        categoryLabel: 'Curriculum Framework',
+        score: res.score + 4,
+        matchReason: res.reason,
+        title: fw.title,
+        subtitle: `${fw.country} · ${fw.authority}`,
+        summary: fw.supports,
+        frameworkId: fw.id,
+        route: 'syllabus',
+        academicTracks: fw.tracks,
+        coverageStatusLabel: `${fw.applicableGradesOrYears} · Alignment mapping`,
+        metadataLine: `Syllabus · ${fw.country} · ${fw.academicYearOrVersion}`,
+        keywords: [fw.country, fw.authority],
+      });
+    }
+  }
+
+  // 11. Teacher & Professor Guides (12 canonical system guides)
+  for (const sys of CANONICAL_SYSTEMS) {
+    const guide = SYSTEM_TEACHING_METADATA[sys.id];
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      `${sys.name.en} Teaching Guide & Outcomes`,
+      `Educator Prep · Grades 9–12, BS/MBBS, MPhil/PhD`,
+      `${guide.bloomObjectives.school_9_12.join(' ')} ${guide.bloomObjectives.bs_mbbs.join(' ')} ${guide.commonMisconceptions.join(' ')} ${guide.labSpotterFocus.join(' ')}`,
+      22,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `edu-${sys.id}`,
+        category: 'educator',
+        categoryLabel: 'Educator Guide',
+        score: res.score,
+        matchReason: res.reason,
+        title: `${sys.name.en} — Educator Outcomes & Spotter Guide`,
+        subtitle: `Human Anatomy · Bloom’s Objectives & Misconceptions`,
+        summary: guide.commonMisconceptions[0] ?? sys.shortSummary.en,
+        domainId: 'human_anatomy',
+        domainLabel: 'Human Anatomy',
+        systemId: sys.id,
+        route: 'educator',
+        academicTracks: ['school_foundations', 'secondary_premed', 'medical_foundations', 'graduate_research'],
+        coverageStatusLabel: 'Lecture outline & worksheet ready',
+        metadataLine: `Educator Workspace · ${guide.labSpotterFocus.length} spotter items`,
+        keywords: guide.labSpotterFocus.slice(0, 3),
+      });
+    }
+  }
+
+  const categoryCounts: Record<Exclude<UnifiedSearchCategory, 'all'>, number> = {
+    subject: 0,
+    topic: 0,
+    structure: 0,
+    terminology: 0,
+    physiology: 0,
+    histology: 0,
+    clinical: 0,
+    presentation: 0,
+    quiz: 0,
+    curriculum: 0,
+    educator: 0,
+  };
+  for (const it of items) {
+    categoryCounts[it.category]++;
+  }
+
+  const filtered = catFilter === 'all' ? items : items.filter((it) => it.category === catFilter);
+  filtered.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.title.length - b.title.length;
+  });
+
+  return {
+    results: filtered.slice(0, limit),
+    totalBeforeLimit: filtered.length,
+    categoryCounts,
+  };
+}
+

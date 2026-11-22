@@ -22,6 +22,7 @@ import {
   type RevisionQueueEntry,
   type StudyStateV1,
 } from '../study-store';
+import type { CustomSyllabusProfile } from '../syllabus/syllabus-types';
 
 export interface StudyContextValue {
   ready: boolean;
@@ -44,6 +45,9 @@ export interface StudyContextValue {
   exportStudyJson: () => string;
   importStudyJson: (rawText: string) => Promise<{ ok: boolean; error?: string }>;
   resetAllStudyProgress: () => Promise<void>;
+  saveCustomSyllabus: (syllabus: CustomSyllabusProfile) => void;
+  deleteCustomSyllabus: (syllabusId: string) => void;
+  saveEducatorSequence: (key: string, topicIds: string[]) => void;
 }
 
 const StudyContext = createContext<StudyContextValue | null>(null);
@@ -277,6 +281,46 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     setState(fresh);
   }, []);
 
+  const saveCustomSyllabus = useCallback(
+    (syllabus: CustomSyllabusProfile) => {
+      commit((prev) => {
+        const existingIdx = prev.customSyllabi.findIndex((s) => s.id === syllabus.id);
+        const nextList =
+          existingIdx >= 0
+            ? prev.customSyllabi.map((s) => (s.id === syllabus.id ? syllabus : s))
+            : [syllabus, ...prev.customSyllabi].slice(0, 25);
+        return {
+          ...prev,
+          customSyllabi: nextList,
+        };
+      });
+    },
+    [commit],
+  );
+
+  const deleteCustomSyllabus = useCallback(
+    (syllabusId: string) => {
+      commit((prev) => ({
+        ...prev,
+        customSyllabi: prev.customSyllabi.filter((s) => s.id !== syllabusId),
+      }));
+    },
+    [commit],
+  );
+
+  const saveEducatorSequence = useCallback(
+    (key: string, topicIds: string[]) => {
+      commit((prev) => ({
+        ...prev,
+        educatorSequences: {
+          ...prev.educatorSequences,
+          [key]: topicIds,
+        },
+      }));
+    },
+    [commit],
+  );
+
   const revisionQueue = useMemo(() => buildRevisionQueue(state), [state]);
 
   const value = useMemo<StudyContextValue>(
@@ -297,6 +341,9 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       exportStudyJson,
       importStudyJson,
       resetAllStudyProgress,
+      saveCustomSyllabus,
+      deleteCustomSyllabus,
+      saveEducatorSequence,
     }),
     [
       ready,
@@ -314,6 +361,9 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       exportStudyJson,
       importStudyJson,
       resetAllStudyProgress,
+      saveCustomSyllabus,
+      deleteCustomSyllabus,
+      saveEducatorSequence,
     ],
   );
 

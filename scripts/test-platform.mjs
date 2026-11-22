@@ -261,8 +261,41 @@ assert.equal(eduRes.summary.frameworks, 13);
 assert.equal(eduRes.summary.domains, 16);
 assert.ok(eduRes.summary.topics >= 17);
 
+// ---------------------------------------------------------------------------
+// 8. Universal Knowledge Registry, Unified Search & Syllabus Navigator Tests
+// ---------------------------------------------------------------------------
+const { searchUnifiedEducationCatalog } = await import('../app/search-engine.ts');
+const { validateKnowledgeRegistry } = await import('../app/registry/registry-validation.ts');
+const { parseSyllabusText } = await import('../app/syllabus/syllabus-parser.ts');
+const { matchDraftItemsToRegistry, computeSyllabusCoverageReport } = await import(
+  '../app/syllabus/syllabus-mapper.ts'
+);
+const { buildUniversalEducatorMarkdown } = await import('../app/utils/educator-export.ts');
+
+const regCheck = validateKnowledgeRegistry(atlas);
+assert.equal(regCheck.valid, true, `Registry validation failed: ${regCheck.errors.join('; ')}`);
+assert.equal(regCheck.metrics.topicsCount, 46);
+
+const unifiedPharm = searchUnifiedEducationCatalog('pharmacology', atlas);
+assert.ok(unifiedPharm.results.some((r) => r.domainId === 'pharmacology'));
+
+const parsedSyl = parseSyllabusText('1. Heart Chambers\n2. ADME Pharmacokinetics\n3. Nonexistent Quantum Topic');
+const mappedSyl = matchDraftItemsToRegistry(parsedSyl);
+const sylReport = computeSyllabusCoverageReport(mappedSyl);
+assert.equal(sylReport.availableCount, 1);
+assert.equal(sylReport.partiallyAvailableCount, 1);
+assert.equal(sylReport.notAvailableYetCount, 1);
+
+const educatorOut = buildUniversalEducatorMarkdown({
+  sourceKind: 'domain',
+  domainId: 'pathology',
+  tier: 'bs_mbbs',
+  exportKind: 'lecture_outline',
+});
+assert.ok(educatorOut.includes('Instructor Lecture & Seminar Outline'));
+
 console.log(
-  'All automated platform tests passed: search-engine, knowledge-graph, SM-2 scheduler, ' +
+  'All automated platform tests passed: search-engine (anatomy + unified), knowledge-graph, SM-2 scheduler, ' +
     'study-store sanitization/migration/queue, atlas/pack validators, physiology evaluators, ' +
-    'clinical 3D presentation integrity, and 16-domain human biology/medical education taxonomy.',
+    'clinical 3D presentation integrity, Universal Knowledge Registry, and Syllabus Navigator.',
 );

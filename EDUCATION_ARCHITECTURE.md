@@ -1,44 +1,48 @@
-# ANATOMY 360 — Shared Educational Architecture
+# ANATOMY 360 — Shared Educational & Registry Architecture
 
 ## 1. Architectural Overview
 
-Rather than creating disconnected mini-applications, ANATOMY 360 uses a shared, strongly typed educational domain layer in `app/education/` that integrates seamlessly with existing 3D anatomy, physiology simulations, histology entries, clinical cases, 3D presentations, and the `StudyContext` progress store.
+ANATOMY 360 connects 3D human anatomy, biomedical modules, labs, assessments, and worldwide syllabi through a strongly typed shared registry layer backed by client-side IndexedDB/`localStorage` persistence:
 
 ```
 app/education/
   ├── education-types.ts          # Canonical taxonomy, track, curriculum, diagram, quiz & asset types
-  ├── education-curricula.ts      # 5 student learning tracks + 11 official curriculum frameworks + PM&DC reference
-  ├── education-domains.ts        # 16 human-biology & medical-science domains with honest coverage & asset disclosures
-  ├── education-content-part1.ts  # Foundational level-differentiated modules (Domains A–H)
-  ├── education-content-part2.ts  # Disease, therapeutics & clinical modules (Domains I–P)
-  ├── education-content.ts        # Unified topic index, track depth resolver & existing platform mappings
-  └── education-validation.ts     # Automated validator enforcing FMA mesh links, quiz bounds & governance
+  ├── education-curricula.ts      # 6 learning tracks + 13 curriculum frameworks + PM&DC reference
+  ├── education-domains.ts        # 16 human-biology & medical-science domains with asset disclosures
+  ├── education-content-part1.ts  # Level-differentiated modules (Domains A–H)
+  ├── education-content-part2.ts  # Level-differentiated modules (Domains I–P)
+  ├── education-content.ts        # Unified topic index, track depth resolver & system mappings
+  └── education-validation.ts     # Automated validator enforcing FMA links, quiz bounds & governance
+
+app/registry/
+  ├── registry-types.ts           # Canonical Domain → Subject → Chapter → Topic & metrics types
+  ├── knowledge-registry.ts       # Unifies all 16 domains, 29 chapters, 46 topics, FMA 3D links, labs & quizzes
+  └── registry-validation.ts      # Integrity checks (zero false expert_verified, honest planned/asset gaps)
+
+app/syllabus/
+  ├── syllabus-types.ts           # CustomSyllabusProfile, mapping confidence & coverage report schemas
+  ├── syllabus-parser.ts          # Parses pasted text, Markdown headings, numbered lists & CSV lines
+  └── syllabus-mapper.ts          # Token/synonym/keyword matcher + honest 3-bucket coverage report engine
 ```
 
 ---
 
-## 2. Shared Data Model & Level-Appropriate Depth
+## 2. Canonical Hierarchy & Truthful Coverage Rules
 
-Every `EducationTopic` binds together:
-- **Taxonomy:** `domainId`, `chapterTitle`, `title`, `targetTracks` (`school_foundations`, `secondary_premed`, `medical_foundations`, `clinical_applied`, `allied_health`).
-- **Curriculum Provenance:** `curriculumMappings[]` referencing verified IDs in `CURRICULUM_FRAMEWORKS` with grade/year, unit/module, and requirement status (`compulsory`, `elective`, `optional`, `recommended`, `institution_specific`).
-- **Differentiated Explanations (`depthExplanations`):** Separate explanations authored for School Foundations, Secondary/Pre-Medical, Medical Foundations, Clinical/Applied, and Allied Health so students study the same canonical scientific concept at appropriate depth without duplicating conflicting records.
-- **Right-Sized Visuals:**
-  - Verified 3D FMA concept links (`relatedFmaConceptIds`, validated against `public/models/atlas.json`) for gross anatomy and organ-level cross-links.
-  - Data-driven 2D conceptual diagrams (`TopicDiagramSpec`: pathways, hierarchies, comparisons, cycles) clearly labeled as educational schematics.
-  - Deep-links to quantitative simulations (`#/physiology`), Histology (`#/histology`), Clinical Cases (`#/clinical`), 3D Presentations (`#/present`), and System Lessons (`#/learn`).
-- **Honest Asset & Review Governance:**
-  - Explicit `assetDisclosure` (`available`, `partial`, `asset_required`, `conceptual_diagram_only`) with `missingAssets[]`.
-  - `reviewStatus` strictly restricted to `structured_reference | curriculum_draft | pending_faculty_review` (automated tests fail if any record claims `expert_verified` without human faculty sign-off).
-  - Mandatory `educationalDisclaimer` on clinical, pathology, pharmacology, haematology/lab, radiology, and clinical-skills domains.
+- **Four-Level Registry (`16 Domains → 16 Subjects → 29 Chapters → 46 Topics`):**
+  - **28 Anatomy Lesson Topics** from `ANATOMY_LESSONS` (`substantially_covered`, `countsAsFullCoverage: true`, linked directly to verified BodyParts3D FMA meshes, `TOPIC_DEPTH_SUPPLEMENTS`, `PHYSIOLOGY_MODULES`, `QUIZ_QUESTIONS`, and `SYSTEM_TEACHING_METADATA`).
+  - **17 Biomedical Modules** from `EDUCATION_TOPICS` across Domains A–P (`countsAsFullCoverage: false` for introductory/partial modules; `assetStatus: 'asset_missing'` for Histology and Radiology).
+  - **1 Planned Specification Slot** (`endocrine-feedback-planned` under `human_physiology`, explicitly `coverageStatus: 'planned'`).
+- **6 Academic Tracks:** `school_foundations` (Grades 6–8), `secondary_premed` (Grades 9–12 / FSc / MDCAT / CBSE / A-Level), `medical_foundations` (MBBS/MD Pre-Clinical), `clinical_applied` (Clerkship), `allied_health` (Nursing & Allied Health), and `graduate_research` (BS / MPhil / PhD).
+- **Governance & Honest Disclosures:**
+  - `reviewStatus` is restricted strictly to `structured_reference | curriculum_draft | needs_academic_review | pending_faculty_review` (automated tests fail if any record claims `faculty_reviewed` or `expert_verified` without faculty sign-off).
+  - Histology and Radiology enforce `asset_missing` disclosures so text/diagram overviews never masquerade as real micrographs or diagnostic radiographs.
 
 ---
 
-## 3. UI & Study Progress Integration
+## 3. Navigation, Unified Search & Custom Syllabus Integration
 
-- **Entry Point:** Integrated directly inside `#/learn` (`app/pages/LearnPage.tsx`) via the **Human Biology & Medical Sciences** tab (`app/components/MedicalCurriculumHub.tsx`), preserving all four existing tabs (*Learn by Anatomical System*, *Learn by Individual Structure*, *Explore the Human Body*, *Anatomy Terminology*) without cluttering the top navigation bar.
-- **Progress Persistence:**
-  - Topic completion (`Mark Completed`) persists via `useStudy().setTopicCompleted()`.
-  - Self-assessment concept checks persist via `useStudy().recordQuizResult()`.
-- **Validation Pipeline:**
-  - `app/education.test.ts` (unit tests via `npx tsx --test`) and Section 7 of `scripts/test-platform.mjs` (`npm test` / `npm run validate:all`) automatically verify unique IDs, valid curriculum links, real FMA mesh existence in `atlas.json`, valid MCQ bounds, honest asset disclosures for Histology and Radiology, and zero false `expert_verified` claims.
+- **Homepage Gateway (`app/pages/HomePage.tsx`):** Global search hero + Section A (`#/syllabus`), Section B (all 16 subjects), Section C (12 canonical 3D body systems), Section D (`#/educator` + 8 labs), and live `computeRegistryMetrics(atlas)` stats.
+- **Worldwide Syllabus Navigator (`app/pages/SyllabusNavigatorPage.tsx`, `#/syllabus`):** Browse 13 official curricula with provenance URLs and alignment-vs-endorsement notices, or parse/upload any unlisted syllabus locally, confirm suggested mappings, remap items multi-to-multi, inspect `available` vs `partially_available` vs `not_available_yet` coverage, and persist profiles in `StudyContext`.
+- **Unified Search (`app/search-engine.ts` + `app/pages/SearchPage.tsx`, `#/search`):** Deduplicated index spanning domains, registry topics, 3D FMA concepts, terminology, physiology, histology, clinical cases, 3D presentations, MCQs, official curricula, and educator guides.
+- **Universal Educator Workspace (`app/utils/educator-export.ts` + `app/components/EducatorToolkitPanel.tsx`, `#/educator`):** Works across all 16 domains, 13 frameworks, and saved custom syllabi; supports persisted topic sequencing (`educatorSequences`) and Markdown export of Lecture Outlines and Student Worksheets.

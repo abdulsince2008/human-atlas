@@ -17,6 +17,8 @@ export type AppRoute =
   | 'clinical'
   | 'quiz'
   | 'atlases'
+  | 'syllabus'
+  | 'educator'
   | 'search'
   | 'about';
 
@@ -36,6 +38,8 @@ const CORE_LINKS: { id: AppRoute; label: string }[] = [
 ];
 
 const STUDY_MENU: { id: AppRoute; label: string; desc: string }[] = [
+  { id: 'syllabus', label: 'Worldwide Syllabus Navigator', desc: '13 official frameworks & custom syllabus matcher' },
+  { id: 'educator', label: 'Teacher & Professor Workspace', desc: 'All 16 domains & syllabi, outlines & worksheets' },
   { id: 'dashboard', label: 'Study Dashboard', desc: 'Progress analytics, profile & JSON backup' },
   { id: 'revision', label: 'Flashcards & Revision', desc: 'SM-2 spaced repetition & weak queue' },
   { id: 'bookmarks', label: 'Saved Bookmarks', desc: 'Bookmarked organs, lessons & questions' },
@@ -194,7 +198,7 @@ export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
               setOpenMenu(null);
               onOpenSearch();
             }}
-            aria-label="Search anatomical structures"
+            aria-label="Search human sciences and anatomical structures"
           >
             <Search size={16} />
             <span className="a360-search-label">Search</span>

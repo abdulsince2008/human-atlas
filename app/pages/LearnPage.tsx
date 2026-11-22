@@ -7,6 +7,7 @@ import EducatorToolkitPanel from '../components/EducatorToolkitPanel';
 import MedicalCurriculumHub from '../components/MedicalCurriculumHub';
 import type { AppRoute } from '../components/SiteHeader';
 import SystemLearnWorkspace from '../components/SystemLearnWorkspace';
+import type { CurriculumAuthorityId, EducationDomainId, EducationTrackId } from '../education/education-types';
 import {
   GUIDED_PATHWAYS,
   LEARNING_CATEGORIES,
@@ -17,33 +18,51 @@ import {
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
+  initialCategory?: LearningCategoryId | null;
+  initialDomainId?: EducationDomainId | null;
   initialSystemId?: CanonicalSystemId | null;
   initialTopicId?: string | null;
+  initialTrackId?: EducationTrackId | null;
+  initialFrameworkId?: CurriculumAuthorityId | null;
   onInspectConcept: (conceptId: string) => void;
   onNavigate: (route: AppRoute) => void;
   onOpenPresentation: (presentationId: string) => void;
+  onOpenEducatorWorkspace?: (domainId?: EducationDomainId) => void;
 }
 
 export default function LearnPage({
   atlas,
   atlasError,
+  initialCategory,
+  initialDomainId,
   initialSystemId,
   initialTopicId,
+  initialTrackId,
+  initialFrameworkId,
   onInspectConcept,
   onNavigate,
   onOpenPresentation,
+  onOpenEducatorWorkspace,
 }: Props) {
-  const [category, setCategory] = useState<LearningCategoryId>('by-system');
+  const [category, setCategory] = useState<LearningCategoryId>(
+    initialCategory ?? (initialDomainId && initialDomainId !== 'human_anatomy' ? 'curriculum-hub' : 'by-system'),
+  );
   const [educatorModeOpen, setEducatorModeOpen] = useState(false);
   const [systemLessonIntent, setSystemLessonIntent] = useState<CanonicalSystemId | null>(
     initialSystemId ?? null,
   );
   useEffect(() => {
-    if (initialSystemId || initialTopicId) {
+    if (initialCategory) {
+      setCategory(initialCategory);
+    } else if (initialDomainId && initialDomainId !== 'human_anatomy') {
+      setCategory('curriculum-hub');
+    } else if (initialFrameworkId && !initialSystemId) {
+      setCategory('curriculum-hub');
+    } else if (initialSystemId || initialTopicId) {
       setCategory('by-system');
-      if (initialSystemId) setSystemLessonIntent(initialSystemId);
     }
-  }, [initialSystemId, initialTopicId]);
+    if (initialSystemId) setSystemLessonIntent(initialSystemId);
+  }, [initialCategory, initialDomainId, initialFrameworkId, initialSystemId, initialTopicId]);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [termFilter, setTermFilter] = useState<string>('all');
   const [activePathwayId, setActivePathwayId] = useState<string>(GUIDED_PATHWAYS[0].id);
@@ -135,6 +154,10 @@ export default function LearnPage({
       {category === 'curriculum-hub' && (
         <MedicalCurriculumHub
           atlas={atlas}
+          initialDomainId={initialDomainId}
+          initialTopicId={initialTopicId}
+          initialTrackId={initialTrackId}
+          initialFrameworkId={initialFrameworkId}
           onInspectConcept={onInspectConcept}
           onNavigate={onNavigate}
           onOpenSystemLesson={(sysId) => {
@@ -142,6 +165,7 @@ export default function LearnPage({
             setCategory('by-system');
           }}
           onOpenPresentation={onOpenPresentation}
+          onOpenEducatorWorkspace={(domId) => onOpenEducatorWorkspace?.(domId)}
         />
       )}
 
