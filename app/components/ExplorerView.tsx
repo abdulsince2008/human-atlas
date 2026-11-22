@@ -75,6 +75,14 @@ import {
   type VisualizationMode,
 } from '../tissue-materials';
 import {
+  getActiveConceptsForSex,
+  getActivePartsForSex,
+  isPartHiddenForSex,
+  loadFemaleAtlasManifest,
+  type AnatomySex,
+  type FemaleAtlasManifest,
+} from '../female-atlas';
+import {
   BRAIN_CAMERA_PRESETS,
   BRAIN_REGION_SPECS,
   FUNCTIONAL_MUSCLE_PILOTS,
@@ -180,6 +188,8 @@ export default function ExplorerView({
   const surgicalHiddenIdsRef = useRef<string[]>([]);
 
   const [progress, setProgress] = useState(0);
+  const [anatomySex, setAnatomySex] = useState<AnatomySex>('male');
+  const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
   const [sceneError, setSceneError] = useState('');
   const [panel, setPanel] = useState<'layers' | 'search' | null>(null);
   const [details, setDetails] = useState(false);
@@ -197,23 +207,36 @@ export default function ExplorerView({
 
   const error = atlasError || sceneError;
 
+  const activeParts = useMemo(
+    () => (atlas ? getActivePartsForSex(atlas, femaleAtlas, anatomySex) : []),
+    [atlas, femaleAtlas, anatomySex],
+  );
+  const activeConcepts = useMemo(
+    () => (atlas ? getActiveConceptsForSex(atlas, femaleAtlas, anatomySex) : []),
+    [atlas, femaleAtlas, anatomySex],
+  );
+  const effectiveAtlas = useMemo(
+    () => (atlas ? { ...atlas, parts: activeParts, concepts: activeConcepts } : null),
+    [atlas, activeParts, activeConcepts],
+  );
+
   const registry = useMemo(
     () => (atlas ? buildDissectionRegistry(atlas) : null),
     [atlas],
   );
 
-  const parts = useMemo(() => new Map(atlas?.parts.map((p) => [p.id, p])), [atlas]);
+  const parts = useMemo(() => new Map(activeParts.map((p) => [p.id, p])), [activeParts]);
   const conceptsById = useMemo(
-    () => new Map(atlas?.concepts.map((c) => [c.id, c])),
-    [atlas],
+    () => new Map(activeConcepts.map((c) => [c.id, c])),
+    [activeConcepts],
   );
 
   const counts = useMemo(
     () =>
       Object.fromEntries(
-        SYSTEMS.map((s) => [s.id, atlas?.parts.filter((p) => p.system === s.id).length ?? 0]),
+        SYSTEMS.map((s) => [s.id, activeParts.filter((p) => p.system === s.id).length]),
       ),
-    [atlas],
+    [activeParts],
   );
   const activeSystems = SYSTEMS.filter((s) => counts[s.id] > 0);
 
@@ -273,15 +296,15 @@ export default function ExplorerView({
 
   const partColorOverrides = useMemo(
     () =>
-      atlas
+      effectiveAtlas
         ? resolvePartColorOverrides({
-            atlas,
+            atlas: effectiveAtlas,
             visualizationMode,
             brainRegionalEnabled: brainRegionalColors,
             activeMusclePilotId,
           })
         : undefined,
-    [atlas, visualizationMode, brainRegionalColors, activeMusclePilotId],
+    [effectiveAtlas, visualizationMode, brainRegionalColors, activeMusclePilotId],
   );
 
   const sceneState: SceneState = useMemo(() => {
@@ -294,6 +317,7 @@ export default function ExplorerView({
         ghostSurroundings: engine.ghostSurroundings,
         partColorOverrides,
         qualityPreset,
+        anatomySex,
         interactionMode,
         view,
         rotate,
@@ -311,10 +335,52 @@ export default function ExplorerView({
       }),
       partColorOverrides,
       qualityPreset,
+      anatomySex,
     };
-  }, [atlas, registry, engine, interactionMode, view, rotate, zoomStep, partColorOverrides, qualityPreset]);
+  }, [
+    atlas,
+    registry,
+    engine,
+    interactionMode,
+    view,
+    rotate,
+    zoomStep,
+    partColorOverrides,
+    qualityPreset,
+    anatomySex,
+  ]);
 
   const hiddenSet = useMemo(() => new Set(engine.hiddenPartIds), [engine.hiddenPartIds]);
+
+  const selectAnatomySex = useCallback(
+    (nextSex: AnatomySex) => {
+      setAnatomySex(nextSex);
+      if (nextSex === 'female' && !femaleAtlas) {
+        void loadFemaleAtlasManifest()
+          .then(setFemaleAtlas)
+          .catch(() => {
+            // Scene viewer surface reports fetch failure if unavailable
+          });
+      }
+      setEngine((st) => {
+        const nextSelected = st.selected.filter((id) => !isPartHiddenForSex(id, nextSex));
+        if (nextSelected.length === st.selected.length) return st;
+        return {
+          ...st,
+          selected: nextSelected,
+          isolate: nextSelected.length > 0 ? st.isolate : false,
+        };
+      });
+      if (engine.selected.some((id) => isPartHiddenForSex(id, nextSex))) {
+        const remaining = engine.selected.filter((id) => !isPartHiddenForSex(id, nextSex));
+        if (remaining.length === 0) {
+          setDetails(false);
+          setChosen(null);
+        }
+      }
+    },
+    [femaleAtlas, engine.selected],
+  );
 
   const selectedParts = engine.selected
     .map((id) => parts.get(id))
@@ -329,11 +395,11 @@ export default function ExplorerView({
     if (!atlas) return 0;
     const visSet = new Set(engine.visible);
     const selSet = new Set(engine.selected);
-    return atlas.parts.filter((p) => {
+    return activeParts.filter((p) => {
       if (hiddenSet.has(p.id)) return false;
       return engine.isolate ? selSet.has(p.id) : visSet.has(p.system) || selSet.has(p.id);
     }).length;
-  }, [atlas, engine.visible, engine.selected, engine.isolate, hiddenSet]);
+  }, [atlas, activeParts, engine.visible, engine.selected, engine.isolate, hiddenSet]);
 
   // Selected structure group + depth-layer info
   const selectedGroup = useMemo(() => {
@@ -641,19 +707,34 @@ export default function ExplorerView({
     if (!atlas) return [];
     const term = query.toLowerCase().trim();
     if (!term) {
-      return [
-        'heart',
-        'brain',
-        'frontal bone',
-        'mandible',
-        'liver',
-        'stomach',
-        'spleen',
-        'trachea',
-        'femur',
-        'skull',
-      ]
-        .map((name) => atlas.concepts.find((c) => c.name.toLowerCase() === name))
+      const defaults =
+        anatomySex === 'female'
+          ? [
+              'uterus',
+              'left ovary',
+              'female urinary bladder',
+              'left mammary gland',
+              'heart',
+              'brain',
+              'liver',
+              'stomach',
+              'femur',
+              'skull',
+            ]
+          : [
+              'heart',
+              'brain',
+              'frontal bone',
+              'mandible',
+              'liver',
+              'stomach',
+              'spleen',
+              'trachea',
+              'femur',
+              'skull',
+            ];
+      return defaults
+        .map((name) => activeConcepts.find((c) => c.name.toLowerCase() === name))
         .filter((x): x is Concept => Boolean(x));
     }
 
@@ -668,7 +749,7 @@ export default function ExplorerView({
       }
     }
 
-    return atlas.concepts
+    return activeConcepts
       .filter(
         (c) =>
           c.name.toLowerCase().includes(term) ||
@@ -682,7 +763,7 @@ export default function ExplorerView({
         return a.name.length - b.name.length;
       })
       .slice(0, 80);
-  }, [atlas, query]);
+  }, [atlas, activeConcepts, anatomySex, query]);
 
   const toggleSystem = (id: SystemId) => {
     setDetails(false);
@@ -813,13 +894,39 @@ export default function ExplorerView({
             <div className="explorer-identity">
               <span className="explorer-title">3D Human Anatomy</span>
               <span className="explorer-meta" data-testid="explorer-visible-count">
-                {atlas ? atlas.parts.length.toLocaleString() : '2,234'} meshes ·{' '}
+                {activeParts.length.toLocaleString()} meshes ·{' '}
                 {visibleCount.toLocaleString()} visible
                 {engine.hiddenPartIds.length > 0
                   ? ` · ${engine.hiddenPartIds.length} dissected`
                   : ''}
                 {engine.clipping.enabled ? ` · ${getAxisLabel(engine.clipping.axis)} cut` : ''}
               </span>
+            </div>
+
+            <div
+              className="model-sex-switcher"
+              role="group"
+              aria-label="Select Male or Female 3D anatomical model"
+              data-testid="model-sex-switcher"
+            >
+              <button
+                type="button"
+                data-testid="select-male-model-btn"
+                className={anatomySex === 'male' ? 'active' : ''}
+                aria-pressed={anatomySex === 'male'}
+                onClick={() => selectAnatomySex('male')}
+              >
+                Male
+              </button>
+              <button
+                type="button"
+                data-testid="select-female-model-btn"
+                className={anatomySex === 'female' ? 'active' : ''}
+                aria-pressed={anatomySex === 'female'}
+                onClick={() => selectAnatomySex('female')}
+              >
+                Female
+              </button>
             </div>
 
             <div className="explorer-top-actions">
@@ -2278,7 +2385,7 @@ export default function ExplorerView({
                 <p className="search-note">
                   {query
                     ? 'Showing up to 80 3D matches.'
-                    : 'Includes common names & 3,432 FMA concepts.'}
+                    : `Includes common names & ${activeConcepts.length.toLocaleString()} FMA concepts.`}
                 </p>
                 <button
                   type="button"
@@ -2380,7 +2487,9 @@ export default function ExplorerView({
                         ? 'DISSECTION MODE ACTIVE'
                         : interactionMode === 'pan'
                           ? 'PAN MODE · DRAG TO MOVE'
-                          : 'ADULT MALE REFERENCE · BODYPARTS3D'}
+                          : anatomySex === 'female'
+                            ? 'ADULT FEMALE REFERENCE · BODYPARTS3D + HUBMAP HRA'
+                            : 'ADULT MALE REFERENCE · BODYPARTS3D'}
             </span>
             <span className="caption-line" />
           </div>
@@ -2769,11 +2878,14 @@ export default function ExplorerView({
 
             <a
               className="source-link"
-              href="https://lifesciencedb.jp/bp3d/"
+              href={selected?.id.startsWith('HF_') ? 'https://humanatlas.io/3d-reference-library' : 'https://lifesciencedb.jp/bp3d/'}
               target="_blank"
               rel="noreferrer"
             >
-              BodyParts3D anatomical source <ArrowUpRight size={14} />
+              {selected?.id.startsWith('HF_')
+                ? 'HuBMAP HRA Female anatomical source (CC BY 4.0)'
+                : 'BodyParts3D anatomical source'}{' '}
+              <ArrowUpRight size={14} />
             </a>
           </div>
 

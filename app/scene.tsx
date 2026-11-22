@@ -7,15 +7,22 @@ import {
   SYSTEMS,
   type Atlas,
   type ClippingPlaneState,
+  type Part,
   type SceneRelationshipEdge,
   type SceneState,
   type SystemId,
 } from './anatomy';
 import { createExplosionLayout } from './explosion-layout';
+import { isPartHiddenForSex, loadFemaleAtlasManifest } from './female-atlas';
 import { computeClipPlaneEquation } from './interaction-engine';
 import { decodeModelResponse } from './model-download';
 import { PointerTap } from './pointer-tap';
-import { RENDER_QUALITY_PRESETS, resolvePartMaterialProps } from './tissue-materials';
+import {
+  classifyPartTissue,
+  RENDER_QUALITY_PRESETS,
+  resolvePartMaterialProps,
+  TISSUE_MATERIAL_PRESETS,
+} from './tissue-materials';
 import { hexToRgbBytes } from './visualization-colors';
 import { ensureAnatomicalUVs } from './graphics/uv-generator';
 import { createTissueTextureLibrary } from './graphics/tissue-textures';
@@ -91,6 +98,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     let lastColorOverridesRef: Record<string, string> | undefined = undefined;
     let lastRelEdgesRef: SceneRelationshipEdge[] | undefined = undefined;
     let lastQualityPreset = '';
+    let lastAnatomySex: 'male' | 'female' = latest.current.anatomySex ?? 'male';
 
     const isSoftwareGl = detectSoftwareWebGL();
     const abort = new AbortController();
@@ -307,6 +315,26 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     scene.add(lod3Group);
     const lodManager = new AnatomicalLodManager(atlas.triangles);
 
+    const femaleGroup = new T.Group();
+    femaleGroup.name = 'anatomy-female-overlay';
+    femaleGroup.visible = false;
+    scene.add(femaleGroup);
+
+    interface FemaleMeshEntry {
+      part: Part;
+      mesh: T.Mesh;
+      material: T.MeshStandardMaterial;
+      bounds: T.Box3;
+      center: T.Vector3;
+      baseColorHex: string;
+      baseNormalStrength: number;
+      offset: T.Vector3;
+    }
+    const femaleEntries: FemaleMeshEntry[] = [];
+    let femaleLoading = false;
+    let femaleReady = false;
+    let femaleJustLoaded = false;
+
     const materials: T.MeshStandardMaterial[] = [];
     const geometries: T.BufferGeometry[] = [];
     const pickers: (T.Mesh | undefined)[] = [];
@@ -479,12 +507,21 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     hover.hidden = true;
     el.appendChild(hover);
 
-    type Target = { index: number; x: number; y: number; left: number; right: number; top: number; bottom: number };
+    type Target = {
+      id: string;
+      name: string;
+      x: number;
+      y: number;
+      left: number;
+      right: number;
+      top: number;
+      bottom: number;
+    };
     let targets: Target[] = [];
     const projected = new T.Vector3();
 
-    const findTarget = (x: number, y: number, radius: number) => {
-      let best = -1;
+    const findTarget = (x: number, y: number, radius: number): Target | null => {
+      let best: Target | null = null;
       let score = Infinity;
       for (const t of targets) {
         const dx = Math.max(t.left - x, 0, x - t.right);
@@ -494,7 +531,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         const candidate = distance + Math.hypot(t.x - x, t.y - y) * 0.025;
         if (candidate < score) {
           score = candidate;
-          best = t.index;
+          best = t;
         }
       }
       return best;
@@ -728,6 +765,92 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       }
     };
 
+    const ensureFemaleLoaded = async () => {
+      if (femaleLoading || femaleReady || disposed) return;
+      femaleLoading = true;
+      try {
+        const manifest = await loadFemaleAtlasManifest();
+        if (disposed || manifest.chunks.length === 0) return;
+        const chunk = manifest.chunks[0];
+        const compressed = !!chunk.gzip && typeof DecompressionStream !== 'undefined';
+        const response = await fetch(compressed ? chunk.gzip! : chunk.url, { signal: abort.signal });
+        if (!response.ok) throw new Error(`Female geometry HTTP ${response.status}`);
+        const buffer = await decodeModelResponse(response, chunk.bytes, compressed);
+        if (disposed) return;
+
+        const quality =
+          RENDER_QUALITY_PRESETS[latest.current.qualityPreset ?? 'balanced'] ??
+          RENDER_QUALITY_PRESETS.balanced;
+
+        for (const p of manifest.parts) {
+          const g = new T.BufferGeometry();
+          g.setAttribute('position', new T.BufferAttribute(new Float32Array(buffer, p.positions, p.vertexCount * 3), 3));
+          g.setAttribute('normal', new T.BufferAttribute(new Int16Array(buffer, p.normals, p.vertexCount * 3), 3, true));
+          g.setIndex(new T.BufferAttribute(new Uint32Array(buffer, p.indices, p.indexCount), 1));
+          ensureAnatomicalUVs(g, 0.08);
+          const partBounds = new T.Box3(
+            new T.Vector3().fromArray(p.bounds[0]),
+            new T.Vector3().fromArray(p.bounds[1]),
+          );
+          g.boundingBox = partBounds.clone();
+          g.computeBoundingSphere();
+
+          const tissue = classifyPartTissue(p);
+          const preset = TISSUE_MATERIAL_PRESETS[tissue];
+          const texSet = tissueTextureLib.getForSystem(p.system);
+          const baseNormalStrength = texSet.normalStrength;
+
+          const m = new T.MeshStandardMaterial({
+            color: preset.naturalColor,
+            roughness: preset.roughness,
+            metalness: Math.min(0.05, preset.metalness),
+            side: T.DoubleSide,
+            normalMap: texSet.normalMap,
+            normalScale: new T.Vector2(
+              baseNormalStrength * quality.microDetailStrength,
+              baseNormalStrength * quality.microDetailStrength,
+            ),
+            roughnessMap: texSet.roughnessMap,
+            aoMap: texSet.aoMap,
+            aoMapIntensity: 0.32,
+            envMapIntensity: quality.envMapIntensity,
+            clippingPlanes: activeClipPlanes.length > 0 ? activeClipPlanes : undefined,
+          });
+
+          const mesh = new T.Mesh(g, m);
+          mesh.name = p.id;
+          mesh.castShadow = !isSoftwareGl;
+          mesh.receiveShadow = !isSoftwareGl;
+          femaleGroup.add(mesh);
+
+          const center = partBounds.getCenter(new T.Vector3());
+          femaleEntries.push({
+            part: p,
+            mesh,
+            material: m,
+            bounds: partBounds,
+            center: center.clone(),
+            baseColorHex: preset.naturalColor,
+            baseNormalStrength,
+            offset: center.clone(),
+          });
+        }
+
+        if (!disposed) {
+          femaleReady = true;
+          femaleLoading = false;
+          femaleJustLoaded = true;
+          lastState = null;
+          dirty = true;
+        }
+      } catch (err) {
+        femaleLoading = false;
+        if (!disposed && !(err instanceof DOMException && err.name === 'AbortError')) {
+          onError(err instanceof Error ? err.message : 'Could not load female anatomical model.');
+        }
+      }
+    };
+
     (async () => {
       try {
         let cursor = 0;
@@ -744,6 +867,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           dirty = true;
           el.dataset.lodLevel = '0';
           el.dataset.activeTriangles = String(atlas.triangles);
+          if ((latest.current.anatomySex ?? 'male') === 'female') {
+            void ensureFemaleLoaded();
+          }
           void loadLod3Background();
         }
       } catch (e) {
@@ -879,8 +1005,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       if (!selectedIds.length) return;
       _boxTmp.makeEmpty();
       const selSet = new Set(selectedIds);
+      const activeSex = latest.current.anatomySex ?? 'male';
       atlas.parts.forEach((p, i) => {
-        if (selSet.has(p.id)) {
+        if (selSet.has(p.id) && !isPartHiddenForSex(p.id, activeSex)) {
           const picker = pickers[i];
           if (picker) {
             _boxTmp.union(bounds[i].clone().applyMatrix4(picker.matrix));
@@ -890,6 +1017,14 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           }
         }
       });
+      if (activeSex === 'female') {
+        for (const fe of femaleEntries) {
+          if (selSet.has(fe.part.id)) {
+            fe.mesh.updateMatrix();
+            _boxTmp.union(fe.bounds.clone().applyMatrix4(fe.mesh.matrix));
+          }
+        }
+      }
       focusOnBox(_boxTmp, inspectorOpen, embedded);
     };
 
@@ -929,11 +1064,11 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const index = findTarget(x, y, 12);
-      hover.hidden = index < 0;
-      renderer.domElement.style.cursor = index < 0 ? 'grab' : 'pointer';
-      if (index >= 0) {
-        hover.textContent = atlas.parts[index].name;
+      const hitTarget = findTarget(x, y, 12);
+      hover.hidden = !hitTarget;
+      renderer.domElement.style.cursor = !hitTarget ? 'grab' : 'pointer';
+      if (hitTarget) {
+        hover.textContent = hitTarget.name;
         hover.style.left = `${Math.max(8, Math.min(x + 14, el.clientWidth - 260))}px`;
         hover.style.top = `${Math.max(8, Math.min(y + 18, el.clientHeight - 55))}px`;
       }
@@ -951,8 +1086,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       raycaster.setFromCamera(pointer, camera);
 
       let nearest = Infinity;
-      let found = -1;
+      let foundId: string | null = null;
       const s = latest.current;
+      const activeSex = s.anatomySex ?? 'male';
       const activeDimmed = new Set(s.dimmedSystems ?? []);
       const clipActive = Boolean(s.clipping?.enabled);
       const hiddenSet = new Set(s.hiddenPartIds ?? []);
@@ -961,20 +1097,29 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
 
       const isPartPickable = (i: number) => {
         const p = atlas.parts[i];
+        if (isPartHiddenForSex(p.id, activeSex)) return false;
         if (hiddenSet.has(p.id) || removalFade[i] > 0.25) return false;
         const vis = s.isolate ? selectedSet.has(p.id) : visibleSet.has(p.system) || selectedSet.has(p.id);
         return vis;
       };
 
       const pinnedPickSet = new Set(s.pinnedOpaquePartIds ?? []);
-      const hasSolid = atlas.parts.some(
-        (p, i) =>
-          (pinnedPickSet.has(p.id) ||
-            (p.system !== 'integumentary' &&
-              !activeDimmed.has(p.system) &&
-              (s.systemOpacities?.[p.system] ?? 1) > 0.45)) &&
-          isPartPickable(i),
-      );
+      const hasSolid =
+        atlas.parts.some(
+          (p, i) =>
+            (pinnedPickSet.has(p.id) ||
+              (p.system !== 'integumentary' &&
+                !activeDimmed.has(p.system) &&
+                (s.systemOpacities?.[p.system] ?? 1) > 0.45)) &&
+            isPartPickable(i),
+        ) ||
+        (activeSex === 'female' &&
+          femaleEntries.some(
+            (fe) =>
+              fe.mesh.visible &&
+              (pinnedPickSet.has(fe.part.id) ||
+                (!activeDimmed.has(fe.part.system) && (s.systemOpacities?.[fe.part.system] ?? 1) > 0.45)),
+          ));
 
       pickers.forEach((mesh, i) => {
         if (!mesh || !isPartPickable(i)) return;
@@ -998,18 +1143,42 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           if (clipActive && clipPlane.distanceToPoint(h.point) < 0) continue;
           if (h.distance < nearest) {
             nearest = h.distance;
-            found = i;
+            foundId = p.id;
           }
           break;
         }
       });
 
-      if (found < 0 && amount > 0.45) {
-        found = findTarget(e.clientX - rect.left, e.clientY - rect.top, e.pointerType === 'touch' ? 24 : 16);
+      if (activeSex === 'female' && femaleReady) {
+        for (const fe of femaleEntries) {
+          if (!fe.mesh.visible) continue;
+          const p = fe.part;
+          const isPinned = pinnedPickSet.has(p.id);
+          const sysOp = isPinned ? 1 : (s.systemOpacities?.[p.system] ?? 1);
+          const partOp = s.partOpacities?.[p.id] ?? 1;
+          if (hasSolid && !isPinned && (activeDimmed.has(p.system) || sysOp <= 0.3 || partOp <= 0.3)) {
+            continue;
+          }
+          worldBox.copy(fe.bounds).applyMatrix4(fe.mesh.matrixWorld);
+          if (!raycaster.ray.intersectBox(worldBox, hitPoint)) continue;
+          const hits = raycaster.intersectObject(fe.mesh, false);
+          for (const h of hits) {
+            if (clipActive && clipPlane.distanceToPoint(h.point) < 0) continue;
+            if (h.distance < nearest) {
+              nearest = h.distance;
+              foundId = p.id;
+            }
+            break;
+          }
+        }
       }
-      if (found >= 0) {
+
+      if (!foundId && amount > 0.45) {
+        foundId = findTarget(e.clientX - rect.left, e.clientY - rect.top, e.pointerType === 'touch' ? 24 : 16)?.id ?? null;
+      }
+      if (foundId) {
         hover.hidden = true;
-        select.current(atlas.parts[found].id);
+        select.current(foundId);
       }
     };
 
@@ -1075,11 +1244,15 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         clipFrameGroup.visible = false;
       }
 
-      if (enabled !== lastClippingEnabled) {
+      if (enabled !== lastClippingEnabled || femaleJustLoaded) {
         const planesRef = enabled ? activeClipPlanes : null;
         materials.forEach((m) => {
           m.clippingPlanes = planesRef;
           m.needsUpdate = true;
+        });
+        femaleEntries.forEach((fe) => {
+          fe.material.clippingPlanes = planesRef;
+          fe.material.needsUpdate = true;
         });
         highlightMaterial.clippingPlanes = planesRef;
         highlightMaterial.needsUpdate = true;
@@ -1105,8 +1278,12 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       frame = requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
       const s = latest.current;
+      const activeSex = s.anatomySex ?? 'male';
+      if (activeSex === 'female' && !femaleReady && !femaleLoading) {
+        void ensureFemaleLoaded();
+      }
       const presetKey = s.qualityPreset ?? 'balanced';
-      if (presetKey !== lastQualityPreset) {
+      if (presetKey !== lastQualityPreset || femaleJustLoaded) {
         lastQualityPreset = presetKey;
         const preset = RENDER_QUALITY_PRESETS[presetKey] ?? RENDER_QUALITY_PRESETS.balanced;
         renderer.toneMappingExposure = preset.exposure;
@@ -1120,6 +1297,13 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           if (m.normalScale && baseNorm > 0) {
             const scaled = baseNorm * preset.microDetailStrength;
             m.normalScale.set(scaled, scaled);
+          }
+        });
+        femaleEntries.forEach((fe) => {
+          fe.material.envMapIntensity = preset.envMapIntensity;
+          if (fe.material.normalScale && fe.baseNormalStrength > 0) {
+            const scaled = fe.baseNormalStrength * preset.microDetailStrength;
+            fe.material.normalScale.set(scaled, scaled);
           }
         });
         updatePixelRatio();
@@ -1154,6 +1338,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       const pinnedKey = (s.pinnedOpaquePartIds ?? []).join(',');
 
       const nonTransformChanged =
+        lastAnatomySex !== activeSex ||
+        femaleJustLoaded ||
         lastState?.visible !== s.visible ||
         lastState?.selected !== s.selected ||
         lastState?.isolate !== s.isolate ||
@@ -1325,10 +1511,26 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
 
         const visible = new Set(s.visible);
         const selection = new Set(s.selected);
-        const visibleParts = atlas.parts.filter((p) =>
-          s.isolate ? selection.has(p.id) : visible.has(p.system) || selection.has(p.id),
+        const visibleParts = atlas.parts.filter(
+          (p) =>
+            !isPartHiddenForSex(p.id, activeSex) &&
+            (s.isolate ? selection.has(p.id) : visible.has(p.system) || selection.has(p.id)),
         );
-        const nextLayoutKey = visibleParts.map((p) => p.id).join(',') + ':' + camera.aspect.toFixed(3);
+        if (activeSex === 'female' && femaleReady) {
+          for (const fe of femaleEntries) {
+            if (s.isolate ? selection.has(fe.part.id) : visible.has(fe.part.system) || selection.has(fe.part.id)) {
+              visibleParts.push(fe.part);
+            }
+          }
+        }
+        const nextLayoutKey =
+          activeSex +
+          ':' +
+          (femaleReady ? '1' : '0') +
+          ':' +
+          visibleParts.map((p) => p.id).join(',') +
+          ':' +
+          camera.aspect.toFixed(3);
         if (nextLayoutKey !== layoutKey) {
           const layout = createExplosionLayout(visibleParts, camera.aspect);
           packingWidth = layout.width;
@@ -1336,6 +1538,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           atlas.parts.forEach((p, i) => {
             const cell = layout.cells.get(p.id);
             offsets[i] = cell ? new T.Vector3(cell.x, cell.y + 0.85, 0) : centers[i].clone();
+          });
+          femaleEntries.forEach((fe) => {
+            const cell = layout.cells.get(fe.part.id);
+            fe.offset = cell ? new T.Vector3(cell.x, cell.y + 0.85, 0) : fe.center.clone();
           });
           layoutKey = nextLayoutKey;
           if (amount > 0.05 && !s.isolate) fit(s.view, Math.max(0, (amount - 0.3) / 0.7));
@@ -1450,8 +1656,9 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
             }
           }
 
-          const isSelected = selection.has(p.id);
-          const baseVisible = s.isolate ? isSelected : visible.has(p.system) || isSelected;
+          const sexHidden = isPartHiddenForSex(p.id, activeSex);
+          const isSelected = !sexHidden && selection.has(p.id);
+          const baseVisible = !sexHidden && (s.isolate ? isSelected : visible.has(p.system) || isSelected);
           const fullyRemoved = fade >= 0.996;
           const isTranslucentAnimating = fade > 0.002 && !fullyRemoved;
           const partOp = s.partOpacities?.[p.id];
@@ -1525,6 +1732,89 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           lastRelEdgesRef = s.relationshipEdges;
         }
 
+        // Sync Adult Female HuBMAP anatomical overlay group
+        femaleGroup.visible = activeSex === 'female' && femaleReady;
+        if (femaleReady) {
+          for (const fe of femaleEntries) {
+            const fp = fe.part;
+            const c = fe.center;
+            const destination = fe.offset;
+            let dx = 0;
+            let dy = 0;
+            let dz = 0;
+            if (amount > 0.0001) {
+              if (amount <= 0.45) {
+                const t = amount / 0.45;
+                const group = SYSTEMS.findIndex((sys) => sys.id === fp.system);
+                const angle = (group / SYSTEMS.length) * Math.PI * 2;
+                dx = Math.sin(angle) * t * 0.48;
+                dy = (c.y - 0.85) * t * 0.28;
+                dz = Math.cos(angle) * t * 0.48;
+              } else {
+                const t = (amount - 0.45) / 0.55;
+                const group = SYSTEMS.findIndex((sys) => sys.id === fp.system);
+                const angle = (group / SYSTEMS.length) * Math.PI * 2;
+                dx = T.MathUtils.lerp(Math.sin(angle) * 0.48, destination.x - c.x, t);
+                dy = T.MathUtils.lerp((c.y - 0.85) * 0.28, destination.y - c.y, t);
+                dz = T.MathUtils.lerp(Math.cos(angle) * 0.48, -c.z, t);
+              }
+            }
+
+            const xform = s.partTransforms?.[fp.id];
+            if (xform && amount < 0.05) {
+              _quatTmp.set(xform.rotation[0], xform.rotation[1], xform.rotation[2], xform.rotation[3]);
+              _vecPivot.set(xform.pivot[0], xform.pivot[1], xform.pivot[2]);
+              _vecRotPivot.copy(_vecPivot).applyQuaternion(_quatTmp);
+              fe.mesh.quaternion.copy(_quatTmp);
+              fe.mesh.position.set(
+                dx + xform.translation[0] + _vecPivot.x - _vecRotPivot.x,
+                dy + xform.translation[1] + _vecPivot.y - _vecRotPivot.y,
+                dz + xform.translation[2] + _vecPivot.z - _vecRotPivot.z,
+              );
+            } else {
+              fe.mesh.quaternion.set(0, 0, 0, 1);
+              fe.mesh.position.set(dx, dy, dz);
+            }
+            fe.mesh.updateMatrix();
+            fe.mesh.updateMatrixWorld(true);
+
+            const isSelected = activeSex === 'female' && selection.has(fp.id);
+            const isHidden = hiddenInputSet.has(fp.id);
+            const baseVisible =
+              activeSex === 'female' &&
+              !isHidden &&
+              (s.isolate ? isSelected : visible.has(fp.system) || isSelected);
+            fe.mesh.visible = baseVisible;
+            if (!baseVisible) continue;
+
+            const isPinned = pinnedSet.has(fp.id);
+            const sysOp = s.systemOpacities?.[fp.system] ?? 1.0;
+            const partOp = s.partOpacities?.[fp.id] ?? 1.0;
+            const isDimmed = !isPinned && (ghostActive ? !isSelected : dimmedSet.has(fp.system) && !isSelected);
+            const effAlpha = isPinned ? 1.0 : (isDimmed ? Math.min(0.14, sysOp) : sysOp) * partOp;
+            const shouldTransparent = effAlpha < 0.995;
+
+            if (fe.material.transparent !== shouldTransparent || fe.material.depthWrite !== !shouldTransparent) {
+              fe.material.transparent = shouldTransparent;
+              fe.material.depthWrite = !shouldTransparent;
+              fe.material.needsUpdate = true;
+            }
+            fe.material.opacity = effAlpha;
+            fe.mesh.renderOrder = isSelected && ghostActive ? 5 : shouldTransparent ? 3 : 0;
+
+            const overrideHex = s.partColorOverrides?.[fp.id];
+            if (isSelected && !(s.isolate && overrideHex)) {
+              fe.material.color.set(overrideHex ?? fe.baseColorHex).lerp(new T.Color('#1cb0b8'), overrideHex ? 0.25 : 0.78);
+              fe.material.emissive.set('#0c4e55');
+              fe.material.emissiveIntensity = ghostActive ? 0.35 : 0.22;
+            } else {
+              fe.material.color.set(overrideHex ?? fe.baseColorHex);
+              fe.material.emissive.set('#000000');
+              fe.material.emissiveIntensity = 0;
+            }
+          }
+        }
+
         partTexture.needsUpdate = true;
         partRotTexture.needsUpdate = true;
         partPivotTexture.needsUpdate = true;
@@ -1532,6 +1822,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         markerGeometry.attributes.position.needsUpdate = true;
         syncHighlightOverlay(selection, ghostActive, s.partColorOverrides);
 
+        lastAnatomySex = activeSex;
+        femaleJustLoaded = false;
         lastState = s;
         lastOverlayKey = `${hiddenKey}|${partOpKey}|${clipKey}`;
         lastPinnedKey = pinnedKey;
@@ -1628,9 +1920,11 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           if (isSoftwareGl) lastSwRenderMs = performance.now();
           targets = [];
           if (amount > 0.45) {
-            const hasSolid = atlas.parts.some((p, i) => p.system !== 'integumentary' && data[i * 4 + 3] > 0.5);
+            const hasSolid = atlas.parts.some(
+              (p, i) => !isPartHiddenForSex(p.id, activeSex) && p.system !== 'integumentary' && data[i * 4 + 3] > 0.5,
+            );
             atlas.parts.forEach((p, i) => {
-              if (data[i * 4 + 3] < 0.5 || (hasSolid && p.system === 'integumentary')) return;
+              if (isPartHiddenForSex(p.id, activeSex) || data[i * 4 + 3] < 0.5 || (hasSolid && p.system === 'integumentary')) return;
               let left = Infinity;
               let right = -Infinity;
               let top = Infinity;
@@ -1653,7 +1947,8 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
               projected.copy(centers[i]).add(_vecA.set(data[i * 4], data[i * 4 + 1], data[i * 4 + 2])).project(camera);
               if (projected.z < -1 || projected.z > 1) return;
               targets.push({
-                index: i,
+                id: p.id,
+                name: p.name,
                 x: ((projected.x + 1) * el.clientWidth) / 2,
                 y: ((1 - projected.y) * el.clientHeight) / 2,
                 left,
@@ -1662,6 +1957,42 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
                 bottom,
               });
             });
+            if (activeSex === 'female' && femaleReady) {
+              for (const fe of femaleEntries) {
+                if (!fe.mesh.visible) continue;
+                let left = Infinity;
+                let right = -Infinity;
+                let top = Infinity;
+                let bottom = -Infinity;
+                for (let corner = 0; corner < 8; corner++) {
+                  projected
+                    .set(
+                      fe.part.bounds[corner & 1 ? 1 : 0][0] + fe.mesh.position.x,
+                      fe.part.bounds[corner & 2 ? 1 : 0][1] + fe.mesh.position.y,
+                      fe.part.bounds[corner & 4 ? 1 : 0][2] + fe.mesh.position.z,
+                    )
+                    .project(camera);
+                  const x = ((projected.x + 1) * el.clientWidth) / 2;
+                  const y = ((1 - projected.y) * el.clientHeight) / 2;
+                  left = Math.min(left, x);
+                  right = Math.max(right, x);
+                  top = Math.min(top, y);
+                  bottom = Math.max(bottom, y);
+                }
+                projected.copy(fe.center).add(fe.mesh.position).project(camera);
+                if (projected.z < -1 || projected.z > 1) continue;
+                targets.push({
+                  id: fe.part.id,
+                  name: fe.part.name,
+                  x: ((projected.x + 1) * el.clientWidth) / 2,
+                  y: ((1 - projected.y) * el.clientHeight) / 2,
+                  left,
+                  right,
+                  top,
+                  bottom,
+                });
+              }
+            }
           }
           dirty = false;
         }
@@ -1694,6 +2025,11 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       controls.dispose();
       geometries.forEach((g) => g.dispose());
       materials.forEach((m) => m.dispose());
+      femaleEntries.forEach((fe) => {
+        fe.mesh.geometry.dispose();
+        fe.material.dispose();
+      });
+      femaleEntries.length = 0;
       disposeEdgeGroup();
       highlightMaterial.dispose();
       colorHighlightMaterials.forEach((m) => m.dispose());

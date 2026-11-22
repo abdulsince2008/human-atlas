@@ -62,7 +62,7 @@ export interface Concept {
 
 export interface Atlas {
   version: string;
-  sex?: 'male';
+  sex?: 'male' | 'female';
   source?: string;
   scope?: string;
   parts: Part[];
@@ -100,6 +100,7 @@ export interface SceneRelationshipEdge {
 }
 
 export interface SceneState {
+  anatomySex?: 'male' | 'female';
   inspectorOpen?: boolean;
   embedded?: boolean;
   explode: number;

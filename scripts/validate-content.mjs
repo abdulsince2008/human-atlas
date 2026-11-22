@@ -39,7 +39,14 @@ registerHooks({
 });
 
 const atlas = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'public/models/atlas.json'), 'utf8'));
-const conceptIdsInAtlas = new Set(atlas.concepts.map((c) => c.id));
+const femaleAtlasPath = path.join(ROOT_DIR, 'public/models/female/female-atlas.json');
+const femaleAtlas = fs.existsSync(femaleAtlasPath)
+  ? JSON.parse(fs.readFileSync(femaleAtlasPath, 'utf8'))
+  : { concepts: [] };
+const conceptIdsInAtlas = new Set([
+  ...atlas.concepts.map((c) => c.id),
+  ...femaleAtlas.concepts.map((c) => c.id),
+]);
 
 const { CANONICAL_SYSTEMS } = await import('../app/anatomy-systems.ts');
 const { CURATED_KNOWLEDGE } = await import('../app/anatomy-knowledge.ts');

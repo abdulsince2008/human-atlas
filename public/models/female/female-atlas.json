@@ -1,0 +1,483 @@
+{
+  "version": "female-overlay-1.0",
+  "sex": "female",
+  "source": "HuBMAP HRA v2.x Visible Human Female (CC BY 4.0) + co-registered anatomical reconstructions",
+  "chunks": [
+    {
+      "url": "/models/female/female-0.bin",
+      "bytes": 498724,
+      "gzip": "/models/female/female-0.bin.gz",
+      "gzipBytes": 293884
+    }
+  ],
+  "parts": [
+    {
+      "id": "HF_SACRUM",
+      "name": "Female sacrum & coccyx",
+      "conceptId": "FMA16202",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 0,
+      "normals": 24252,
+      "indices": 36380,
+      "vertexCount": 2021,
+      "indexCount": 12306,
+      "bounds": [
+        [
+          -0.06046106666326523,
+          0.8934439420700073,
+          -0.11073783040046692
+        ],
+        [
+          0.06058644503355026,
+          1.014365315437317,
+          -0.02262660674750805
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)"
+    },
+    {
+      "id": "HF_HIP_LEFT",
+      "name": "Left female hip bone (pelvis)",
+      "conceptId": "FMA16586",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 85604,
+      "normals": 105944,
+      "indices": 116116,
+      "vertexCount": 1695,
+      "indexCount": 10434,
+      "bounds": [
+        [
+          -0.0019138389034196734,
+          0.8318524360656738,
+          -0.09637850522994995
+        ],
+        [
+          0.1499556601047516,
+          1.0348536968231201,
+          0.04267658665776253
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)"
+    },
+    {
+      "id": "HF_HIP_RIGHT",
+      "name": "Right female hip bone (pelvis)",
+      "conceptId": "FMA16585",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 157852,
+      "normals": 177352,
+      "indices": 187104,
+      "vertexCount": 1625,
+      "indexCount": 9990,
+      "bounds": [
+        [
+          -0.15087635815143585,
+          0.8303406238555908,
+          -0.0958966463804245
+        ],
+        [
+          -0.000045370430598268285,
+          1.0354264974594116,
+          0.039077840745449066
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)"
+    },
+    {
+      "id": "HF_BLADDER",
+      "name": "Female urinary bladder",
+      "conceptId": "FMA15900",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 227064,
+      "normals": 240732,
+      "indices": 247568,
+      "vertexCount": 1139,
+      "indexCount": 6600,
+      "bounds": [
+        [
+          -0.030736645683646202,
+          0.8583225607872009,
+          -0.007234700955450535
+        ],
+        [
+          0.01863449066877365,
+          0.9011742472648621,
+          0.04453997686505318
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Urinary Bladder (CC BY 4.0)"
+    },
+    {
+      "id": "HF_UTERUS",
+      "name": "Uterus (Fundus & Body)",
+      "conceptId": "FMA17558",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 273968,
+      "normals": 287660,
+      "indices": 294508,
+      "vertexCount": 1141,
+      "indexCount": 7086,
+      "bounds": [
+        [
+          -0.029987048357725143,
+          0.892985463142395,
+          -0.01748032122850418
+        ],
+        [
+          0.01986704021692276,
+          0.9273856282234192,
+          0.01942683756351471
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Uterus (CC BY 4.0)"
+    },
+    {
+      "id": "HF_CERVIX",
+      "name": "Cervix of uterus",
+      "conceptId": "FMA17740",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 322852,
+      "normals": 332896,
+      "indices": 337920,
+      "vertexCount": 837,
+      "indexCount": 4653,
+      "bounds": [
+        [
+          -0.022066228091716766,
+          0.8781002759933472,
+          -0.03340194374322891
+        ],
+        [
+          0.014249879866838455,
+          0.9098684191703796,
+          -0.009529153816401958
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Uterus (CC BY 4.0)"
+    },
+    {
+      "id": "HF_TUBE_LEFT",
+      "name": "Left uterine tube (Fallopian tube)",
+      "conceptId": "FMA18246",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 356532,
+      "normals": 365076,
+      "indices": 369348,
+      "vertexCount": 712,
+      "indexCount": 4200,
+      "bounds": [
+        [
+          0.01923201233148575,
+          0.9154307246208191,
+          -0.0011717379093170166
+        ],
+        [
+          0.05588262900710106,
+          0.958568274974823,
+          0.014356023631989956
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Fallopian Tube (CC BY 4.0)"
+    },
+    {
+      "id": "HF_TUBE_RIGHT",
+      "name": "Right uterine tube (Fallopian tube)",
+      "conceptId": "FMA18245",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 386148,
+      "normals": 394668,
+      "indices": 398928,
+      "vertexCount": 710,
+      "indexCount": 4197,
+      "bounds": [
+        [
+          -0.06227702274918556,
+          0.9144660234451294,
+          -0.006145555060356855
+        ],
+        [
+          -0.02958560362458229,
+          0.9577285647392273,
+          0.011353392153978348
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Fallopian Tube (CC BY 4.0)"
+    },
+    {
+      "id": "HF_OVARY_LEFT",
+      "name": "Left ovary",
+      "conceptId": "FMA7214",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 415716,
+      "normals": 418140,
+      "indices": 419352,
+      "vertexCount": 202,
+      "indexCount": 1200,
+      "bounds": [
+        [
+          0.04407548904418945,
+          0.9232774972915649,
+          -0.00009501512977294624
+        ],
+        [
+          0.055739015340805054,
+          0.9465060830116272,
+          0.00875368807464838
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Ovary (CC BY 4.0)"
+    },
+    {
+      "id": "HF_OVARY_RIGHT",
+      "name": "Right ovary",
+      "conceptId": "FMA7213",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 424152,
+      "normals": 426576,
+      "indices": 427788,
+      "vertexCount": 202,
+      "indexCount": 1200,
+      "bounds": [
+        [
+          -0.06511121988296509,
+          0.9232116341590881,
+          -0.0001619214890524745
+        ],
+        [
+          -0.05341701582074165,
+          0.9464789628982544,
+          0.008765194565057755
+        ]
+      ],
+      "source": "HuBMAP HRA v2.x Visible Human Female Ovary (CC BY 4.0)"
+    },
+    {
+      "id": "HF_VAGINA",
+      "name": "Vagina",
+      "conceptId": "FMA19949",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 432588,
+      "normals": 436356,
+      "indices": 438240,
+      "vertexCount": 314,
+      "indexCount": 1872,
+      "bounds": [
+        [
+          -0.01732823997735977,
+          0.7991642355918884,
+          -0.036677584052085876
+        ],
+        [
+          0.011734982021152973,
+          0.9012439846992493,
+          0.034807294607162476
+        ]
+      ],
+      "source": "Anatomically co-registered fibromuscular reconstruction anchored to HuBMAP cervix"
+    },
+    {
+      "id": "HF_URETHRA",
+      "name": "Female urethra",
+      "conceptId": "FMA19667",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 445728,
+      "normals": 446328,
+      "indices": 446628,
+      "vertexCount": 50,
+      "indexCount": 288,
+      "bounds": [
+        [
+          -0.010392734780907631,
+          0.8260374069213867,
+          0.014499884098768234
+        ],
+        [
+          0.002544976305216551,
+          0.8672879338264465,
+          0.03712885454297066
+        ]
+      ],
+      "source": "Anatomically co-registered urethral reconstruction anchored to HuBMAP female bladder neck"
+    },
+    {
+      "id": "HF_MAMMARY_LEFT",
+      "name": "Left mammary gland",
+      "conceptId": "FMA57991",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 447780,
+      "normals": 455160,
+      "indices": 458852,
+      "vertexCount": 615,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          0.035999998450279236,
+          1.205844759941101,
+          0.08799999952316284
+        ],
+        [
+          0.15091294050216675,
+          1.3259999752044678,
+          0.16200000047683716
+        ]
+      ],
+      "source": "Anatomically proportioned thoracic mammary reconstruction over pectoralis major"
+    },
+    {
+      "id": "HF_MAMMARY_RIGHT",
+      "name": "Right mammary gland",
+      "conceptId": "FMA57990",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 473252,
+      "normals": 480632,
+      "indices": 484324,
+      "vertexCount": 615,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          -0.14934861660003662,
+          1.205844759941101,
+          0.08799999952316284
+        ],
+        [
+          -0.035999998450279236,
+          1.3259999752044678,
+          0.16200000047683716
+        ]
+      ],
+      "source": "Anatomically proportioned thoracic mammary reconstruction over pectoralis major"
+    }
+  ],
+  "concepts": [
+    {
+      "id": "FMA16202",
+      "name": "Female sacrum & coccyx",
+      "elements": [
+        "HF_SACRUM"
+      ]
+    },
+    {
+      "id": "FMA16586",
+      "name": "Left female hip bone (pelvis)",
+      "elements": [
+        "HF_HIP_LEFT"
+      ]
+    },
+    {
+      "id": "FMA16585",
+      "name": "Right female hip bone (pelvis)",
+      "elements": [
+        "HF_HIP_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA15900",
+      "name": "Female urinary bladder",
+      "elements": [
+        "HF_BLADDER"
+      ]
+    },
+    {
+      "id": "FMA19667",
+      "name": "Female urethra",
+      "elements": [
+        "HF_URETHRA"
+      ]
+    },
+    {
+      "id": "FMA17558",
+      "name": "Uterus",
+      "elements": [
+        "HF_UTERUS",
+        "HF_CERVIX"
+      ]
+    },
+    {
+      "id": "FMA17740",
+      "name": "Cervix of uterus",
+      "elements": [
+        "HF_CERVIX"
+      ]
+    },
+    {
+      "id": "FMA18246",
+      "name": "Left uterine tube (Fallopian tube)",
+      "elements": [
+        "HF_TUBE_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18245",
+      "name": "Right uterine tube (Fallopian tube)",
+      "elements": [
+        "HF_TUBE_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA7214",
+      "name": "Left ovary",
+      "elements": [
+        "HF_OVARY_LEFT"
+      ]
+    },
+    {
+      "id": "FMA7213",
+      "name": "Right ovary",
+      "elements": [
+        "HF_OVARY_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA7209",
+      "name": "Ovary (bilateral)",
+      "elements": [
+        "HF_OVARY_LEFT",
+        "HF_OVARY_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19949",
+      "name": "Vagina",
+      "elements": [
+        "HF_VAGINA"
+      ]
+    },
+    {
+      "id": "FMA57991",
+      "name": "Left mammary gland",
+      "elements": [
+        "HF_MAMMARY_LEFT"
+      ]
+    },
+    {
+      "id": "FMA57990",
+      "name": "Right mammary gland",
+      "elements": [
+        "HF_MAMMARY_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA9601",
+      "name": "Mammary glands (bilateral)",
+      "elements": [
+        "HF_MAMMARY_LEFT",
+        "HF_MAMMARY_RIGHT"
+      ]
+    }
+  ],
+  "triangles": 23742
+}

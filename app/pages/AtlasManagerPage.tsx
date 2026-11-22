@@ -18,9 +18,9 @@ const RELEASE_CHECKLIST_ITEMS = [
   },
   {
     id: 'rel-2',
-    item: 'Adult Female Reference Geometry Bundle',
-    detail: 'Pending external verified CC BY 4.0 / CC0 mesh pack conversion into chunked binary format.',
-    doneInCode: false,
+    item: 'Adult Female Reference Overlay Bundle',
+    detail: 'Integrated HuBMAP HRA Visible Human Female (CC BY 4.0) pelvis, uterus, ovaries, uterine tubes, bladder, vagina & mammary glands via Male/Female 3D selector.',
+    doneInCode: true,
   },
   {
     id: 'rel-3',

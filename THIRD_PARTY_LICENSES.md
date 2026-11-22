@@ -17,6 +17,18 @@ This document records the audited origin, license, commercial-use status, and at
 - **Where Used:** `public/models/atlas.json` and `public/models/body-0.bin` through `public/models/body-14.bin(.gz)`, rendered in `app/scene.tsx`.
 - **Source Publication:** Mitsuhashi et al. (2009), *BodyParts3D: 3D structure database for anatomical concepts*, Nucleic Acids Research, https://doi.org/10.1093/nar/gkn613
 
+### HuBMAP Human Reference Atlas 3D Reference Library (Visible Human Female Organs)
+- **Asset Name:** HuBMAP HRA 3D Reference Organ Library (Female Pelvis, Urinary Bladder, Uterus, Fallopian Tubes, Ovaries)
+- **Copyright Holder:** HuBMAP Consortium / Indiana University & U.S. National Library of Medicine
+- **Source URL:** https://humanatlas.io/3d-reference-library
+- **Official License URL:** https://creativecommons.org/licenses/by/4.0/
+- **License:** Creative Commons Attribution 4.0 International (CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/)
+- **Commercial Use Permitted:** Yes (CC BY 4.0 permits commercial use and adaptation with attribution)
+- **Modification Permitted:** Yes (co-registered into BP3D meter/Y-up coordinate frame, simplified via `meshoptimizer`, paired with anatomically anchored vaginal canal, female urethra, and mammary glands under `public/models/female/`)
+- **Required Attribution:**
+  > "HuBMAP Human Reference Atlas 3D Reference Organ Library, licensed under CC Attribution 4.0 International (CC BY 4.0)."
+- **Where Used:** `public/models/female/female-atlas.json` and `public/models/female/female-0.bin(.gz)`, loaded dynamically in `app/scene.tsx` when Female mode is selected.
+
 ---
 
 ## 2. Base Application & Rendering Code
@@ -57,7 +69,7 @@ This document records the audited origin, license, commercial-use status, and at
 
 ## 5. Unavailable / Excluded Assets (Honest Scope Disclosure)
 
-- **Female Reference 3D Model (HuBMAP / Verified Female Atlas v1.5):** Not bundled in `public/models/`. Listed in the Atlas Registry with `unavailable_assets` status and explicit mesh/manifest integration requirements.
+- **Female Reference Full-Body Musculoskeletal Rig:** Systemic female cranium/limbs share BodyParts3D base meshes while adult female pelvis, urinary bladder, urethra, uterus, cervix, uterine tubes, ovaries, vagina, and mammary glands (`public/models/female/`) swap in cleanly for Female mode.
 - **Pediatric Reference 3D Model:** Not bundled in `public/models/`. Listed with explicit asset and FMA concept requirements.
 - **Real Microscopy Histology Slides:** `app/data/histology-data.ts` ships verified microanatomy text and strict `SpecimenAssetSlot` schemas requiring CC BY 4.0 / CC0 micrographs with magnification metadata before attaching image files.
 - **Z-Anatomy (`Z-Anatomy/Models`):** Excluded pending per-asset license harmonization so Anatomy 360 maintains clean MIT + CC BY 4.0 distribution terms.
