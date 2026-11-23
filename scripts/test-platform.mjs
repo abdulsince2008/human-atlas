@@ -259,7 +259,7 @@ assert.equal(
 assert.equal(eduRes.summary.tracks, 6);
 assert.equal(eduRes.summary.frameworks, 13);
 assert.equal(eduRes.summary.domains, 16);
-assert.ok(eduRes.summary.topics >= 17);
+assert.equal(eduRes.summary.topics, 267);
 
 // ---------------------------------------------------------------------------
 // 8. Universal Knowledge Registry, Unified Search & Syllabus Navigator Tests
@@ -274,7 +274,7 @@ const { buildUniversalEducatorMarkdown } = await import('../app/utils/educator-e
 
 const regCheck = validateKnowledgeRegistry(atlas);
 assert.equal(regCheck.valid, true, `Registry validation failed: ${regCheck.errors.join('; ')}`);
-assert.equal(regCheck.metrics.topicsCount, 46);
+assert.equal(regCheck.metrics.topicsCount, 296);
 
 const unifiedPharm = searchUnifiedEducationCatalog('pharmacology', atlas);
 assert.ok(unifiedPharm.results.some((r) => r.domainId === 'pharmacology'));

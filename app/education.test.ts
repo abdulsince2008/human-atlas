@@ -7,6 +7,7 @@ import {
   EDUCATION_TOPICS,
   filterTopicsForTrackAndFramework,
   getDomainsForTrack,
+  getPlatformCompletionSummary,
   getTopicsByDomain,
   getTopicsForFramework,
   getVisibleDomainsForFilter,
@@ -25,15 +26,24 @@ import { validateEducationSystem } from './education/education-validation';
 const atlasPath = path.resolve(process.cwd(), 'public/models/atlas.json');
 const atlas = JSON.parse(fs.readFileSync(atlasPath, 'utf8')) as Atlas;
 
-test('education system passes full structural, curriculum, atlas FMA, quiz, and governance validation', () => {
+test('education system passes full 16-domain, 267-chapter structural, atlas FMA, deck, and governance validation', () => {
   const result = validateEducationSystem(atlas);
   assert.deepEqual(result.errors, [], `Education validation errors:\n${result.errors.join('\n')}`);
   assert.equal(result.valid, true);
   assert.equal(result.summary.tracks, 6);
   assert.equal(result.summary.frameworks, 13);
   assert.equal(result.summary.domains, 16);
-  assert.ok(result.summary.topics >= 17, 'Every domain must have at least one topic');
-  assert.ok(result.summary.selfChecks >= 32, 'Multi-tier curriculum topics must provide expanded self-checks');
+  assert.equal(result.summary.topics, 267);
+  assert.ok(result.summary.selfChecks >= 1400, 'All 267 chapters must deliver expanded MCQs');
+  assert.equal(result.summary.presentationSlides, 267 * 9);
+  assert.equal(result.summary.shortAnswers, 267 * 3);
+  assert.equal(result.summary.appliedCases, 267);
+
+  const completion = getPlatformCompletionSummary();
+  assert.equal(completion.totalChapters, 267);
+  assert.equal(completion.verifiedVideosCount, 0, 'Must never claim verified live YouTube links without verification');
+  assert.equal(completion.facultyReviewedCount, 0, 'Must never falsely mark human faculty review complete');
+  assert.equal(completion.awaitingAcademicReviewCount, 267);
 });
 
 test('all 6 learning tracks, 13 curriculum references, and PM&DC 6,200h benchmark are consistent', () => {

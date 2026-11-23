@@ -348,7 +348,7 @@ function buildRegistryData(): {
     anatomyChapterIds.push(lesson.id);
   }
 
-  // 2. Register all 17 EDUCATION_TOPICS across Domains A–P
+  // 2. Register all EDUCATION_TOPICS across Domains A–P
   const domainChapterMap = new Map<EducationDomainId, Map<string, RegistryTopicNode[]>>();
 
   for (const et of EDUCATION_TOPICS) {
@@ -464,12 +464,16 @@ function buildRegistryData(): {
     ];
     if (dom.educationalDisclaimer) knownLimitations.push(dom.educationalDisclaimer);
 
+    const chapterSlug = `${et.chapterCode ? `${et.chapterCode.toLowerCase()}-` : ''}${et.chapterTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')}`;
+
     const topicNode: RegistryTopicNode = {
       id: et.id,
       sourceKind: 'education_topic',
       domainId: et.domainId,
       subjectId: `subj-${et.domainId}`,
-      chapterId: `ch-${et.domainId}-${et.chapterTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 36)}`,
+      chapterId: `ch-${et.domainId}-${chapterSlug.slice(0, 48)}`,
       chapterTitle: et.chapterTitle,
       systemId: et.relatedSystems[0],
       title: et.title,
@@ -488,7 +492,7 @@ function buildRegistryData(): {
       coverageStatus: topicCoverage,
       reviewStatus: et.reviewStatus,
       assetStatus: mapAssetDisclosureStatus(et.assetDisclosure.status),
-      countsAsFullCoverage: false, // Introductory 1-2 module biomedical overviews never count as fully covered
+      countsAsFullCoverage: false, // Never claims full certified completeness while awaiting academic faculty review
       provenance: {
         sourceOrganization: et.sources[0]?.authority ?? 'OpenStax / Official Curriculum References',
         authorOrCompiler: et.sources.map((s) => s.title).join(' · '),

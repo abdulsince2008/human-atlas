@@ -1,0 +1,1725 @@
+# ANATOMY 360 — MASTER EDUCATIONAL CONTENT COMPLETION MANDATE
+## Mission: Complete the educational material across all 16 human sciences domains
+
+**Repository:** `abdulsince2008/human-atlas`
+
+**Primary objective:** Transform the existing ANATOMY 360 application into a comprehensive, properly structured human biology and medical sciences learning library, with complete written lessons, separate reading resources, separate YouTube/video resources, separate lecture presentations, visual resources, practical exercises, assessments and academic references.
+
+This is an implementation mandate, not a planning exercise.
+
+You must inspect the latest repository, identify every educational content gap, and implement the missing educational material in the actual application.
+
+You must continue through the defined work stages until the completion criteria in this document are satisfied or a genuine external blocker is explicitly documented.
+
+Do not stop after producing a plan.
+Do not stop after creating empty chapters.
+Do not stop after creating resource categories.
+Do not stop after creating a new registry.
+Do not stop after writing documentation.
+Do not stop after making the homepage display more educational statistics.
+
+The actual learning material is the deliverable.
+
+---
+
+# 1. THE NON-NEGOTIABLE PRODUCT GOAL
+
+ANATOMY 360 must eventually provide a comprehensive educational foundation for people studying human biology, anatomy, biomedical sciences, medicine, allied health and clinical sciences.
+
+The platform should support six relevant academic tracks:
+
+1. School Foundations (Grades 6–8).
+2. Secondary / Pre-Medical (Grades 9–12, Matric, FSc, O/A-Level, AP and equivalent).
+3. Medical Foundations (MBBS, MD and equivalent pre-clinical education).
+4. Clinical & Applied Medicine.
+5. Allied Health (nursing and other allied-health programmes).
+6. Graduate / BS / MPhil / PhD Research.
+
+Content must be written at an appropriate academic depth.
+
+A school student should not be presented with unnecessarily complicated medical terminology without an explanation.
+
+An MBBS student should not receive only a school-level introduction.
+
+An advanced student should have access to mechanisms, quantitative concepts, research context and deeper references where appropriate.
+
+The objective is not to claim that ANATOMY 360 contains every fact ever published in medicine.
+
+The objective is to complete a clearly defined, evidence-based core human-sciences curriculum, with all of its required learning outcomes addressed and its material gaps honestly recorded.
+
+## Completion means actual educational coverage.
+
+A subject with 20 empty chapter records is not complete.
+
+A subject with 20 introductory paragraphs is not complete.
+
+A subject with 20 YouTube links but no written teaching material is not complete.
+
+A subject with 20 textbook references but no topic-specific explanation is not complete.
+
+A subject with 20 diagrams but no explanation of what they show is not complete.
+
+Every chapter and topic must have a meaningful learning package.
+
+---
+
+# 2. INSPECT THE LATEST REPOSITORY BEFORE DOING ANYTHING
+
+The previous audit identified the following existing architecture:
+
+- `app/education/education-types.ts`
+- `app/education/education-domains.ts`
+- `app/education/education-content.ts`
+- `app/education/education-content-part1.ts`
+- `app/education/education-content-part2.ts`
+- `app/education/education-curricula.ts`
+- `app/education/education-validation.ts`
+- `app/registry/knowledge-registry.ts`
+- `app/registry/registry-types.ts`
+- `app/registry/registry-validation.ts`
+- `app/data/study-resources.ts`
+- `app/learning-data.ts`
+- `app/learning-supplements.ts`
+- `app/data/physiology-data.ts`
+- `app/data/histology-data.ts`
+- `app/data/clinical-data.ts`
+- `app/data/surgical-anatomy.ts`
+- `app/presentation/builtin-presentations.ts`
+- `app/quiz-data.ts`
+- `app/components/StudyResourceList.tsx`
+- `app/components/SystemLearnWorkspace.tsx`
+- `app/components/MedicalCurriculumHub.tsx`
+- `app/pages/PhysiologyPage.tsx`
+- `app/pages/HistologyPage.tsx`
+- `app/pages/ClinicalPage.tsx`
+- `app/pages/PresentationStudioPage.tsx`
+
+These are starting references, not a restriction on the actual repository structure.
+
+### Required inspection
+
+1. Fetch the latest default branch.
+2. Check the newest commit and the files changed since the last educational audit.
+3. Read the complete current education architecture.
+4. Inspect all existing lesson records and their actual contents.
+5. Inspect every educational source URL.
+6. Inspect every existing assessment item.
+7. Inspect the complete contents of the 12 anatomy lesson chapters.
+8. Inspect all 16 educational domain definitions.
+9. Inspect all 17 existing biomedical education modules.
+10. Inspect existing physiology, histology, radiology, clinical and presentation material.
+11. Inspect how educational material is displayed to students and educators.
+12. Identify duplicate records, disconnected resources and content that is present in source files but not discoverable in the application.
+
+Do not rely on README metrics or previous audit numbers without rechecking the source.
+
+Produce a private working inventory and then start implementation.
+
+### Existing material must be preserved.
+
+Do not delete useful educational material to make migration easier.
+
+Do not break existing anatomy lessons, 3D models, quizzes, simulations, clinical cases or educator functionality.
+
+Do not build a competing education registry.
+
+Extend and improve the existing shared educational architecture.
+
+---
+
+# 3. CREATE THE DEFINITIVE MASTER CURRICULUM BLUEPRINT
+
+Before completing the content, establish a finite core curriculum blueprint.
+
+Use the following domain structure as the minimum baseline.
+
+You may add missing essential chapters discovered from authoritative textbooks and educational standards. Do not remove any core area simply because the current application does not have it.
+
+## DOMAIN A — HUMAN ANATOMY
+
+Current foundation: 12 system lessons, 28 anatomy topics, 8 guided 3D pathways and 2,234 adult male reference meshes.
+
+Expand the existing anatomy material into complete regional and systemic learning coverage.
+
+Required chapter groups:
+
+### A1. General Anatomy
+- Anatomical position.
+- Anatomical planes and sections.
+- Directional and relational terminology.
+- Body cavities and membranes.
+- Levels of structural organisation.
+- Anatomical nomenclature.
+- Basic surface anatomy.
+
+### A2. Osteology
+- Axial skeleton.
+- Skull and cranial fossae.
+- Vertebral column.
+- Thoracic cage.
+- Upper-limb bones.
+- Lower-limb bones.
+- Pelvic skeleton.
+- Bone structure and development.
+- Bone landmarks and clinically relevant relationships.
+
+### A3. Arthrology
+- Classification of joints.
+- Fibrous, cartilaginous and synovial joints.
+- Joint capsules.
+- Ligaments.
+- Major upper-limb joints.
+- Major lower-limb joints.
+- Vertebral joints.
+- Joint biomechanics.
+
+### A4. Myology
+- Muscle tissue and terminology.
+- Muscle architecture.
+- Origin, insertion, action and innervation.
+- Upper-limb musculature.
+- Lower-limb musculature.
+- Back muscles.
+- Thoracic and abdominal muscles.
+- Head and neck muscles.
+- Pelvic floor and perineum.
+- Functional compartments.
+
+### A5. Thorax
+- Thoracic wall.
+- Pleura and lungs.
+- Mediastinum.
+- Heart and pericardium.
+- Great vessels.
+- Coronary circulation.
+- Thoracic nerves.
+- Diaphragm.
+- Thoracic surface and imaging anatomy.
+
+### A6. Abdomen
+- Abdominal wall.
+- Peritoneum and peritoneal spaces.
+- Stomach and intestines.
+- Liver, gallbladder and biliary tree.
+- Pancreas.
+- Spleen.
+- Abdominal vessels.
+- Portal circulation.
+- Retroperitoneum.
+- Abdominal nerves and clinical relations.
+
+### A7. Pelvis and Perineum
+- Pelvic walls and floor.
+- Pelvic fascia.
+- Pelvic vessels and nerves.
+- Urinary bladder and urethra.
+- Rectum and anal canal.
+- Internal and external reproductive anatomy.
+- Perineal spaces.
+- Pelvic floor relationships.
+
+### A8. Upper Limb
+- Pectoral girdle.
+- Axilla.
+- Arm.
+- Cubital fossa.
+- Forearm.
+- Wrist and hand.
+- Brachial plexus.
+- Arterial and venous supply.
+- Peripheral nerve distributions.
+- Clinical and surface anatomy.
+
+### A9. Lower Limb
+- Gluteal region.
+- Hip.
+- Thigh.
+- Femoral triangle.
+- Popliteal fossa.
+- Leg.
+- Ankle and foot.
+- Lumbosacral plexus.
+- Peripheral nerves.
+- Vascular supply and clinical relationships.
+
+### A10. Head and Neck
+- Scalp and face.
+- Facial muscles.
+- Parotid and related spaces.
+- Oral cavity.
+- Nasal cavity and paranasal sinuses.
+- Pharynx and larynx.
+- Neck triangles.
+- Thyroid and parathyroid anatomy.
+- Cranial nerves.
+- Major head and neck vessels.
+- Deep spaces and clinical relationships.
+
+### A11. Neuroanatomy
+- Central and peripheral nervous systems.
+- Cerebral hemispheres.
+- Diencephalon.
+- Brainstem.
+- Cerebellum.
+- Spinal cord.
+- Ventricles and cerebrospinal fluid.
+- Meninges.
+- Ascending and descending pathways.
+- Cranial nerves.
+- Autonomic nervous system.
+- Cerebral blood supply.
+- Functional localisation and clinical correlations.
+
+### A12. Sensory and Special Organs
+- Eye and orbit.
+- Visual pathway.
+- Ear anatomy.
+- Hearing and balance.
+- Olfactory system.
+- Taste system.
+- Sensory receptors.
+
+### A13. Lymphatic and Vascular Anatomy
+- Arteries and veins.
+- Major arterial territories.
+- Venous return.
+- Lymphatic vessels.
+- Lymph nodes.
+- Thoracic duct.
+- Lymphatic drainage territories.
+
+### A14. Anatomical Integration
+- Surface anatomy.
+- Cross-sectional anatomy.
+- Radiological anatomy.
+- Regional clinical anatomy.
+- Anatomical variations.
+- Applied and surgical anatomy.
+
+Do not claim that missing structures are available as 3D assets. When a model is unavailable, provide accurate educational explanations, images or references as appropriate.
+
+---
+
+## DOMAIN B — CELL BIOLOGY AND CYTOLOGY
+
+Required chapters:
+
+1. Cellular organisation and cell theory.
+2. Plasma membrane structure and transport.
+3. Organelles and cellular compartments.
+4. Cytoskeleton and cell motility.
+5. Cell signalling and communication.
+6. Cell-cycle regulation.
+7. Mitosis and meiosis.
+8. Apoptosis and cellular senescence.
+9. Stem cells and cellular differentiation.
+10. Cellular adaptation and experimental methods.
+
+Required depth:
+- School-level cell foundations.
+- Pre-medical biology.
+- Undergraduate and medical cell biology.
+- Advanced molecular mechanisms where relevant.
+
+Required visuals:
+- Cell ultrastructure.
+- Membrane transport diagrams.
+- Organelle comparisons.
+- Cell-cycle diagram.
+- Signal-transduction pathways.
+- Real micrographs where suitably licensed.
+
+## DOMAIN C — HISTOLOGY AND MICROSCOPIC ANATOMY
+
+Required chapters:
+
+1. Histological preparation and staining.
+2. Epithelial tissue.
+3. Connective tissue.
+4. Cartilage.
+5. Bone.
+6. Blood and bone marrow.
+7. Skeletal muscle.
+8. Cardiac muscle.
+9. Smooth muscle.
+10. Nervous tissue.
+11. Cardiovascular histology.
+12. Respiratory histology.
+13. Digestive histology.
+14. Urinary histology.
+15. Endocrine histology.
+16. Reproductive histology.
+17. Skin and glands.
+18. Lymphoid organs.
+
+Every major topic must include:
+- Microscopic identification features.
+- Cell and tissue architecture.
+- Functional relationships.
+- Organ examples.
+- Staining information.
+- Labelled microscopy resources.
+- Practical identification exercises.
+
+Real microscopy resources are essential.
+
+Do not label text descriptions as completed microscopy lessons.
+
+## DOMAIN D — EMBRYOLOGY AND HUMAN DEVELOPMENT
+
+Required chapters:
+
+1. Gametogenesis.
+2. Fertilisation.
+3. Cleavage and blastocyst formation.
+4. Implantation.
+5. Gastrulation.
+6. Germ-layer derivatives.
+7. Neurulation.
+8. Embryonic folding.
+9. Placenta and fetal membranes.
+10. Organogenesis.
+11. Cardiovascular development.
+12. Nervous-system development.
+13. Musculoskeletal development.
+14. Digestive and respiratory development.
+15. Urogenital development.
+16. Craniofacial development.
+17. Fetal growth and development.
+18. Congenital anomalies and teratology.
+
+Use developmental timelines and Carnegie-stage references.
+
+Build illustrations and educational timelines where genuine 3D embryonic models are unavailable.
+
+## DOMAIN E — HUMAN PHYSIOLOGY
+
+Required chapters:
+
+1. Cellular physiology and membrane transport.
+2. Resting membrane potentials.
+3. Action potentials and excitable tissues.
+4. Neurophysiology.
+5. Autonomic physiology.
+6. Cardiovascular physiology.
+7. Respiratory physiology.
+8. Renal physiology.
+9. Acid-base balance.
+10. Gastrointestinal physiology.
+11. Endocrine physiology.
+12. Reproductive physiology.
+13. Blood physiology.
+14. Immunological physiology.
+15. Musculoskeletal physiology.
+16. Integrated homeostasis.
+
+Expand the five existing interactive simulations rather than replacing them.
+
+Develop simulations only where the mathematical model and underlying equations can be properly sourced and explained.
+
+## DOMAIN F — BIOCHEMISTRY AND HUMAN METABOLISM
+
+Required chapters:
+
+1. Water, pH and biological buffers.
+2. Amino acids and proteins.
+3. Enzymes and enzyme kinetics.
+4. Carbohydrates.
+5. Lipids and membranes.
+6. Nucleotides and nucleic acids.
+7. Vitamins and coenzymes.
+8. Glycolysis and gluconeogenesis.
+9. Citric acid cycle.
+10. Oxidative phosphorylation.
+11. Glycogen metabolism.
+12. Lipid metabolism.
+13. Amino-acid metabolism.
+14. Nitrogen metabolism and urea cycle.
+15. Nucleotide metabolism.
+16. Metabolic integration.
+17. Hormonal control of metabolism.
+18. Biochemical laboratory methods.
+19. Clinical biochemistry and metabolic disorders.
+
+Each pathway must explain:
+- Location.
+- Substrate and product.
+- Main enzymes.
+- Energy changes.
+- Regulation.
+- Biological significance.
+- Relevant clinical correlations.
+
+Create readable pathway diagrams.
+
+## DOMAIN G — MOLECULAR BIOLOGY AND HUMAN GENETICS
+
+Required chapters:
+
+1. DNA and RNA structure.
+2. DNA replication.
+3. DNA repair.
+4. Transcription.
+5. RNA processing.
+6. Translation.
+7. Gene regulation.
+8. Mutations.
+9. Mendelian inheritance.
+10. Non-Mendelian inheritance.
+11. Pedigrees.
+12. Chromosomes and karyotypes.
+13. Chromosomal abnormalities.
+14. Genetic diseases.
+15. Molecular diagnostic methods.
+16. Human genomics and pharmacogenetics.
+
+Include worked exercises for inheritance, pedigree analysis and genetic reasoning.
+
+## DOMAIN H — MICROBIOLOGY AND PARASITOLOGY
+
+Required chapters:
+
+1. Microbiology foundations.
+2. Microscopy and staining.
+3. Bacterial morphology and classification.
+4. Bacterial structure and physiology.
+5. Bacterial genetics.
+6. Bacterial pathogenesis.
+7. Virology.
+8. Mycology.
+9. Protozoology.
+10. Helminthology.
+11. Medically important organisms.
+12. Antimicrobial resistance.
+13. Sterilisation and disinfection.
+14. Infection prevention and control.
+15. Diagnostic microbiology.
+16. Systemic infections.
+
+Include organism comparison tables, labelled images, clinically appropriate laboratory resources and identification exercises.
+
+## DOMAIN I — IMMUNOLOGY AND HOST DEFENCE
+
+Required chapters:
+
+1. Immune-system overview.
+2. Innate immunity.
+3. Adaptive immunity.
+4. Immune cells and lymphoid organs.
+5. Antigen processing and presentation.
+6. MHC I and MHC II.
+7. Antibody structure and function.
+8. B-cell activation.
+9. T-cell activation.
+10. Complement system.
+11. Cytokines.
+12. Vaccines and immunisation.
+13. Hypersensitivity I–IV.
+14. Autoimmunity.
+15. Primary and secondary immunodeficiency.
+16. Transplantation immunity.
+17. Tumour immunity.
+
+Use actual mechanisms and explain the relationships between immune components.
+
+## DOMAIN J — GENERAL AND SYSTEMIC PATHOLOGY
+
+Required chapters:
+
+1. Introduction to pathology.
+2. Cellular adaptation.
+3. Cell injury and cell death.
+4. Acute and chronic inflammation.
+5. Tissue repair and wound healing.
+6. Haemodynamic disorders.
+7. Thrombosis and embolism.
+8. Infarction and shock.
+9. Neoplasia.
+10. Tumour biology.
+11. Genetic and environmental disease.
+12. Infectious pathology.
+13. Cardiovascular pathology.
+14. Respiratory pathology.
+15. Gastrointestinal pathology.
+16. Renal pathology.
+17. Endocrine pathology.
+18. Nervous-system pathology.
+19. Haematopathology.
+20. Reproductive pathology.
+
+Actual histopathology imagery should be connected where available and legally usable.
+
+## DOMAIN K — PHARMACOLOGY AND THERAPEUTICS
+
+Required chapters:
+
+1. Pharmacology foundations.
+2. Pharmacokinetics.
+3. Absorption, distribution, metabolism and excretion.
+4. Pharmacodynamics.
+5. Drug receptors and signalling.
+6. Dose-response relationships.
+7. Adverse drug reactions.
+8. Drug interactions.
+9. Autonomic pharmacology.
+10. Cardiovascular pharmacology.
+11. Renal pharmacology.
+12. Respiratory pharmacology.
+13. Gastrointestinal pharmacology.
+14. CNS pharmacology.
+15. Endocrine pharmacology.
+16. Antimicrobial pharmacology.
+17. Anti-inflammatory and immunological drugs.
+18. Haematological drugs.
+19. Toxicology and antidote principles.
+20. Clinical pharmacology and rational medicine use.
+
+For drug classes, explain:
+- Mechanism of action.
+- Major indications.
+- Pharmacokinetics.
+- Major contraindications and adverse effects.
+- Important interactions.
+- Relevant monitoring.
+- Educational clinical examples.
+
+Do not provide personalised prescribing or treatment recommendations.
+
+Use authoritative pharmacology references. Avoid outdated drug information.
+
+## DOMAIN L — NUTRITION AND HUMAN HEALTH
+
+Required chapters:
+
+1. Nutritional foundations.
+2. Carbohydrates.
+3. Proteins.
+4. Lipids.
+5. Vitamins.
+6. Minerals and trace elements.
+7. Digestion and nutrient absorption.
+8. Energy balance.
+9. Nutrition across the lifespan.
+10. Malnutrition.
+11. Obesity and metabolic health.
+12. Nutritional deficiency diseases.
+13. Clinical nutrition.
+14. Nutrition assessment and public-health nutrition.
+
+Include calculations and appropriate educational case exercises.
+
+## DOMAIN M — HAEMATOLOGY AND LABORATORY MEDICINE
+
+Required chapters:
+
+1. Haematopoiesis.
+2. Red blood cells.
+3. Haemoglobin.
+4. White blood cells.
+5. Platelets.
+6. ABO and Rh blood groups.
+7. Haemostasis and coagulation.
+8. Anaemias.
+9. Leukaemias and lymphomas.
+10. Bleeding disorders.
+11. Complete blood count.
+12. Peripheral blood smear.
+13. Basic laboratory interpretation.
+14. Clinical chemistry.
+15. Urinalysis.
+16. Blood transfusion principles.
+17. Laboratory quality and safety.
+
+Include genuine blood-smear and laboratory teaching images where appropriate.
+
+## DOMAIN N — RADIOLOGY AND MEDICAL IMAGING
+
+Required chapters:
+
+1. Imaging foundations.
+2. X-ray production and principles.
+3. Plain radiography.
+4. CT principles.
+5. MRI principles.
+6. Ultrasound principles.
+7. Cross-sectional anatomy.
+8. Contrast media principles.
+9. Normal imaging anatomy.
+10. Thoracic imaging.
+11. Abdominal imaging.
+12. Musculoskeletal imaging.
+13. Neuroimaging.
+14. Basic image interpretation.
+
+Include real de-identified educational imaging datasets and labelled examples.
+
+Every imaging example should have:
+- Modality.
+- Anatomical region.
+- Orientation.
+- Relevant structures.
+- Educational objective.
+- Image source and licence.
+- Explanation of important findings.
+
+Do not create fabricated patient scans and label them genuine clinical images.
+
+## DOMAIN O — CLINICAL MEDICINE AND SPECIALTIES
+
+Required chapters:
+
+1. Clinical medicine foundations.
+2. Cardiovascular medicine.
+3. Respiratory medicine.
+4. Gastroenterology.
+5. Renal medicine.
+6. Endocrinology.
+7. Neurology.
+8. Haematology.
+9. Infectious diseases.
+10. Rheumatology.
+11. Dermatology.
+12. Obstetrics and gynaecology.
+13. Paediatrics.
+14. General surgery.
+15. Orthopaedics.
+16. Emergency medicine.
+17. Psychiatry.
+18. Cross-specialty clinical integration.
+
+Develop structured educational cases connecting anatomy, physiology, pathology and pharmacology.
+
+Clearly distinguish educational scenarios from clinical decision-support tools.
+
+## DOMAIN P — CLINICAL SKILLS, PUBLIC HEALTH AND ETHICS
+
+Required chapters:
+
+1. Clinical communication.
+2. Medical history taking.
+3. General examination principles.
+4. Cardiovascular examination.
+5. Respiratory examination.
+6. Abdominal examination.
+7. Neurological examination.
+8. Musculoskeletal examination.
+9. Vital signs.
+10. OSCE and OSPE preparation.
+11. Clinical reasoning.
+12. Diagnostic test principles.
+13. Epidemiology.
+14. Biostatistics.
+15. Evidence-based medicine.
+16. Research methodology.
+17. Medical ethics.
+18. Public health and prevention.
+19. Infection control.
+20. Patient safety and professionalism.
+
+Add relevant practical checklists, demonstration resources and structured practice activities.
+
+---
+
+# 4. REQUIRED EDUCATIONAL PACKAGE FOR EVERY TOPIC
+
+This section is mandatory.
+
+Every topic must receive its own educational package, connected to its parent chapter and domain.
+
+Do not create a generic resource list for an entire domain and pretend all its topics are supported.
+
+## 4.1 Complete written learning material
+
+Every topic must have a substantive original teaching explanation.
+
+Where appropriate, the content should contain:
+
+1. Topic introduction.
+2. Clear learning objectives.
+3. Required prerequisite knowledge.
+4. Key definitions.
+5. Main concepts.
+6. Mechanisms and processes.
+7. Step-by-step explanations.
+8. Important structures or components.
+9. Functional relationships.
+10. Relevant examples.
+11. Diagrams or tables.
+12. Common misconceptions.
+13. Clinical or applied correlations.
+14. Topic summary.
+15. Key takeaways.
+16. Self-assessment questions.
+17. References.
+
+The lesson must be long enough to teach the actual defined learning outcomes.
+
+Do not use artificial word-count padding.
+
+Do not produce a single paragraph for a subject that requires multiple chapters.
+
+## 4.2 Academic depth
+
+Write different explanations appropriate to the six tracks.
+
+Do not simply duplicate the same paragraph under six academic labels.
+
+Where a topic does not apply to a given track, identify the appropriate tracks instead of forcing irrelevant material into that level.
+
+Medical and graduate-level content must include appropriate mechanisms, terminology, quantitative explanations and deeper references.
+
+## 4.3 Separate external reading links
+
+Every chapter must have a dedicated reading collection.
+
+Target:
+- At least one primary textbook or comprehensive learning source.
+- At least one supplementary source.
+- Additional subject-specific references when required.
+
+Every link must be connected to the relevant chapter and topic.
+
+Store:
+- Resource title.
+- Author or publisher.
+- Exact URL.
+- Chapter or section covered.
+- Academic level.
+- Language.
+- Access type.
+- Licence or access restrictions.
+- Date checked.
+- Topic relationship.
+- Review status.
+
+Do not link only to a publisher homepage when a precise chapter link exists.
+
+## 4.4 Separate YouTube and video collection
+
+Create a dedicated video collection.
+
+For each applicable chapter and complex topic, target one to three relevant high-quality educational videos.
+
+Prefer established educational channels, university teaching, medical-school lectures and specialist teaching resources.
+
+Potential starting sources:
+
+- Ninja Nerd: `https://www.youtube.com/@NinjaNerdOfficial`
+- Armando Hasudungan: `https://www.youtube.com/@armandohasudungan`
+- Khan Academy: `https://www.youtube.com/@khanacademy`
+- AnatomyZone: `https://www.youtube.com/@Anatomyzone`
+- Geeky Medics: `https://www.youtube.com/@geekymedics`
+
+These are discovery starting points, not automatic approval of every video.
+
+For every selected video, record:
+- Exact video URL.
+- Exact video title.
+- Channel or institution.
+- Covered topic.
+- Explanation of relevance.
+- Academic level.
+- Duration, if verifiable.
+- Useful timestamps, if verifiable.
+- Date checked.
+- Availability or access limitations.
+
+Do not use fabricated YouTube URLs.
+
+Do not invent video titles or timestamps.
+
+Do not add a channel homepage as if it were a topic-specific lesson.
+
+If no suitable video is discoverable, search alternative authoritative sources.
+
+If a suitable video genuinely cannot be found, create an original video lesson script and visual storyboard as a fallback and record it as a script, NOT as a published video.
+
+## 4.5 Separate presentation and slide collection
+
+Every substantial chapter must have a lecture presentation resource.
+
+Acceptable options:
+
+- Properly licensed PowerPoint presentation.
+- Properly licensed PDF lecture slides.
+- University lecture presentation.
+- Original ANATOMY 360 slide deck.
+- Original interactive educational slide sequence.
+
+Do not copy copyrighted presentation decks.
+
+Do not claim a web article is a PowerPoint presentation.
+
+For each presentation, record:
+- Exact title.
+- Exact URL or internal resource ID.
+- Publisher or author.
+- Licence.
+- Academic level.
+- Chapter and topics covered.
+- Number of slides, if known.
+- Access restrictions.
+- Date checked.
+
+### Original ANATOMY 360 presentations
+
+Where no suitable reusable slide deck exists, create an original educational presentation.
+
+Each substantial chapter-level deck should normally include:
+- Title and scope.
+- Learning objectives.
+- Foundational concepts.
+- Main mechanisms.
+- Labelled diagrams.
+- Important comparisons.
+- Applied examples.
+- Summary.
+- Knowledge-check slide.
+- References.
+
+Use the existing presentation and export infrastructure where appropriate.
+
+A chapter-level slide sequence can be delivered as an original in-app presentation or printable PDF, provided it is genuinely implemented and accessible.
+
+A presentation outline without a usable presentation must not be reported as a finished slide deck.
+
+## 4.6 Separate visual learning collection
+
+Connect appropriate resources for:
+
+- Diagrams.
+- Labelled illustrations.
+- 3D anatomy.
+- Histology images.
+- Radiology images.
+- Pathway illustrations.
+- Timelines.
+- Charts.
+- Mechanism animations.
+
+Use the existing 3D models wherever relevant.
+
+Where a genuine resource is unavailable, clearly disclose that limitation.
+
+Never substitute a text placeholder for an image and count the image requirement as fulfilled.
+
+## 4.7 Separate practical learning collection
+
+Where appropriate, each chapter should have:
+- Practical identification.
+- Diagram labelling.
+- Microscopy exercises.
+- Image interpretation.
+- Clinical case exercises.
+- Simulation exercises.
+- Structured practical checklists.
+- OSPE or OSCE practice.
+
+Practical requirements must match the actual subject.
+
+## 4.8 Separate assessment collection
+
+Develop useful topic-specific questions.
+
+Minimum target for a substantial chapter:
+- 10 well-designed MCQs with explanatory answers.
+- 3 short-answer or structured-response exercises.
+- 1 applied or clinical reasoning exercise where appropriate.
+
+Questions must test more than memorisation.
+
+Use different difficulty levels.
+
+Avoid duplicate questions.
+
+Every question must have:
+- Correct answer.
+- Clear explanation.
+- Relevant topic ID.
+- Academic level.
+- Difficulty.
+- Source or evidence basis where appropriate.
+
+Do not create clinically unsafe or ambiguous questions.
+
+These are minimum editorial targets, not permission to generate poor-quality questions merely to reach the count.
+
+## 4.9 References and source quality
+
+Every substantial chapter must have traceable supporting references.
+
+Use primary textbooks, reputable educational institutions, scientific references and recognised academic resources.
+
+Every educational record must identify the sources used to build or support its content.
+
+Record licence and attribution information for any externally sourced material.
+
+---
+
+# 5. APPROVED RESOURCE DISCOVERY STARTING POINTS
+
+Use these sources as a starting collection. Discover additional credible resources where required.
+
+They are not all automatically open-licence sources. Check access and reuse terms separately.
+
+## General anatomy and physiology
+
+- OpenStax Anatomy & Physiology 2e:
+  `https://openstax.org/books/anatomy-and-physiology-2e/pages/1-introduction`
+
+- OpenStax Biology 2e:
+  `https://openstax.org/books/biology-2e/pages/1-introduction`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+- The Anatomical Society:
+  `https://www.anatsoc.org.uk/`
+
+## Cell biology and molecular biology
+
+- OpenStax Biology 2e:
+  `https://openstax.org/books/biology-2e/pages/1-introduction`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+## Histology
+
+- Histology Guide:
+  `https://histologyguide.com/`
+
+- University of Michigan Histology:
+  `https://histology.medicine.umich.edu/`
+
+- University of Basel TALES:
+  `https://tales.nmc.unibas.ch/en/histology-12/`
+
+- Human Protein Atlas:
+  `https://www.proteinatlas.org/humanproteome/tissue`
+
+## Embryology
+
+- Virtual Human Embryo:
+  `https://www.ehd.org/virtual-human-embryo/`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+## Microbiology
+
+- OpenStax Microbiology:
+  `https://openstax.org/books/microbiology/pages/1-introduction`
+
+- CDC:
+  `https://www.cdc.gov/`
+
+## Immunology
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+- OpenStax Microbiology:
+  `https://openstax.org/books/microbiology/pages/1-introduction`
+
+## Pathology
+
+- University of Edinburgh Pathologia:
+  `https://pathologia.ed.ac.uk/`
+
+- University of Utah WebPath:
+  `https://webpath.med.utah.edu/`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+## Pharmacology
+
+- IUPHAR Pharmacology Education Project:
+  `https://pharmacologyeducation.org/`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+## Radiology
+
+- MedPix, National Library of Medicine:
+  `https://medpix.nlm.nih.gov/`
+
+- Radiopaedia:
+  `https://radiopaedia.org/`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+## Clinical medicine and skills
+
+- Geeky Medics:
+  `https://geekymedics.com/`
+
+- NCBI Bookshelf:
+  `https://www.ncbi.nlm.nih.gov/books/`
+
+## Public health, epidemiology and teaching presentations
+
+- CDC Public Health 101:
+  `https://www.cdc.gov/training-publichealth101/`
+
+- WHO:
+  `https://www.who.int/`
+
+## General educational video discovery
+
+- Ninja Nerd.
+- Armando Hasudungan.
+- Khan Academy.
+- AnatomyZone.
+- Geeky Medics.
+
+Search for exact topic-specific videos rather than using generic channel links.
+
+---
+
+# 6. COPYRIGHT, LICENSING AND MEDICAL ACCURACY RULES
+
+These rules override every numerical completion target.
+
+1. Never copy large passages from copyrighted textbooks.
+2. Write original educational explanations using independently synthesised information.
+3. Cite the original supporting references.
+4. Do not download or redistribute copyrighted videos.
+5. Linking to a video is different from possessing permission to redistribute it.
+6. Do not copy copyrighted slide decks into the repository.
+7. Use original slide decks or materials with compatible licences.
+8. Respect non-commercial licences and restrictions.
+9. Maintain existing BodyParts3D attribution and third-party licences.
+10. Do not fabricate images, scientific data, research findings or academic references.
+11. Do not create false faculty-review labels.
+12. Do not present generated content as formally approved medical teaching material.
+13. Never fabricate external URLs.
+14. Never label unavailable resources as available.
+15. Every factual medical explanation must be cross-checked against appropriate credible sources.
+
+For clinical and pharmacological subjects, use up-to-date references and clearly state that the platform is for education, not individual diagnosis or prescribing.
+
+The following statuses must remain separate:
+- Content drafted.
+- Source checked.
+- Resource verified.
+- Automated validation passed.
+- Faculty reviewed.
+
+Only a real qualified human reviewer can authorise a faculty-reviewed status.
+
+---
+
+# 7. EDUCATIONAL CONTENT COMPLETION TRACKER
+
+Build a rigorous, content-level completion system.
+
+The tracker must measure actual educational material, not simply the number of database records.
+
+For every domain, chapter and topic, track these fields:
+
+- Planned learning outcomes.
+- Learning outcomes completed.
+- Written explanation status.
+- Reading resources.
+- Video resources.
+- Presentation resources.
+- Visual resources.
+- Practical resources.
+- Assessment resources.
+- Source verification.
+- Licence verification.
+- Known academic limitations.
+- Review status.
+
+Use meaningful status values:
+
+- Not started.
+- Planned.
+- In progress.
+- Content drafted.
+- Source checked.
+- Resource incomplete.
+- Partially complete.
+- Complete for declared core scope.
+- Blocked by source availability.
+- Awaiting academic review.
+- Faculty reviewed.
+
+### Definition of complete
+
+A topic can only be labelled `complete_for_core_scope` when:
+
+1. Every defined core learning outcome is substantively taught.
+2. The lesson includes all necessary key concepts and explanations.
+3. Required diagrams or visuals are available where needed.
+4. At least one suitable reading source is attached.
+5. A video is attached where a suitable one exists, or its genuine unavailability is documented with an alternative learning resource.
+6. The chapter-level presentation requirement is met.
+7. Required assessments are implemented.
+8. Relevant practical work exists where necessary.
+9. Supporting sources are recorded.
+10. No known essential learning outcome is silently omitted.
+
+Content completeness does not mean faculty approval.
+
+Create transparent completion summaries that distinguish:
+- Material completeness.
+- External resource completeness.
+- Technical availability.
+- Academic review.
+
+A chapter cannot be called fully complete merely because all its database fields are filled.
+
+---
+
+# 8. RESOURCE DATA ARCHITECTURE
+
+Implement the educational resource system using the existing architecture.
+
+Do not create a competing catalogue.
+
+A resource should be independently identifiable and connected to one or more relevant topics.
+
+Use structured resource types such as:
+
+- Reading.
+- Textbook chapter.
+- Video.
+- YouTube lecture.
+- Presentation.
+- Slide deck.
+- PDF notes.
+- Diagram.
+- Image collection.
+- Histology specimen.
+- Radiology case.
+- Practical activity.
+- Simulation.
+- Assessment.
+
+Every external resource should support:
+
+- Stable ID.
+- Resource type.
+- Exact title.
+- Publisher or creator.
+- URL.
+- Licence information.
+- Access restrictions.
+- Language.
+- Academic level.
+- Related domains.
+- Related chapters.
+- Related topic IDs.
+- Description of relevance.
+- Verification date.
+- Verification status.
+
+Separate the user-facing sections into:
+
+1. Learn — original ANATOMY 360 lesson.
+2. Read — external reading and textbook links.
+3. Watch — YouTube and video lessons.
+4. Presentations — slides, PDFs and interactive decks.
+5. Visualise — diagrams, 3D, microscopy and radiology.
+6. Practise — assessments, cases and practical exercises.
+7. References — citations, source information and attribution.
+
+A student must be able to open the relevant topic and find these categories separately.
+
+Avoid showing irrelevant generic resources.
+
+Do not show a resource as topic-specific unless it genuinely supports that topic.
+
+---
+
+# 9. IMPROVE THE CURRENT LEARNING EXPERIENCE
+
+Keep the work centred on educational content.
+
+Do not redesign unrelated portions of the application.
+
+The existing lesson and curriculum interfaces should present a complete educational material package.
+
+For each topic page:
+
+- Display its learning objectives.
+- Display the written lesson.
+- Display its subtopics.
+- Display related reading.
+- Display related video resources.
+- Display presentations.
+- Display its diagrams and visual assets.
+- Display applicable practical exercises.
+- Display assessment questions.
+- Display references and limitations.
+
+The different resource types must be visibly distinct and easy to navigate.
+
+A student should not have to search the entire application to find the video associated with a lesson.
+
+A teacher should be able to identify which resources are suitable for their lesson.
+
+Do not create empty buttons or non-functional download actions.
+
+If a resource is external, open its actual URL.
+
+If a resource is internal, navigate to its real implemented page or asset.
+
+---
+
+# 10. QUALITY REQUIREMENTS FOR WRITTEN MATERIAL
+
+Apply these educational-writing standards.
+
+### Accuracy
+Use established academic terminology and explain unfamiliar terms.
+
+### Depth
+Cover the entire declared learning outcome instead of only defining the subject.
+
+### Clarity
+Use headings, structured explanations, examples, tables, diagrams and summaries.
+
+### Progression
+Explain prerequisite ideas before advanced mechanisms.
+
+### Academic differentiation
+Provide suitable levels for each relevant learning track.
+
+### Connections
+Connect related subjects where this improves understanding.
+
+Examples:
+- Anatomy ↔ Histology.
+- Anatomy ↔ Embryology.
+- Anatomy ↔ Physiology.
+- Biochemistry ↔ Physiology.
+- Microbiology ↔ Immunology.
+- Pathology ↔ Pharmacology.
+- Anatomy ↔ Radiology.
+- Clinical medicine ↔ Basic sciences.
+
+### Assessment
+Questions must measure the material actually taught.
+
+### Sources
+Use citations and reference metadata consistently.
+
+Do not write material that sounds academic but contains no meaningful teaching.
+
+---
+
+# 11. CONTENT PRODUCTION WORKFLOW
+
+You must implement the work in an iterative sequence.
+
+Do not stop after the first domain.
+
+## Stage 1 — Full content inventory
+
+Reconcile all existing education files and identify the exact completed and missing material.
+
+Deliver an accurate baseline inventory.
+
+## Stage 2 — Master learning-outcome checklists
+
+Build a finite core learning-outcome checklist for every chapter and topic in all 16 domains.
+
+Use reputable textbooks, professional educational outcome frameworks, scientific sources and established medical education references.
+
+Do not rely on an arbitrary AI-generated list alone.
+
+## Stage 3 — Complete written material
+
+Start with P0 foundational gaps.
+
+Build full chapters and topic-level explanations.
+
+Expand existing partial lessons instead of duplicating them.
+
+## Stage 4 — External reading collection
+
+Research and attach accurate reading resources to the relevant chapters and topics.
+
+## Stage 5 — Video collection
+
+Research and attach exact relevant videos.
+
+Check titles, URLs and topic relevance.
+
+## Stage 6 — Presentation collection
+
+Find reusable presentations where permitted.
+
+Create original chapter-level presentations where suitable external materials are unavailable.
+
+## Stage 7 — Visual and practical resources
+
+Connect genuine visuals, microscopy, radiology resources, diagrams and practical exercises.
+
+## Stage 8 — Assessment expansion
+
+Create meaningful assessments linked to the actual learning outcomes.
+
+## Stage 9 — Connect everything to the application
+
+Make the materials accessible through existing learning pages and shared registry relationships.
+
+## Stage 10 — Validate the content
+
+Run educational completeness checks, source checks, resource checks and application tests.
+
+## Stage 11 — Repeat until all domains have been audited
+
+Do not stop when anatomy is completed.
+
+Do not stop when the P0 domains are completed.
+
+Continue through every domain, including P1 and P2 work.
+
+Do not silently downgrade an essential core requirement to avoid completing it.
+
+---
+
+# 12. WORK PRIORITY
+
+Follow this initial order, but complete all 16 domains.
+
+### Priority 0 — Foundational sciences and major gaps
+1. Cell Biology.
+2. Histology.
+3. Embryology.
+4. Physiology.
+5. Biochemistry.
+6. Molecular Biology and Genetics.
+7. Microbiology and Parasitology.
+8. Immunology.
+9. Pathology.
+10. Pharmacology.
+
+### Priority 1 — Expand and complete core applied subjects
+11. Human Anatomy.
+12. Nutrition.
+13. Haematology and Laboratory Medicine.
+14. Clinical Skills, Public Health and Ethics.
+
+### Priority 2 — Imaging and broader clinical education
+15. Radiology and Medical Imaging.
+16. Clinical Medicine and Specialties.
+
+Priority 2 does not mean optional.
+
+Every domain is part of the final defined scope.
+
+---
+
+# 13. STRICT EXECUTION AND CONTINUATION RULES
+
+You are not permitted to finish this assignment by returning only a plan.
+
+You must perform actual repository modifications.
+
+### Continue automatically
+
+After completing a domain:
+
+1. Validate its records.
+2. Validate its educational content.
+3. Validate source metadata.
+4. Update the completion tracker.
+5. Commit or safely save the changes.
+6. Move to the next domain.
+
+Do not ask the user to approve every domain.
+
+Use sound educational and technical judgement.
+
+Do not repeatedly ask questions that can be answered by inspecting the repository or using reputable sources.
+
+### Never claim success prematurely
+
+Do not write:
+- "All domains completed" when only their outlines exist.
+- "All videos added" when only channel links exist.
+- "All presentations completed" when only presentation titles exist.
+- "Histology completed" when specimen image slots remain empty.
+- "Radiology completed" when no usable imaging examples exist.
+- "Faculty reviewed" without actual human review.
+
+### If execution limits are reached
+
+Never discard completed work.
+
+Save progress in:
+
+`EDUCATION_COMPLETION_PROGRESS.md`
+
+The progress file must contain:
+
+- Latest commit hash.
+- Domains completed.
+- Chapters completed.
+- Topic IDs completed.
+- Remaining learning outcomes.
+- Missing written content.
+- Missing reading resources.
+- Missing video resources.
+- Missing presentation resources.
+- Missing visual assets.
+- Missing practical exercises.
+- Missing assessment items.
+- Blocked or restricted resources.
+- Exact next file and next topic to work on.
+
+Provide a continuation instruction so the next execution resumes from the first outstanding item instead of restarting the audit.
+
+Do not report an incomplete run as a complete delivery.
+
+### No false completion and no endless unstructured work
+
+Work toward the finite curriculum blueprint and its measurable acceptance criteria.
+
+If an external asset is inaccessible, unlicensed or does not exist, document the blocker and create the best legitimate alternative.
+
+Do not invent material to make the percentage reach 100%.
+
+---
+
+# 14. TESTING AND VALIDATION
+
+Create or extend automated validation to check:
+
+### Content integrity
+- Every topic has a valid domain and chapter.
+- Every topic has defined learning outcomes.
+- Every required learning outcome has associated lesson content.
+- No duplicate topic IDs.
+- No broken references.
+- No empty placeholder lessons.
+- No incorrect academic-level mapping.
+
+### Reading resources
+- Valid URL format.
+- Exact title and publisher.
+- Topic mapping.
+- Licence metadata.
+- No duplicate resources.
+
+### Video resources
+- Exact video URL.
+- Actual title and channel.
+- Topic relevance.
+- No fabricated IDs or links.
+- No empty video records.
+
+### Presentations
+- Actual presentation resource or usable internal deck.
+- Accurate publisher and attribution.
+- Topic mapping.
+- No fake download actions.
+
+### Visual material
+- Actual resource availability.
+- Proper asset attribution.
+- Correct subject and topic relationship.
+- Honest missing-asset status.
+
+### Assessments
+- Valid answer indices.
+- Explanation exists.
+- Relevant topic exists.
+- No duplicate question IDs.
+- No obviously contradictory answer sets.
+
+### Application integrity
+- Existing learning routes work.
+- Existing anatomy and 3D features remain functional.
+- Existing search remains functional.
+- Educator resources remain functional.
+- Responsive layout is maintained.
+- External links work as intended.
+
+Run the existing project tests, validators, linting and production build.
+
+Do not claim a test passed unless it was actually run.
+
+---
+
+# 15. REQUIRED DOCUMENTATION
+
+Keep the project documentation updated.
+
+Update at least:
+
+- `EDUCATION_COVERAGE_MATRIX.md`
+- `EDUCATION_ARCHITECTURE.md`
+- `PROJECT_STATUS.md`
+- `REMAINING_TASKS.md`
+
+Create:
+
+- `EDUCATION_MASTER_CURRICULUM.md`
+- `EDUCATION_RESOURCE_STANDARDS.md`
+- `EDUCATION_COMPLETION_PROGRESS.md`
+- `EDUCATION_SOURCE_REGISTER.md`
+
+The documentation must distinguish:
+
+- Completed educational content.
+- Partially completed educational content.
+- Planned educational content.
+- Missing external resources.
+- Licence-restricted content.
+- Content awaiting academic review.
+
+Do not inflate completion metrics using empty records or planned specifications.
+
+---
+
+# 16. FINAL ACCEPTANCE GATES
+
+The project may declare this educational milestone complete only when all the following gates pass.
+
+## Gate A — Domain coverage
+
+All 16 domains have:
+- A complete finite core chapter blueprint.
+- Topic-level learning outcomes.
+- Actual written learning material for every defined core outcome.
+- Appropriate academic depth.
+- Relevant subject connections.
+
+## Gate B — External learning resources
+
+Every applicable chapter has:
+- Relevant reading resources.
+- Relevant video resources or an explicitly documented unavailability and alternative.
+- Presentation resources or an original working presentation.
+- Relevant visual resources.
+- Correct source and licence metadata.
+
+## Gate C — Practical and assessment coverage
+
+Every chapter has:
+- Topic-specific assessments.
+- Explanations for correct answers.
+- Appropriate practical activities where needed.
+- Relevant case-based learning where applicable.
+
+## Gate D — Educational accessibility
+
+All material is discoverable through the existing application.
+
+A student should be able to open a topic and immediately distinguish:
+- Written lesson.
+- Reading links.
+- YouTube/video.
+- Presentations.
+- Visual materials.
+- Practical learning.
+- Assessments.
+- References.
+
+## Gate E — Academic transparency
+
+Every topic has a meaningful coverage status.
+
+No content is marked faculty reviewed without genuine faculty review.
+
+No missing licensed media is falsely marked available.
+
+## Gate F — Technical validation
+
+All relevant tests, data validators and builds have been executed and their actual results recorded.
+
+---
+
+# 17. FINAL DELIVERY REPORT
+
+At completion, produce the following report.
+
+### A. Final domain coverage table
+
+For each of the 16 domains, report:
+
+- Number of chapters.
+- Number of topics.
+- Core learning outcomes total.
+- Learning outcomes completed.
+- Reading resources.
+- Video resources.
+- Presentation resources.
+- Diagrams and visual assets.
+- Practical activities.
+- Assessment items.
+- Remaining gaps.
+- Academic review status.
+
+### B. Resource inventory
+
+Report separate totals for:
+- Written learning topics.
+- Textbook and reading links.
+- YouTube/video links.
+- PowerPoint and PDF presentations.
+- Original ANATOMY 360 presentations.
+- Diagrams and illustrations.
+- Genuine microscopy images.
+- Radiology teaching images.
+- Practical learning resources.
+- Assessment questions.
+
+### C. Important files changed
+
+List the files added, updated and removed, with a reason.
+
+### D. Testing
+
+List the actual commands and outcomes.
+
+### E. Unresolved issues
+
+List everything that remains genuinely blocked, unavailable, restricted or awaiting human review.
+
+### F. Final completion status
+
+Use separate statuses for:
+
+- Core curriculum material completeness.
+- External resource availability.
+- Technical integration.
+- Academic source verification.
+- Faculty review.
+
+Do not combine these into one misleading 100% figure.
+
+---
+
+# FINAL INSTRUCTION
+
+The primary job is to complete the actual educational material of ANATOMY 360.
+
+Not more cosmetic features.
+
+Not another empty curriculum interface.
+
+Not more 3D rendering work.
+
+Not more unrelated application functionality.
+
+Every domain must have real, substantive learning material. Every chapter must have its learning outcomes addressed. External reading, video and presentation resources must be organised independently and connected to the right topics. Appropriate visual and practical resources must be available.
+
+**Do not stop at planning. Do not stop at architecture. Do not stop after the first few domains. Continue implementing, validating and recording progress until the entire defined core educational curriculum has been addressed.**
+
+Where legitimate materials cannot be found, create original alternatives when possible and disclose anything still unavailable.
+
+Never fabricate educational resources or claim academic approval.
+
+The finished result must be a real educational library that a student can open, study, watch, read, practise and revise from — and a teacher can use to prepare actual educational sessions.
+
+**ANATOMY 360's educational value must come from the quality, breadth and completeness of its learning material. Make that the centre of every development decision.**

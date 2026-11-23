@@ -142,7 +142,7 @@ export interface TopicSelfCheckQuestion {
 
 export interface TopicActivity {
   title: string;
-  kind: 'interpretation' | 'case_reasoning' | '3d_inspection' | 'comparison_task' | 'calculation';
+  kind: 'interpretation' | 'case_reasoning' | '3d_inspection' | 'comparison_task' | 'calculation' | 'simulation';
   prompt: string;
   keyTakeaway: string;
 }
@@ -164,18 +164,180 @@ export interface LevelDepthContent {
   graduate_research?: string;
 }
 
+export type ContentCompletionStatus =
+  | 'not_started'
+  | 'planned'
+  | 'in_progress'
+  | 'content_drafted'
+  | 'source_checked'
+  | 'resource_incomplete'
+  | 'partially_complete'
+  | 'complete_for_core_scope'
+  | 'blocked_by_source_availability'
+  | 'awaiting_academic_review'
+  | 'faculty_reviewed';
+
+export interface ExternalReadingLink {
+  id: string;
+  title: string;
+  authorOrPublisher: string;
+  url: string;
+  sectionCovered: string;
+  level: EducationTrackId | 'multi_level';
+  language: string;
+  accessType: 'open_access' | 'open_textbook' | 'institutional_or_reference';
+  licence: string;
+  dateChecked: string;
+  topicRelationship: 'primary_reading' | 'supplementary_reading' | 'reference_manual';
+  reviewStatus: 'source_checked' | 'pending_review';
+}
+
+export interface VideoStoryboardScene {
+  sceneNumber: number;
+  timecode: string;
+  visualCue: string;
+  narration: string;
+}
+
+export interface VideoLessonEntry {
+  id: string;
+  kind: 'verified_video' | 'script_storyboard';
+  title: string;
+  channelOrAuthor: string;
+  url?: string;
+  coveredTopic: string;
+  relevance: string;
+  level: EducationTrackId | 'multi_level';
+  durationNote: string;
+  dateChecked: string;
+  availabilityStatus: 'verified' | 'unavailable_fallback_script';
+  availabilityNote: string;
+  scenes?: VideoStoryboardScene[];
+}
+
+export interface ChapterPresentationSlide {
+  slideNumber: number;
+  slideType:
+    | 'title'
+    | 'objectives'
+    | 'concepts'
+    | 'mechanisms'
+    | 'visual'
+    | 'comparison'
+    | 'applied_case'
+    | 'knowledge_check'
+    | 'summary'
+    | 'references';
+  title: string;
+  subtitle?: string;
+  bullets: string[];
+  speakerNote: string;
+  tableRows?: StructuredComparisonRow[];
+  quizPrompt?: {
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+  };
+}
+
+export interface ChapterPresentationDeck {
+  id: string;
+  chapterId: string;
+  title: string;
+  level: EducationTrackId | 'multi_level';
+  author: string;
+  licence: string;
+  slideCount: number;
+  slides: ChapterPresentationSlide[];
+  externalSlideNote?: string;
+  externalReferences?: {
+    title: string;
+    publisher: string;
+    url: string;
+    licence: string;
+    slideCountNote: string;
+    dateChecked: string;
+  }[];
+}
+
+export interface ShortAnswerExercise {
+  id: string;
+  prompt: string;
+  expectedPoints: string[];
+  modelAnswer: string;
+  level: EducationTrackId;
+}
+
+export interface AppliedReasoningExercise {
+  id: string;
+  title: string;
+  scenario: string;
+  questions: string[];
+  workedSolution: string;
+  level: EducationTrackId;
+  disclaimer?: string;
+}
+
+export interface StructuredComparisonRow {
+  dimension: string;
+  primary: string;
+  comparator: string;
+  clinicalOrFunctionalNote: string;
+}
+
+export interface ContentCompletionTracker {
+  chapterCode: string;
+  plannedLearningOutcomes: number;
+  completedLearningOutcomes: number;
+  writtenMaterialStatus: ContentCompletionStatus;
+  readingLinksCount: number;
+  readingStatus: ContentCompletionStatus;
+  videoCount: number;
+  videoStatus: ContentCompletionStatus;
+  presentationCount: number;
+  presentationStatus: ContentCompletionStatus;
+  visualAssetsCount: number;
+  visualStatus: ContentCompletionStatus;
+  practicalCount: number;
+  practicalStatus: ContentCompletionStatus;
+  mcqCount: number;
+  shortAnswerCount: number;
+  appliedCaseCount: number;
+  assessmentStatus: ContentCompletionStatus;
+  sourceVerification: 'verified_open_sources' | 'partial_sources' | 'pending_source_check';
+  licenceVerification: 'open_licensed_or_cited' | 'mixed_terms' | 'pending';
+  knownLimitations: string[];
+  overallStatus: ContentCompletionStatus;
+  reviewStatus: 'awaiting_academic_review';
+}
+
 export interface EducationTopic {
   id: string;
   domainId: EducationDomainId;
+  chapterCode?: string;
+  chapterOrder?: number;
   chapterTitle: string;
   title: string;
   summary: string;
   targetTracks: EducationTrackId[];
   curriculumMappings: CurriculumMappingRef[];
+  prerequisites?: string[];
   learningObjectives: string[];
   depthExplanations: LevelDepthContent;
   keyConcepts: { term: string; definition: string }[];
   keyFacts: string[];
+  mechanisms?: string[];
+  stepByStep?: string[];
+  comparisonTable?: {
+    columnA: string;
+    columnB: string;
+    rows: StructuredComparisonRow[];
+  };
+  misconceptions?: { misconception: string; correction: string }[];
+  clinicalCorrelation?: string;
+  summaryParagraph?: string;
+  keyTakeaways?: string[];
   crossSubjectLinks: { domainId: EducationDomainId; relation: string }[];
   relatedSystems: CanonicalSystemId[];
   relatedFmaConceptIds: string[];
@@ -183,8 +345,14 @@ export interface EducationTopic {
   diagram?: TopicDiagramSpec;
   assetDisclosure: AssetDisclosure;
   activity?: TopicActivity;
+  readingLinks?: ExternalReadingLink[];
+  videoResource?: VideoLessonEntry;
+  presentationDeck?: ChapterPresentationDeck;
+  shortAnswerExercises?: ShortAnswerExercise[];
+  appliedReasoningExercises?: AppliedReasoningExercise[];
   selfChecks: TopicSelfCheckQuestion[];
   sources: EducationSourceRef[];
+  completionTracker?: ContentCompletionTracker;
   reviewStatus: EducationReviewStatus;
   educationalDisclaimer?: string;
 }

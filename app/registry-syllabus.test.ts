@@ -36,8 +36,8 @@ test('Universal Knowledge Registry passes validation and maintains truthful prov
   assert.deepEqual(res.errors, [], `Registry errors:\n${res.errors.join('\n')}`);
   assert.equal(res.valid, true);
   assert.equal(REGISTRY_SUBJECTS.length, 16);
-  assert.ok(REGISTRY_CHAPTERS.length >= 29);
-  assert.equal(REGISTRY_TOPICS.length, 46);
+  assert.equal(REGISTRY_CHAPTERS.length, 12 + 267 + 1);
+  assert.equal(REGISTRY_TOPICS.length, 28 + 267 + 1);
 
   // Honest coverage boundaries:
   const endoPlanned = REGISTRY_TOPICS.find((t) => t.id === 'endocrine-feedback-planned');

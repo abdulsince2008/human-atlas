@@ -1,140 +1,515 @@
 {
-  "version": "female-overlay-1.0",
+  "version": "female-overlay-2.0",
   "sex": "female",
-  "source": "HuBMAP HRA v2.x Visible Human Female (CC BY 4.0) + co-registered anatomical reconstructions",
+  "source": "HuBMAP HRA v1.5 Visible Human Female (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586) + co-registered female urethral conduit",
   "chunks": [
     {
       "url": "/models/female/female-0.bin",
-      "bytes": 498724,
+      "bytes": 2595100,
       "gzip": "/models/female/female-0.bin.gz",
-      "gzipBytes": 293884
+      "gzipBytes": 1583126
     }
   ],
   "parts": [
     {
       "id": "HF_SACRUM",
-      "name": "Female sacrum & coccyx",
+      "name": "Female sacrum",
       "conceptId": "FMA16202",
       "system": "skeletal",
       "chunk": 0,
       "positions": 0,
-      "normals": 24252,
-      "indices": 36380,
-      "vertexCount": 2021,
-      "indexCount": 12306,
+      "normals": 28032,
+      "indices": 42048,
+      "vertexCount": 2336,
+      "indexCount": 14208,
       "bounds": [
         [
-          -0.06046106666326523,
-          0.8934439420700073,
-          -0.11073783040046692
+          -0.05856439843773842,
+          0.9185499548912048,
+          -0.10891073942184448
         ],
         [
-          0.06058644503355026,
-          1.014365315437317,
-          -0.02262660674750805
+          0.058660559356212616,
+          1.0144623517990112,
+          -0.022897401824593544
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
-      "id": "HF_HIP_LEFT",
-      "name": "Left female hip bone (pelvis)",
-      "conceptId": "FMA16586",
+      "id": "HF_COCCYX",
+      "name": "Coccyx (tailbone)",
+      "conceptId": "FMA20225",
       "system": "skeletal",
       "chunk": 0,
-      "positions": 85604,
-      "normals": 105944,
-      "indices": 116116,
-      "vertexCount": 1695,
-      "indexCount": 10434,
+      "positions": 98880,
+      "normals": 105588,
+      "indices": 108944,
+      "vertexCount": 559,
+      "indexCount": 3342,
       "bounds": [
         [
-          -0.0019138389034196734,
-          0.8318524360656738,
-          -0.09637850522994995
+          -0.014219561591744423,
+          0.8935409784317017,
+          -0.10551587492227554
         ],
         [
-          0.1499556601047516,
-          1.0348536968231201,
-          0.04267658665776253
+          0.015135180205106735,
+          0.9196810126304626,
+          -0.07436686754226685
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
-      "id": "HF_HIP_RIGHT",
-      "name": "Right female hip bone (pelvis)",
-      "conceptId": "FMA16585",
+      "id": "HF_ILIUM_LEFT",
+      "name": "Left female ilium",
+      "conceptId": "FMA16589",
       "system": "skeletal",
       "chunk": 0,
-      "positions": 157852,
-      "normals": 177352,
-      "indices": 187104,
-      "vertexCount": 1625,
-      "indexCount": 9990,
+      "positions": 122312,
+      "normals": 143552,
+      "indices": 154172,
+      "vertexCount": 1770,
+      "indexCount": 10608,
       "bounds": [
         [
-          -0.15087635815143585,
-          0.8303406238555908,
-          -0.0958966463804245
+          0.03612316772341728,
+          0.9007404446601868,
+          -0.09489329904317856
         ],
         [
-          -0.000045370430598268285,
-          1.0354264974594116,
-          0.039077840745449066
+          0.1453663855791092,
+          1.0349507331848145,
+          0.04085095226764679
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
-      "id": "HF_BLADDER",
-      "name": "Female urinary bladder",
+      "id": "HF_ILIUM_RIGHT",
+      "name": "Right female ilium",
+      "conceptId": "FMA16588",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 196604,
+      "normals": 217016,
+      "indices": 227224,
+      "vertexCount": 1701,
+      "indexCount": 10194,
+      "bounds": [
+        [
+          -0.146124467253685,
+          0.8998736143112183,
+          -0.09504921734333038
+        ],
+        [
+          -0.04033822566270828,
+          1.035523533821106,
+          0.03733789548277855
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_ISCHIUM_LEFT",
+      "name": "Left female ischium",
+      "conceptId": "FMA16593",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 268000,
+      "normals": 280972,
+      "indices": 287460,
+      "vertexCount": 1081,
+      "indexCount": 6486,
+      "bounds": [
+        [
+          0.03233368694782257,
+          0.8318595290184021,
+          -0.06094435229897499
+        ],
+        [
+          0.10851837694644928,
+          0.9237643480300903,
+          -0.007857725955545902
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_ISCHIUM_RIGHT",
+      "name": "Right female ischium",
+      "conceptId": "FMA16592",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 313404,
+      "normals": 326892,
+      "indices": 333636,
+      "vertexCount": 1124,
+      "indexCount": 6744,
+      "bounds": [
+        [
+          -0.10931956022977829,
+          0.8304376006126404,
+          -0.06283318996429443
+        ],
+        [
+          -0.034966323524713516,
+          0.9225860238075256,
+          -0.007299298420548439
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_PUBIS_LEFT",
+      "name": "Left female pubis",
+      "conceptId": "FMA16596",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 360612,
+      "normals": 374820,
+      "indices": 381924,
+      "vertexCount": 1184,
+      "indexCount": 7104,
+      "bounds": [
+        [
+          -0.00186603341717273,
+          0.8387151956558228,
+          -0.022455472499132156
+        ],
+        [
+          0.08436743915081024,
+          0.927118718624115,
+          0.03362321853637695
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_PUBIS_RIGHT",
+      "name": "Right female pubis",
+      "conceptId": "FMA16595",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 410340,
+      "normals": 423048,
+      "indices": 429404,
+      "vertexCount": 1059,
+      "indexCount": 6354,
+      "bounds": [
+        [
+          -0.08599670231342316,
+          0.8369749784469604,
+          -0.024032022804021835
+        ],
+        [
+          0.00006458977441070601,
+          0.9271551370620728,
+          0.03374215587973595
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_BLADDER_DOME",
+      "name": "Dome of urinary bladder",
       "conceptId": "FMA15900",
       "system": "urinary",
       "chunk": 0,
-      "positions": 227064,
-      "normals": 240732,
-      "indices": 247568,
-      "vertexCount": 1139,
-      "indexCount": 6600,
+      "positions": 454820,
+      "normals": 463964,
+      "indices": 468536,
+      "vertexCount": 762,
+      "indexCount": 4197,
       "bounds": [
         [
-          -0.030736645683646202,
-          0.8583225607872009,
-          -0.007234700955450535
+          -0.029778646305203438,
+          0.8834543228149414,
+          -0.00748203881084919
         ],
         [
-          0.01863449066877365,
-          0.9011742472648621,
-          0.04453997686505318
+          0.018033402040600777,
+          0.901299238204956,
+          0.042669977992773056
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Urinary Bladder (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
-      "id": "HF_UTERUS",
-      "name": "Uterus (Fundus & Body)",
-      "conceptId": "FMA17558",
-      "system": "reproductive",
+      "id": "HF_BLADDER_BASE",
+      "name": "Body & base of urinary bladder",
+      "conceptId": "FMA15916",
+      "system": "urinary",
       "chunk": 0,
-      "positions": 273968,
-      "normals": 287660,
-      "indices": 294508,
-      "vertexCount": 1141,
-      "indexCount": 7086,
+      "positions": 485324,
+      "normals": 497132,
+      "indices": 503036,
+      "vertexCount": 984,
+      "indexCount": 5400,
       "bounds": [
         [
-          -0.029987048357725143,
-          0.892985463142395,
-          -0.01748032122850418
+          -0.029767675325274467,
+          0.8611013889312744,
+          -0.007871969603002071
         ],
         [
-          0.01986704021692276,
-          0.9273856282234192,
-          0.01942683756351471
+          0.018033402040600777,
+          0.8954083323478699,
+          0.04266268014907837
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Uterus (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_BLADDER_TRIGONE",
+      "name": "Trigone of urinary bladder",
+      "conceptId": "FMA15926",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 524636,
+      "normals": 528848,
+      "indices": 530956,
+      "vertexCount": 351,
+      "indexCount": 1800,
+      "bounds": [
+        [
+          -0.02388119325041771,
+          0.8619677424430847,
+          -0.004930801223963499
+        ],
+        [
+          0.015481912530958652,
+          0.8875316381454468,
+          -0.0010075337486341596
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_BLADDER_NECK",
+      "name": "Neck of urinary bladder",
+      "conceptId": "FMA15924",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 538156,
+      "normals": 542752,
+      "indices": 545052,
+      "vertexCount": 383,
+      "indexCount": 2058,
+      "bounds": [
+        [
+          -0.007278794422745705,
+          0.8584128618240356,
+          -0.00434685405343771
+        ],
+        [
+          -0.0009483098983764648,
+          0.8625234365463257,
+          0.0003227313281968236
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_URETERAL_ORIFICE_LEFT",
+      "name": "Left ureteric orifice",
+      "conceptId": "FMA15931",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 553284,
+      "normals": 554700,
+      "indices": 555408,
+      "vertexCount": 118,
+      "indexCount": 582,
+      "bounds": [
+        [
+          0.0150437131524086,
+          0.8840782046318054,
+          -0.001950173988007009
+        ],
+        [
+          0.017205122858285904,
+          0.8873608708381653,
+          0.0004839512403123081
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_URETERAL_ORIFICE_RIGHT",
+      "name": "Right ureteric orifice",
+      "conceptId": "FMA15930",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 557736,
+      "normals": 559008,
+      "indices": 559644,
+      "vertexCount": 106,
+      "indexCount": 540,
+      "bounds": [
+        [
+          -0.02612246200442314,
+          0.8851897716522217,
+          -0.005222583655267954
+        ],
+        [
+          -0.022961439564824104,
+          0.8884836435317993,
+          -0.00342542608268559
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERUS_FUNDUS",
+      "name": "Fundus of uterus",
+      "conceptId": "FMA17739",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 561804,
+      "normals": 567840,
+      "indices": 570860,
+      "vertexCount": 503,
+      "indexCount": 2700,
+      "bounds": [
+        [
+          -0.023181922733783722,
+          0.9070339798927307,
+          0.00006673205643892288
+        ],
+        [
+          0.01490635983645916,
+          0.9274826049804688,
+          0.018154770135879517
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERUS_BODY",
+      "name": "Body of uterus",
+      "conceptId": "FMA17738",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 581660,
+      "normals": 589916,
+      "indices": 594044,
+      "vertexCount": 688,
+      "indexCount": 3597,
+      "bounds": [
+        [
+          -0.0239364355802536,
+          0.8966851830482483,
+          -0.013169429264962673
+        ],
+        [
+          0.01573282666504383,
+          0.9258487224578857,
+          0.00950392335653305
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERUS_ANTERIOR_WALL",
+      "name": "Anterior wall of uterus",
+      "conceptId": "FMA17745",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 608432,
+      "normals": 615656,
+      "indices": 619268,
+      "vertexCount": 602,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          -0.023782122880220413,
+          0.903428852558136,
+          -0.013163173571228981
+        ],
+        [
+          0.015648633241653442,
+          0.9272335767745972,
+          0.01630694977939129
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERUS_POSTERIOR_WALL",
+      "name": "Posterior wall of uterus",
+      "conceptId": "FMA17746",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 633668,
+      "normals": 640892,
+      "indices": 644504,
+      "vertexCount": 602,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          -0.023782122880220413,
+          0.8966609835624695,
+          -0.009618653915822506
+        ],
+        [
+          0.015648633241653442,
+          0.9217662811279297,
+          0.018000101670622826
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERUS_CORNUA",
+      "name": "Uterine horns (cornua)",
+      "conceptId": "FMA17742",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 658904,
+      "normals": 664640,
+      "indices": 667508,
+      "vertexCount": 478,
+      "indexCount": 2400,
+      "bounds": [
+        [
+          -0.02905344031751156,
+          0.9118055105209351,
+          0.003048015758395195
+        ],
+        [
+          0.019235162064433098,
+          0.9208415150642395,
+          0.01096655335277319
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERUS_LOWER_SEGMENT",
+      "name": "Lower uterine segment (isthmus of uterus)",
+      "conceptId": "FMA17741",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 677108,
+      "normals": 682364,
+      "indices": 684992,
+      "vertexCount": 438,
+      "indexCount": 2100,
+      "bounds": [
+        [
+          -0.011706201359629631,
+          0.8930213451385498,
+          -0.017873646691441536
+        ],
+        [
+          0.004882802255451679,
+          0.9127599000930786,
+          -0.0059238625690341
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
       "id": "HF_CERVIX",
@@ -142,124 +517,74 @@
       "conceptId": "FMA17740",
       "system": "reproductive",
       "chunk": 0,
-      "positions": 322852,
-      "normals": 332896,
-      "indices": 337920,
-      "vertexCount": 837,
-      "indexCount": 4653,
+      "positions": 693392,
+      "normals": 700364,
+      "indices": 703852,
+      "vertexCount": 581,
+      "indexCount": 3225,
       "bounds": [
         [
-          -0.022066228091716766,
-          0.8781002759933472,
-          -0.03340194374322891
+          -0.015122807584702969,
+          0.8818992972373962,
+          -0.029961751773953438
         ],
         [
-          0.014249879866838455,
-          0.9098684191703796,
-          -0.009529153816401958
+          0.009989213198423386,
+          0.909965455532074,
+          -0.01006361935287714
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Uterus (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
-      "id": "HF_TUBE_LEFT",
-      "name": "Left uterine tube (Fallopian tube)",
-      "conceptId": "FMA18246",
+      "id": "HF_CERVICAL_OS_INTERNAL",
+      "name": "Internal cervical os",
+      "conceptId": "FMA17743",
       "system": "reproductive",
       "chunk": 0,
-      "positions": 356532,
-      "normals": 365076,
-      "indices": 369348,
-      "vertexCount": 712,
-      "indexCount": 4200,
+      "positions": 716752,
+      "normals": 718372,
+      "indices": 719184,
+      "vertexCount": 135,
+      "indexCount": 648,
       "bounds": [
         [
-          0.01923201233148575,
-          0.9154307246208191,
-          -0.0011717379093170166
+          -0.004011035896837711,
+          0.8983250856399536,
+          -0.016384663060307503
         ],
         [
-          0.05588262900710106,
-          0.958568274974823,
-          0.014356023631989956
+          -0.0008347679395228624,
+          0.9019904732704163,
+          -0.012903141789138317
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Fallopian Tube (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
-      "id": "HF_TUBE_RIGHT",
-      "name": "Right uterine tube (Fallopian tube)",
-      "conceptId": "FMA18245",
+      "id": "HF_CERVICAL_OS_EXTERNAL",
+      "name": "External cervical os",
+      "conceptId": "FMA17744",
       "system": "reproductive",
       "chunk": 0,
-      "positions": 386148,
-      "normals": 394668,
-      "indices": 398928,
-      "vertexCount": 710,
-      "indexCount": 4197,
+      "positions": 721776,
+      "normals": 723720,
+      "indices": 724692,
+      "vertexCount": 162,
+      "indexCount": 810,
       "bounds": [
         [
-          -0.06227702274918556,
-          0.9144660234451294,
-          -0.006145555060356855
+          -0.005572504363954067,
+          0.88852459192276,
+          -0.028288116678595543
         ],
         [
-          -0.02958560362458229,
-          0.9577285647392273,
-          0.011353392153978348
+          0.0012034979881718755,
+          0.89537113904953,
+          -0.023527661338448524
         ]
       ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Fallopian Tube (CC BY 4.0)"
-    },
-    {
-      "id": "HF_OVARY_LEFT",
-      "name": "Left ovary",
-      "conceptId": "FMA7214",
-      "system": "reproductive",
-      "chunk": 0,
-      "positions": 415716,
-      "normals": 418140,
-      "indices": 419352,
-      "vertexCount": 202,
-      "indexCount": 1200,
-      "bounds": [
-        [
-          0.04407548904418945,
-          0.9232774972915649,
-          -0.00009501512977294624
-        ],
-        [
-          0.055739015340805054,
-          0.9465060830116272,
-          0.00875368807464838
-        ]
-      ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Ovary (CC BY 4.0)"
-    },
-    {
-      "id": "HF_OVARY_RIGHT",
-      "name": "Right ovary",
-      "conceptId": "FMA7213",
-      "system": "reproductive",
-      "chunk": 0,
-      "positions": 424152,
-      "normals": 426576,
-      "indices": 427788,
-      "vertexCount": 202,
-      "indexCount": 1200,
-      "bounds": [
-        [
-          -0.06511121988296509,
-          0.9232116341590881,
-          -0.0001619214890524745
-        ],
-        [
-          -0.05341701582074165,
-          0.9464789628982544,
-          0.008765194565057755
-        ]
-      ],
-      "source": "HuBMAP HRA v2.x Visible Human Female Ovary (CC BY 4.0)"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
     },
     {
       "id": "HF_VAGINA",
@@ -267,24 +592,1199 @@
       "conceptId": "FMA19949",
       "system": "reproductive",
       "chunk": 0,
-      "positions": 432588,
-      "normals": 436356,
-      "indices": 438240,
-      "vertexCount": 314,
-      "indexCount": 1872,
+      "positions": 727932,
+      "normals": 737928,
+      "indices": 742928,
+      "vertexCount": 833,
+      "indexCount": 4800,
       "bounds": [
         [
-          -0.01732823997735977,
-          0.7991642355918884,
-          -0.036677584052085876
+          -0.02417738176882267,
+          0.8253425359725952,
+          -0.027237311005592346
         ],
         [
-          0.011734982021152973,
-          0.9012439846992493,
-          0.034807294607162476
+          0.016712121665477753,
+          0.8821254968643188,
+          -0.007804227992892265
         ]
       ],
-      "source": "Anatomically co-registered fibromuscular reconstruction anchored to HuBMAP cervix"
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_CERVICOVAGINAL_JUNCTION",
+      "name": "Cervicovaginal junction & vaginal fornices",
+      "conceptId": "FMA19971",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 762128,
+      "normals": 768176,
+      "indices": 771200,
+      "vertexCount": 504,
+      "indexCount": 2763,
+      "bounds": [
+        [
+          -0.021382030099630356,
+          0.8781973123550415,
+          -0.03341618552803993
+        ],
+        [
+          0.013787251897156239,
+          0.9007796049118042,
+          -0.012645700946450233
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_ISTHMUS_LEFT",
+      "name": "Left isthmus of uterine tube",
+      "conceptId": "FMA18304",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 782252,
+      "normals": 786320,
+      "indices": 788356,
+      "vertexCount": 339,
+      "indexCount": 1800,
+      "bounds": [
+        [
+          0.018612055107951164,
+          0.9155277609825134,
+          0.006441200617700815
+        ],
+        [
+          0.02791677787899971,
+          0.9196746945381165,
+          0.009661279618740082
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_ISTHMUS_RIGHT",
+      "name": "Right isthmus of uterine tube",
+      "conceptId": "FMA18303",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 795556,
+      "normals": 799624,
+      "indices": 801660,
+      "vertexCount": 339,
+      "indexCount": 1800,
+      "bounds": [
+        [
+          -0.03650706633925438,
+          0.914563000202179,
+          0.0060021462850272655
+        ],
+        [
+          -0.02866395190358162,
+          0.9189620018005371,
+          0.009073300287127495
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_AMPULLA_LEFT",
+      "name": "Left ampulla of uterine tube",
+      "conceptId": "FMA18300",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 808860,
+      "normals": 816384,
+      "indices": 820148,
+      "vertexCount": 627,
+      "indexCount": 3597,
+      "bounds": [
+        [
+          0.02753518708050251,
+          0.917424738407135,
+          0.0008283485076390207
+        ],
+        [
+          0.05413251742720604,
+          0.9586652517318726,
+          0.013230402022600174
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_AMPULLA_RIGHT",
+      "name": "Right ampulla of uterine tube",
+      "conceptId": "FMA18299",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 834536,
+      "normals": 842132,
+      "indices": 845932,
+      "vertexCount": 633,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          -0.06032301113009453,
+          0.917335033416748,
+          -0.0019131047884002328
+        ],
+        [
+          -0.035936418920755386,
+          0.9578255414962769,
+          0.01027354970574379
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_INFUNDIBULUM_LEFT",
+      "name": "Left infundibulum of uterine tube",
+      "conceptId": "FMA18296",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 860332,
+      "normals": 866080,
+      "indices": 868956,
+      "vertexCount": 479,
+      "indexCount": 2634,
+      "bounds": [
+        [
+          0.041071467101573944,
+          0.9477853178977966,
+          -0.0016701186541467905
+        ],
+        [
+          0.04885651543736458,
+          0.9584962725639343,
+          0.0045611802488565445
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_INFUNDIBULUM_RIGHT",
+      "name": "Right infundibulum of uterine tube",
+      "conceptId": "FMA18295",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 879492,
+      "normals": 885672,
+      "indices": 888764,
+      "vertexCount": 515,
+      "indexCount": 2850,
+      "bounds": [
+        [
+          -0.059168312698602676,
+          0.947090744972229,
+          -0.006841289345175028
+        ],
+        [
+          -0.05219520628452301,
+          0.9577472805976868,
+          -0.0010083799716085196
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_FIMBRIAE_LEFT",
+      "name": "Left fimbriae of uterine tube",
+      "conceptId": "FMA18298",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 900164,
+      "normals": 910760,
+      "indices": 916060,
+      "vertexCount": 883,
+      "indexCount": 5178,
+      "bounds": [
+        [
+          0.040150634944438934,
+          0.9447581768035889,
+          -0.001953363185748458
+        ],
+        [
+          0.04693511873483658,
+          0.9497893452644348,
+          0.004796752706170082
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_TUBE_FIMBRIAE_RIGHT",
+      "name": "Right fimbriae of uterine tube",
+      "conceptId": "FMA18297",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 936772,
+      "normals": 948604,
+      "indices": 954520,
+      "vertexCount": 986,
+      "indexCount": 5796,
+      "bounds": [
+        [
+          -0.05850076302886009,
+          0.9446874260902405,
+          -0.0064489999786019325
+        ],
+        [
+          -0.05204426497220993,
+          0.948948860168457,
+          -0.001704747206531465
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_OVARY_LEFT",
+      "name": "Left ovary",
+      "conceptId": "FMA7214",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 977704,
+      "normals": 980272,
+      "indices": 981556,
+      "vertexCount": 214,
+      "indexCount": 1272,
+      "bounds": [
+        [
+          0.042670998722314835,
+          0.9233744740486145,
+          -0.0009022766607813537
+        ],
+        [
+          0.05396620184183121,
+          0.9466030597686768,
+          0.007735743653029203
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_OVARY_RIGHT",
+      "name": "Right ovary",
+      "conceptId": "FMA7213",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 986644,
+      "normals": 989128,
+      "indices": 990372,
+      "vertexCount": 207,
+      "indexCount": 1230,
+      "bounds": [
+        [
+          -0.06306770443916321,
+          0.9233086705207825,
+          -0.0009675900219008327
+        ],
+        [
+          -0.0517427958548069,
+          0.946575939655304,
+          0.007746975868940353
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_OVARIAN_LIGAMENT_LEFT",
+      "name": "Left proper ovarian ligament",
+      "conceptId": "FMA19761",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 995292,
+      "normals": 996612,
+      "indices": 997272,
+      "vertexCount": 110,
+      "indexCount": 624,
+      "bounds": [
+        [
+          0.014298510737717152,
+          0.9131182432174683,
+          0.0040816813707351685
+        ],
+        [
+          0.04420215263962746,
+          0.9242406487464905,
+          0.006976473145186901
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_OVARIAN_LIGAMENT_RIGHT",
+      "name": "Right proper ovarian ligament",
+      "conceptId": "FMA19760",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 999768,
+      "normals": 1001016,
+      "indices": 1001640,
+      "vertexCount": 104,
+      "indexCount": 594,
+      "bounds": [
+        [
+          -0.053274352103471756,
+          0.9124053716659546,
+          0.0025142431259155273
+        ],
+        [
+          -0.02263498120009899,
+          0.9253743886947632,
+          0.005914062727242708
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_SUSPENSORY_OVARY_LEFT",
+      "name": "Left suspensory ligament of ovary",
+      "conceptId": "FMA19763",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1004016,
+      "normals": 1006740,
+      "indices": 1008104,
+      "vertexCount": 227,
+      "indexCount": 1350,
+      "bounds": [
+        [
+          0.04169563204050064,
+          0.9447898864746094,
+          -0.01583925262093544
+        ],
+        [
+          0.051653776317834854,
+          0.9795967936515808,
+          0.0013576796045526862
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_SUSPENSORY_OVARY_RIGHT",
+      "name": "Right suspensory ligament of ovary",
+      "conceptId": "FMA19762",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1013504,
+      "normals": 1016228,
+      "indices": 1017592,
+      "vertexCount": 227,
+      "indexCount": 1350,
+      "bounds": [
+        [
+          -0.06527262926101685,
+          0.9448776245117188,
+          -0.009241006337106228
+        ],
+        [
+          -0.057982757687568665,
+          0.9747646450996399,
+          0.0018615128938108683
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_ROUND_LIGAMENT_LEFT",
+      "name": "Left round ligament of uterus",
+      "conceptId": "FMA19759",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1022992,
+      "normals": 1025716,
+      "indices": 1027080,
+      "vertexCount": 227,
+      "indexCount": 1350,
+      "bounds": [
+        [
+          0.00941516924649477,
+          0.8612790107727051,
+          0.008867084048688412
+        ],
+        [
+          0.05256614834070206,
+          0.9210938215255737,
+          0.04885784536600113
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_ROUND_LIGAMENT_RIGHT",
+      "name": "Right round ligament of uterus",
+      "conceptId": "FMA19758",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1032480,
+      "normals": 1035288,
+      "indices": 1036692,
+      "vertexCount": 234,
+      "indexCount": 1392,
+      "bounds": [
+        [
+          -0.07660070061683655,
+          0.8599517941474915,
+          0.007322434335947037
+        ],
+        [
+          -0.020638765767216682,
+          0.9247053861618042,
+          0.04431166499853134
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_CARDINAL_LIGAMENT_LEFT",
+      "name": "Left cardinal (transverse cervical) ligament",
+      "conceptId": "FMA19769",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1042260,
+      "normals": 1047084,
+      "indices": 1049496,
+      "vertexCount": 402,
+      "indexCount": 2400,
+      "bounds": [
+        [
+          0.0010175962233915925,
+          0.8953921794891357,
+          -0.04953934997320175
+        ],
+        [
+          0.058508120477199554,
+          0.913574755191803,
+          -0.008031543344259262
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_CARDINAL_LIGAMENT_RIGHT",
+      "name": "Right cardinal (transverse cervical) ligament",
+      "conceptId": "FMA19768",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1059096,
+      "normals": 1063920,
+      "indices": 1066332,
+      "vertexCount": 402,
+      "indexCount": 2400,
+      "bounds": [
+        [
+          -0.06962057948112488,
+          0.8935436606407166,
+          -0.053943462669849396
+        ],
+        [
+          -0.00825128797441721,
+          0.918160080909729,
+          -0.010219866409897804
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTEROSACRAL_LIGAMENT_LEFT",
+      "name": "Left uterosacral ligament",
+      "conceptId": "FMA19767",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1075932,
+      "normals": 1079556,
+      "indices": 1081368,
+      "vertexCount": 302,
+      "indexCount": 1800,
+      "bounds": [
+        [
+          0.007959981448948383,
+          0.8970625400543213,
+          -0.0909954160451889
+        ],
+        [
+          0.013816328719258308,
+          0.9474217295646667,
+          -0.02363264001905918
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTEROSACRAL_LIGAMENT_RIGHT",
+      "name": "Right uterosacral ligament",
+      "conceptId": "FMA19766",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1088568,
+      "normals": 1092192,
+      "indices": 1094004,
+      "vertexCount": 302,
+      "indexCount": 1800,
+      "bounds": [
+        [
+          -0.025151100009679794,
+          0.8957329392433167,
+          -0.09030231088399887
+        ],
+        [
+          -0.012418940663337708,
+          0.9492462873458862,
+          -0.025014298036694527
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_BROAD_LIGAMENT",
+      "name": "Broad ligament of uterus",
+      "conceptId": "FMA19749",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1101204,
+      "normals": 1116624,
+      "indices": 1124336,
+      "vertexCount": 1285,
+      "indexCount": 7368,
+      "bounds": [
+        [
+          -0.06958505511283875,
+          0.8926754593849182,
+          -0.06946980208158493
+        ],
+        [
+          0.05870998650789261,
+          0.9533992409706116,
+          0.03368917852640152
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_MESOSALPINX_LEFT",
+      "name": "Left mesosalpinx",
+      "conceptId": "FMA19753",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1153808,
+      "normals": 1157840,
+      "indices": 1159856,
+      "vertexCount": 336,
+      "indexCount": 1704,
+      "bounds": [
+        [
+          0.016407812014222145,
+          0.9086943864822388,
+          0.0012751924805343151
+        ],
+        [
+          0.05748038738965988,
+          0.9580807089805603,
+          0.014806377701461315
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_MESOSALPINX_RIGHT",
+      "name": "Right mesosalpinx",
+      "conceptId": "FMA19752",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1166672,
+      "normals": 1171208,
+      "indices": 1173476,
+      "vertexCount": 378,
+      "indexCount": 1944,
+      "bounds": [
+        [
+          -0.06511294841766357,
+          0.9108260869979858,
+          -0.0021163029596209526
+        ],
+        [
+          -0.022388875484466553,
+          0.9579470753669739,
+          0.013057375326752663
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_MESOVARIUM_LEFT",
+      "name": "Left mesovarium",
+      "conceptId": "FMA19757",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1181252,
+      "normals": 1183688,
+      "indices": 1184908,
+      "vertexCount": 203,
+      "indexCount": 1047,
+      "bounds": [
+        [
+          0.04065372794866562,
+          0.9222790598869324,
+          0.0006582148489542305
+        ],
+        [
+          0.056790560483932495,
+          0.9469719529151917,
+          0.008758490905165672
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_MESOVARIUM_RIGHT",
+      "name": "Right mesovarium",
+      "conceptId": "FMA19756",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1189096,
+      "normals": 1190524,
+      "indices": 1191240,
+      "vertexCount": 119,
+      "indexCount": 549,
+      "bounds": [
+        [
+          -0.06498123705387115,
+          0.9230210185050964,
+          0.0033927583135664463
+        ],
+        [
+          -0.05365944653749466,
+          0.9434986710548401,
+          0.007818575948476791
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTEROVESICAL_POUCH",
+      "name": "Vesicouterine peritoneal pouch",
+      "conceptId": "FMA19773",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1193436,
+      "normals": 1201236,
+      "indices": 1205136,
+      "vertexCount": 650,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          -0.029261643067002296,
+          0.8886431455612183,
+          -0.010196125134825706
+        ],
+        [
+          0.018369782716035843,
+          0.9154619574546814,
+          0.04226274788379669
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERINE_ARTERY_LEFT",
+      "name": "Left uterine artery",
+      "conceptId": "FMA18824",
+      "system": "arterial",
+      "chunk": 0,
+      "positions": 1219536,
+      "normals": 1222644,
+      "indices": 1224200,
+      "vertexCount": 259,
+      "indexCount": 1500,
+      "bounds": [
+        [
+          0.006740457843989134,
+          0.8973773121833801,
+          -0.02898930013179779
+        ],
+        [
+          0.05138203501701355,
+          0.9122571349143982,
+          0.0006211792351678014
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERINE_ARTERY_RIGHT",
+      "name": "Right uterine artery",
+      "conceptId": "FMA18823",
+      "system": "arterial",
+      "chunk": 0,
+      "positions": 1230200,
+      "normals": 1233320,
+      "indices": 1234880,
+      "vertexCount": 260,
+      "indexCount": 1500,
+      "bounds": [
+        [
+          -0.05811941623687744,
+          0.8953263163566589,
+          -0.025403648614883423
+        ],
+        [
+          -0.01629793643951416,
+          0.9114220142364502,
+          0.002329813316464424
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERINE_VEIN_LEFT",
+      "name": "Left uterine vein",
+      "conceptId": "FMA18908",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 1240880,
+      "normals": 1244588,
+      "indices": 1246444,
+      "vertexCount": 309,
+      "indexCount": 1797,
+      "bounds": [
+        [
+          0.007352650165557861,
+          0.8993898630142212,
+          -0.04520399868488312
+        ],
+        [
+          0.04967142641544342,
+          0.9295513033866882,
+          0.0018464041640982032
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_UTERINE_VEIN_RIGHT",
+      "name": "Right uterine vein",
+      "conceptId": "FMA18907",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 1253632,
+      "normals": 1257340,
+      "indices": 1259196,
+      "vertexCount": 309,
+      "indexCount": 1800,
+      "bounds": [
+        [
+          -0.06102351099252701,
+          0.8978456258773804,
+          -0.033250145614147186
+        ],
+        [
+          -0.017641810700297356,
+          0.925152063369751,
+          0.0029430368449538946
+        ]
+      ],
+      "source": "HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)"
+    },
+    {
+      "id": "HF_MAMMARY_FAT_LEFT",
+      "name": "Left mammary adipose stroma",
+      "conceptId": "FMA57991",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1266396,
+      "normals": 1306512,
+      "indices": 1326572,
+      "vertexCount": 3343,
+      "indexCount": 20184,
+      "bounds": [
+        [
+          0.016343669965863228,
+          1.2125331163406372,
+          0.04869415983557701
+        ],
+        [
+          0.13881610333919525,
+          1.3796464204788208,
+          0.1540539264678955
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_MAMMARY_FAT_RIGHT",
+      "name": "Right mammary adipose stroma",
+      "conceptId": "FMA57990",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1407308,
+      "normals": 1467356,
+      "indices": 1497380,
+      "vertexCount": 5004,
+      "indexCount": 30600,
+      "bounds": [
+        [
+          -0.13834227621555328,
+          1.2147598266601562,
+          0.046905454248189926
+        ],
+        [
+          -0.015245507471263409,
+          1.3801813125610352,
+          0.15340328216552734
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_MAMMARY_LOBES_LEFT",
+      "name": "Left mammary gland lobes (alveolar lobules)",
+      "conceptId": "FMA67804",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1619780,
+      "normals": 1701860,
+      "indices": 1742900,
+      "vertexCount": 6840,
+      "indexCount": 41781,
+      "bounds": [
+        [
+          0.06177279353141785,
+          1.2237948179244995,
+          0.0924229547381401
+        ],
+        [
+          0.12994663417339325,
+          1.3255257606506348,
+          0.14748330414295197
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_MAMMARY_LOBES_RIGHT",
+      "name": "Right mammary gland lobes (alveolar lobules)",
+      "conceptId": "FMA67804",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 1910024,
+      "normals": 1992428,
+      "indices": 2033632,
+      "vertexCount": 6867,
+      "indexCount": 41952,
+      "bounds": [
+        [
+          -0.13000896573066711,
+          1.2255595922470093,
+          0.09179147332906723
+        ],
+        [
+          -0.06181229278445244,
+          1.3271684646606445,
+          0.14711830019950867
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_LACTIFEROUS_DUCTS_LEFT",
+      "name": "Left main lactiferous ducts",
+      "conceptId": "FMA67806",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2201440,
+      "normals": 2212420,
+      "indices": 2217912,
+      "vertexCount": 915,
+      "indexCount": 4902,
+      "bounds": [
+        [
+          0.07198737561702728,
+          1.226419448852539,
+          0.10289279371500015
+        ],
+        [
+          0.1270856410264969,
+          1.3197516202926636,
+          0.1597967892885208
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_LACTIFEROUS_DUCTS_RIGHT",
+      "name": "Right main lactiferous ducts",
+      "conceptId": "FMA67806",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2237520,
+      "normals": 2248560,
+      "indices": 2254080,
+      "vertexCount": 920,
+      "indexCount": 4923,
+      "bounds": [
+        [
+          -0.12715551257133484,
+          1.2282243967056274,
+          0.10213810205459595
+        ],
+        [
+          -0.07207212597131729,
+          1.321318507194519,
+          0.15940579771995544
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_LACTIFEROUS_SINUSES_LEFT",
+      "name": "Left lactiferous sinuses",
+      "conceptId": "FMA72025",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2273772,
+      "normals": 2292780,
+      "indices": 2302284,
+      "vertexCount": 1584,
+      "indexCount": 8388,
+      "bounds": [
+        [
+          0.09274609386920929,
+          1.2498568296432495,
+          0.1448909044265747
+        ],
+        [
+          0.11033390462398529,
+          1.2596930265426636,
+          0.157951220870018
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_LACTIFEROUS_SINUSES_RIGHT",
+      "name": "Right lactiferous sinuses",
+      "conceptId": "FMA72025",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2335836,
+      "normals": 2354832,
+      "indices": 2364332,
+      "vertexCount": 1583,
+      "indexCount": 8352,
+      "bounds": [
+        [
+          -0.11034075915813446,
+          1.2520419359207153,
+          0.14454904198646545
+        ],
+        [
+          -0.0927523598074913,
+          1.2618201971054077,
+          0.15765511989593506
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_COOPER_LIGAMENTS_LEFT",
+      "name": "Left suspensory ligaments of breast (Cooper)",
+      "conceptId": "FMA76818",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2397740,
+      "normals": 2408588,
+      "indices": 2414012,
+      "vertexCount": 904,
+      "indexCount": 5400,
+      "bounds": [
+        [
+          0.06366948038339615,
+          1.2216947078704834,
+          0.10544990003108978
+        ],
+        [
+          0.1293214112520218,
+          1.2897464036941528,
+          0.15256525576114655
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_COOPER_LIGAMENTS_RIGHT",
+      "name": "Right suspensory ligaments of breast (Cooper)",
+      "conceptId": "FMA76818",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2435612,
+      "normals": 2446460,
+      "indices": 2451884,
+      "vertexCount": 904,
+      "indexCount": 5400,
+      "bounds": [
+        [
+          -0.12920473515987396,
+          1.2237080335617065,
+          0.10532351583242416
+        ],
+        [
+          -0.06404006481170654,
+          1.2913744449615479,
+          0.15192314982414246
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_AREOLA_LEFT",
+      "name": "Left areola of breast",
+      "conceptId": "FMA57995",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2473484,
+      "normals": 2482856,
+      "indices": 2487544,
+      "vertexCount": 781,
+      "indexCount": 3765,
+      "bounds": [
+        [
+          0.09234108030796051,
+          1.243360161781311,
+          0.1475757211446762
+        ],
+        [
+          0.11505787819623947,
+          1.2666168212890625,
+          0.15863631665706635
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_AREOLA_RIGHT",
+      "name": "Right areola of breast",
+      "conceptId": "FMA57995",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2502604,
+      "normals": 2512120,
+      "indices": 2516880,
+      "vertexCount": 793,
+      "indexCount": 3849,
+      "bounds": [
+        [
+          -0.11508142203092575,
+          1.2439324855804443,
+          0.14730989933013916
+        ],
+        [
+          -0.09233065694570541,
+          1.2671719789505005,
+          0.15831956267356873
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_NIPPLE_LEFT",
+      "name": "Left nipple (mammary papilla)",
+      "conceptId": "FMA67796",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2532276,
+      "normals": 2537616,
+      "indices": 2540288,
+      "vertexCount": 445,
+      "indexCount": 2394,
+      "bounds": [
+        [
+          0.10036945343017578,
+          1.2495512962341309,
+          0.15404456853866577
+        ],
+        [
+          0.10955918580293655,
+          1.2592344284057617,
+          0.1603565663099289
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_NIPPLE_RIGHT",
+      "name": "Right nipple (mammary papilla)",
+      "conceptId": "FMA67796",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2549864,
+      "normals": 2555192,
+      "indices": 2557856,
+      "vertexCount": 444,
+      "indexCount": 2379,
+      "bounds": [
+        [
+          -0.1095736026763916,
+          1.2501393556594849,
+          0.15373598039150238
+        ],
+        [
+          -0.10035702586174011,
+          1.2598212957382202,
+          0.16006717085838318
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_AREOLAR_TUBERCLES_LEFT",
+      "name": "Left areolar glands (Montgomery tubercles)",
+      "conceptId": "FMA72031",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2567372,
+      "normals": 2572316,
+      "indices": 2574788,
+      "vertexCount": 412,
+      "indexCount": 1350,
+      "bounds": [
+        [
+          0.09446395188570023,
+          1.2452292442321777,
+          0.14883530139923096
+        ],
+        [
+          0.1135551854968071,
+          1.2656306028366089,
+          0.15843354165554047
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
+    },
+    {
+      "id": "HF_AREOLAR_TUBERCLES_RIGHT",
+      "name": "Right areolar glands (Montgomery tubercles)",
+      "conceptId": "FMA72031",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2580188,
+      "normals": 2585168,
+      "indices": 2587660,
+      "vertexCount": 415,
+      "indexCount": 1347,
+      "bounds": [
+        [
+          -0.11356004327535629,
+          1.245788812637329,
+          0.14862237870693207
+        ],
+        [
+          -0.09446453303098679,
+          1.2661693096160889,
+          0.15812687575817108
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)"
     },
     {
       "id": "HF_URETHRA",
@@ -292,103 +1792,146 @@
       "conceptId": "FMA19667",
       "system": "urinary",
       "chunk": 0,
-      "positions": 445728,
-      "normals": 446328,
-      "indices": 446628,
+      "positions": 2593048,
+      "normals": 2593648,
+      "indices": 2593948,
       "vertexCount": 50,
       "indexCount": 288,
       "bounds": [
         [
-          -0.010392734780907631,
-          0.8260374069213867,
-          0.014499884098768234
+          -0.008413567207753658,
+          0.822253942489624,
+          -0.00597804132848978
         ],
         [
-          0.002544976305216551,
-          0.8672879338264465,
-          0.03712885454297066
+          0.0013837076257914305,
+          0.8631000518798828,
+          0.015346432104706764
         ]
       ],
-      "source": "Anatomically co-registered urethral reconstruction anchored to HuBMAP female bladder neck"
-    },
-    {
-      "id": "HF_MAMMARY_LEFT",
-      "name": "Left mammary gland",
-      "conceptId": "FMA57991",
-      "system": "reproductive",
-      "chunk": 0,
-      "positions": 447780,
-      "normals": 455160,
-      "indices": 458852,
-      "vertexCount": 615,
-      "indexCount": 3600,
-      "bounds": [
-        [
-          0.035999998450279236,
-          1.205844759941101,
-          0.08799999952316284
-        ],
-        [
-          0.15091294050216675,
-          1.3259999752044678,
-          0.16200000047683716
-        ]
-      ],
-      "source": "Anatomically proportioned thoracic mammary reconstruction over pectoralis major"
-    },
-    {
-      "id": "HF_MAMMARY_RIGHT",
-      "name": "Right mammary gland",
-      "conceptId": "FMA57990",
-      "system": "reproductive",
-      "chunk": 0,
-      "positions": 473252,
-      "normals": 480632,
-      "indices": 484324,
-      "vertexCount": 615,
-      "indexCount": 3600,
-      "bounds": [
-        [
-          -0.14934861660003662,
-          1.205844759941101,
-          0.08799999952316284
-        ],
-        [
-          -0.035999998450279236,
-          1.3259999752044678,
-          0.16200000047683716
-        ]
-      ],
-      "source": "Anatomically proportioned thoracic mammary reconstruction over pectoralis major"
+      "source": "Anatomically co-registered female urethral conduit anchored to HuBMAP bladder neck"
     }
   ],
   "concepts": [
     {
       "id": "FMA16202",
-      "name": "Female sacrum & coccyx",
+      "name": "Female sacrum",
       "elements": [
         "HF_SACRUM"
+      ]
+    },
+    {
+      "id": "FMA20225",
+      "name": "Coccyx (tailbone)",
+      "elements": [
+        "HF_COCCYX"
+      ]
+    },
+    {
+      "id": "FMA16589",
+      "name": "Left female ilium",
+      "elements": [
+        "HF_ILIUM_LEFT"
+      ]
+    },
+    {
+      "id": "FMA16588",
+      "name": "Right female ilium",
+      "elements": [
+        "HF_ILIUM_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA16593",
+      "name": "Left female ischium",
+      "elements": [
+        "HF_ISCHIUM_LEFT"
+      ]
+    },
+    {
+      "id": "FMA16592",
+      "name": "Right female ischium",
+      "elements": [
+        "HF_ISCHIUM_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA16596",
+      "name": "Left female pubis",
+      "elements": [
+        "HF_PUBIS_LEFT"
+      ]
+    },
+    {
+      "id": "FMA16595",
+      "name": "Right female pubis",
+      "elements": [
+        "HF_PUBIS_RIGHT"
       ]
     },
     {
       "id": "FMA16586",
       "name": "Left female hip bone (pelvis)",
       "elements": [
-        "HF_HIP_LEFT"
+        "HF_ILIUM_LEFT",
+        "HF_ISCHIUM_LEFT",
+        "HF_PUBIS_LEFT"
       ]
     },
     {
       "id": "FMA16585",
       "name": "Right female hip bone (pelvis)",
       "elements": [
-        "HF_HIP_RIGHT"
+        "HF_ILIUM_RIGHT",
+        "HF_ISCHIUM_RIGHT",
+        "HF_PUBIS_RIGHT"
       ]
     },
     {
       "id": "FMA15900",
       "name": "Female urinary bladder",
       "elements": [
-        "HF_BLADDER"
+        "HF_BLADDER_DOME",
+        "HF_BLADDER_BASE",
+        "HF_BLADDER_TRIGONE",
+        "HF_BLADDER_NECK",
+        "HF_URETERAL_ORIFICE_LEFT",
+        "HF_URETERAL_ORIFICE_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA15916",
+      "name": "Body & base of urinary bladder",
+      "elements": [
+        "HF_BLADDER_BASE"
+      ]
+    },
+    {
+      "id": "FMA15926",
+      "name": "Trigone of urinary bladder",
+      "elements": [
+        "HF_BLADDER_TRIGONE"
+      ]
+    },
+    {
+      "id": "FMA15924",
+      "name": "Neck of urinary bladder",
+      "elements": [
+        "HF_BLADDER_NECK"
+      ]
+    },
+    {
+      "id": "FMA15931",
+      "name": "Left ureteric orifice",
+      "elements": [
+        "HF_URETERAL_ORIFICE_LEFT"
+      ]
+    },
+    {
+      "id": "FMA15930",
+      "name": "Right ureteric orifice",
+      "elements": [
+        "HF_URETERAL_ORIFICE_RIGHT"
       ]
     },
     {
@@ -402,29 +1945,170 @@
       "id": "FMA17558",
       "name": "Uterus",
       "elements": [
-        "HF_UTERUS",
-        "HF_CERVIX"
+        "HF_UTERUS_FUNDUS",
+        "HF_UTERUS_BODY",
+        "HF_UTERUS_ANTERIOR_WALL",
+        "HF_UTERUS_POSTERIOR_WALL",
+        "HF_UTERUS_CORNUA",
+        "HF_UTERUS_LOWER_SEGMENT",
+        "HF_CERVIX",
+        "HF_CERVICAL_OS_INTERNAL",
+        "HF_CERVICAL_OS_EXTERNAL"
+      ]
+    },
+    {
+      "id": "FMA17739",
+      "name": "Fundus of uterus",
+      "elements": [
+        "HF_UTERUS_FUNDUS"
+      ]
+    },
+    {
+      "id": "FMA17738",
+      "name": "Body of uterus",
+      "elements": [
+        "HF_UTERUS_BODY"
+      ]
+    },
+    {
+      "id": "FMA17745",
+      "name": "Anterior wall of uterus",
+      "elements": [
+        "HF_UTERUS_ANTERIOR_WALL"
+      ]
+    },
+    {
+      "id": "FMA17746",
+      "name": "Posterior wall of uterus",
+      "elements": [
+        "HF_UTERUS_POSTERIOR_WALL"
+      ]
+    },
+    {
+      "id": "FMA17742",
+      "name": "Uterine horns (cornua)",
+      "elements": [
+        "HF_UTERUS_CORNUA"
+      ]
+    },
+    {
+      "id": "FMA17741",
+      "name": "Lower uterine segment (isthmus of uterus)",
+      "elements": [
+        "HF_UTERUS_LOWER_SEGMENT"
       ]
     },
     {
       "id": "FMA17740",
       "name": "Cervix of uterus",
       "elements": [
-        "HF_CERVIX"
+        "HF_CERVIX",
+        "HF_CERVICAL_OS_INTERNAL",
+        "HF_CERVICAL_OS_EXTERNAL"
+      ]
+    },
+    {
+      "id": "FMA17743",
+      "name": "Internal cervical os",
+      "elements": [
+        "HF_CERVICAL_OS_INTERNAL"
+      ]
+    },
+    {
+      "id": "FMA17744",
+      "name": "External cervical os",
+      "elements": [
+        "HF_CERVICAL_OS_EXTERNAL"
+      ]
+    },
+    {
+      "id": "FMA19949",
+      "name": "Vagina",
+      "elements": [
+        "HF_VAGINA"
+      ]
+    },
+    {
+      "id": "FMA19971",
+      "name": "Cervicovaginal junction & vaginal fornices",
+      "elements": [
+        "HF_CERVICOVAGINAL_JUNCTION"
       ]
     },
     {
       "id": "FMA18246",
       "name": "Left uterine tube (Fallopian tube)",
       "elements": [
-        "HF_TUBE_LEFT"
+        "HF_TUBE_ISTHMUS_LEFT",
+        "HF_TUBE_AMPULLA_LEFT",
+        "HF_TUBE_INFUNDIBULUM_LEFT",
+        "HF_TUBE_FIMBRIAE_LEFT"
       ]
     },
     {
       "id": "FMA18245",
       "name": "Right uterine tube (Fallopian tube)",
       "elements": [
-        "HF_TUBE_RIGHT"
+        "HF_TUBE_ISTHMUS_RIGHT",
+        "HF_TUBE_AMPULLA_RIGHT",
+        "HF_TUBE_INFUNDIBULUM_RIGHT",
+        "HF_TUBE_FIMBRIAE_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18304",
+      "name": "Left isthmus of uterine tube",
+      "elements": [
+        "HF_TUBE_ISTHMUS_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18303",
+      "name": "Right isthmus of uterine tube",
+      "elements": [
+        "HF_TUBE_ISTHMUS_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18300",
+      "name": "Left ampulla of uterine tube",
+      "elements": [
+        "HF_TUBE_AMPULLA_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18299",
+      "name": "Right ampulla of uterine tube",
+      "elements": [
+        "HF_TUBE_AMPULLA_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18296",
+      "name": "Left infundibulum of uterine tube",
+      "elements": [
+        "HF_TUBE_INFUNDIBULUM_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18295",
+      "name": "Right infundibulum of uterine tube",
+      "elements": [
+        "HF_TUBE_INFUNDIBULUM_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18298",
+      "name": "Left fimbriae of uterine tube",
+      "elements": [
+        "HF_TUBE_FIMBRIAE_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18297",
+      "name": "Right fimbriae of uterine tube",
+      "elements": [
+        "HF_TUBE_FIMBRIAE_RIGHT"
       ]
     },
     {
@@ -450,34 +2134,251 @@
       ]
     },
     {
-      "id": "FMA19949",
-      "name": "Vagina",
+      "id": "FMA19761",
+      "name": "Left proper ovarian ligament",
       "elements": [
-        "HF_VAGINA"
+        "HF_OVARIAN_LIGAMENT_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19760",
+      "name": "Right proper ovarian ligament",
+      "elements": [
+        "HF_OVARIAN_LIGAMENT_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19763",
+      "name": "Left suspensory ligament of ovary",
+      "elements": [
+        "HF_SUSPENSORY_OVARY_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19762",
+      "name": "Right suspensory ligament of ovary",
+      "elements": [
+        "HF_SUSPENSORY_OVARY_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19759",
+      "name": "Left round ligament of uterus",
+      "elements": [
+        "HF_ROUND_LIGAMENT_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19758",
+      "name": "Right round ligament of uterus",
+      "elements": [
+        "HF_ROUND_LIGAMENT_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19769",
+      "name": "Left cardinal (transverse cervical) ligament",
+      "elements": [
+        "HF_CARDINAL_LIGAMENT_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19768",
+      "name": "Right cardinal (transverse cervical) ligament",
+      "elements": [
+        "HF_CARDINAL_LIGAMENT_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19767",
+      "name": "Left uterosacral ligament",
+      "elements": [
+        "HF_UTEROSACRAL_LIGAMENT_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19766",
+      "name": "Right uterosacral ligament",
+      "elements": [
+        "HF_UTEROSACRAL_LIGAMENT_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19749",
+      "name": "Broad ligament of uterus",
+      "elements": [
+        "HF_BROAD_LIGAMENT"
+      ]
+    },
+    {
+      "id": "FMA19753",
+      "name": "Left mesosalpinx",
+      "elements": [
+        "HF_MESOSALPINX_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19752",
+      "name": "Right mesosalpinx",
+      "elements": [
+        "HF_MESOSALPINX_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19757",
+      "name": "Left mesovarium",
+      "elements": [
+        "HF_MESOVARIUM_LEFT"
+      ]
+    },
+    {
+      "id": "FMA19756",
+      "name": "Right mesovarium",
+      "elements": [
+        "HF_MESOVARIUM_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA19773",
+      "name": "Vesicouterine peritoneal pouch",
+      "elements": [
+        "HF_UTEROVESICAL_POUCH"
+      ]
+    },
+    {
+      "id": "FMA18824",
+      "name": "Left uterine artery",
+      "elements": [
+        "HF_UTERINE_ARTERY_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18823",
+      "name": "Right uterine artery",
+      "elements": [
+        "HF_UTERINE_ARTERY_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18908",
+      "name": "Left uterine vein",
+      "elements": [
+        "HF_UTERINE_VEIN_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18907",
+      "name": "Right uterine vein",
+      "elements": [
+        "HF_UTERINE_VEIN_RIGHT"
       ]
     },
     {
       "id": "FMA57991",
       "name": "Left mammary gland",
       "elements": [
-        "HF_MAMMARY_LEFT"
+        "HF_MAMMARY_FAT_LEFT",
+        "HF_MAMMARY_LOBES_LEFT",
+        "HF_LACTIFEROUS_DUCTS_LEFT",
+        "HF_LACTIFEROUS_SINUSES_LEFT",
+        "HF_COOPER_LIGAMENTS_LEFT",
+        "HF_AREOLA_LEFT",
+        "HF_NIPPLE_LEFT",
+        "HF_AREOLAR_TUBERCLES_LEFT"
       ]
     },
     {
       "id": "FMA57990",
       "name": "Right mammary gland",
       "elements": [
-        "HF_MAMMARY_RIGHT"
+        "HF_MAMMARY_FAT_RIGHT",
+        "HF_MAMMARY_LOBES_RIGHT",
+        "HF_LACTIFEROUS_DUCTS_RIGHT",
+        "HF_LACTIFEROUS_SINUSES_RIGHT",
+        "HF_COOPER_LIGAMENTS_RIGHT",
+        "HF_AREOLA_RIGHT",
+        "HF_NIPPLE_RIGHT",
+        "HF_AREOLAR_TUBERCLES_RIGHT"
       ]
     },
     {
       "id": "FMA9601",
       "name": "Mammary glands (bilateral)",
       "elements": [
-        "HF_MAMMARY_LEFT",
-        "HF_MAMMARY_RIGHT"
+        "HF_MAMMARY_FAT_LEFT",
+        "HF_MAMMARY_LOBES_LEFT",
+        "HF_LACTIFEROUS_DUCTS_LEFT",
+        "HF_LACTIFEROUS_SINUSES_LEFT",
+        "HF_COOPER_LIGAMENTS_LEFT",
+        "HF_AREOLA_LEFT",
+        "HF_NIPPLE_LEFT",
+        "HF_AREOLAR_TUBERCLES_LEFT",
+        "HF_MAMMARY_FAT_RIGHT",
+        "HF_MAMMARY_LOBES_RIGHT",
+        "HF_LACTIFEROUS_DUCTS_RIGHT",
+        "HF_LACTIFEROUS_SINUSES_RIGHT",
+        "HF_COOPER_LIGAMENTS_RIGHT",
+        "HF_AREOLA_RIGHT",
+        "HF_NIPPLE_RIGHT",
+        "HF_AREOLAR_TUBERCLES_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA67804",
+      "name": "Mammary gland lobes (alveolar lobules)",
+      "elements": [
+        "HF_MAMMARY_LOBES_LEFT",
+        "HF_MAMMARY_LOBES_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA67806",
+      "name": "Main lactiferous ducts",
+      "elements": [
+        "HF_LACTIFEROUS_DUCTS_LEFT",
+        "HF_LACTIFEROUS_DUCTS_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA72025",
+      "name": "Lactiferous sinuses",
+      "elements": [
+        "HF_LACTIFEROUS_SINUSES_LEFT",
+        "HF_LACTIFEROUS_SINUSES_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA76818",
+      "name": "Suspensory ligaments of breast (Cooper)",
+      "elements": [
+        "HF_COOPER_LIGAMENTS_LEFT",
+        "HF_COOPER_LIGAMENTS_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA57995",
+      "name": "Areola of breast",
+      "elements": [
+        "HF_AREOLA_LEFT",
+        "HF_AREOLA_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA67796",
+      "name": "Nipple (mammary papilla)",
+      "elements": [
+        "HF_NIPPLE_LEFT",
+        "HF_NIPPLE_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA72031",
+      "name": "Areolar glands (Montgomery tubercles)",
+      "elements": [
+        "HF_AREOLAR_TUBERCLES_LEFT",
+        "HF_AREOLAR_TUBERCLES_RIGHT"
       ]
     }
   ],
-  "triangles": 23742
+  "triangles": 121580
 }

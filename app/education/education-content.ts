@@ -1,5 +1,19 @@
-import { EDUCATION_TOPICS_PART_1 } from './education-content-part1';
-import { EDUCATION_TOPICS_PART_2 } from './education-content-part2';
+import { DOMAIN_A_ANATOMY_CHAPTERS } from './chapters/domain-a-anatomy';
+import { DOMAIN_B_CELL_CHAPTERS } from './chapters/domain-b-cell';
+import { DOMAIN_C_HISTOLOGY_CHAPTERS } from './chapters/domain-c-histology';
+import { DOMAIN_D_EMBRYOLOGY_CHAPTERS } from './chapters/domain-d-embryology';
+import { DOMAIN_E_PHYSIOLOGY_CHAPTERS } from './chapters/domain-e-physiology';
+import { DOMAIN_F_BIOCHEMISTRY_CHAPTERS } from './chapters/domain-f-biochemistry';
+import { DOMAIN_G_GENETICS_CHAPTERS } from './chapters/domain-g-genetics';
+import { DOMAIN_H_MICROBIOLOGY_CHAPTERS } from './chapters/domain-h-microbiology';
+import { DOMAIN_I_IMMUNOLOGY_CHAPTERS } from './chapters/domain-i-immunology';
+import { DOMAIN_J_PATHOLOGY_CHAPTERS } from './chapters/domain-j-pathology';
+import { DOMAIN_K_PHARMACOLOGY_CHAPTERS } from './chapters/domain-k-pharmacology';
+import { DOMAIN_L_NUTRITION_CHAPTERS } from './chapters/domain-l-nutrition';
+import { DOMAIN_M_HAEMATOLOGY_CHAPTERS } from './chapters/domain-m-haematology';
+import { DOMAIN_N_CHAPTERS } from './chapters/domain-n-radiology';
+import { DOMAIN_O_CHAPTERS } from './chapters/domain-o-clinical';
+import { DOMAIN_P_PRACTICE_CHAPTERS } from './chapters/domain-p-practice';
 import { CURRICULUM_FRAMEWORKS, EDUCATION_TRACKS } from './education-curricula';
 import { EDUCATION_DOMAINS } from './education-domains';
 import type {
@@ -10,10 +24,47 @@ import type {
   EducationTrackId,
 } from './education-types';
 
+/**
+ * Complete 16-Domain, 267-Chapter Structured Curriculum Library (Domains A–P).
+ * Preserves all 17 legacy topic IDs while delivering the full blueprint inventory.
+ */
 export const EDUCATION_TOPICS: EducationTopic[] = [
-  ...EDUCATION_TOPICS_PART_1,
-  ...EDUCATION_TOPICS_PART_2,
+  ...DOMAIN_A_ANATOMY_CHAPTERS,       // A: 14 chapters
+  ...DOMAIN_B_CELL_CHAPTERS,          // B: 10 chapters
+  ...DOMAIN_C_HISTOLOGY_CHAPTERS,     // C: 18 chapters
+  ...DOMAIN_D_EMBRYOLOGY_CHAPTERS,    // D: 18 chapters
+  ...DOMAIN_E_PHYSIOLOGY_CHAPTERS,    // E: 16 chapters
+  ...DOMAIN_F_BIOCHEMISTRY_CHAPTERS,  // F: 19 chapters
+  ...DOMAIN_G_GENETICS_CHAPTERS,      // G: 16 chapters
+  ...DOMAIN_H_MICROBIOLOGY_CHAPTERS,  // H: 16 chapters
+  ...DOMAIN_I_IMMUNOLOGY_CHAPTERS,    // I: 17 chapters
+  ...DOMAIN_J_PATHOLOGY_CHAPTERS,     // J: 20 chapters
+  ...DOMAIN_K_PHARMACOLOGY_CHAPTERS,  // K: 20 chapters
+  ...DOMAIN_L_NUTRITION_CHAPTERS,     // L: 14 chapters
+  ...DOMAIN_M_HAEMATOLOGY_CHAPTERS,   // M: 17 chapters
+  ...DOMAIN_N_CHAPTERS,               // N: 14 chapters
+  ...DOMAIN_O_CHAPTERS,               // O: 18 chapters
+  ...DOMAIN_P_PRACTICE_CHAPTERS,      // P: 20 chapters
 ];
+
+export const EXPECTED_DOMAIN_CHAPTER_COUNTS: Record<EducationDomainId, number> = {
+  human_anatomy: 14,
+  cell_biology: 10,
+  histology: 18,
+  embryology: 18,
+  human_physiology: 16,
+  biochemistry: 19,
+  molecular_genetics: 16,
+  microbiology_parasitology: 16,
+  immunology: 17,
+  pathology: 20,
+  pharmacology: 20,
+  nutrition_health: 14,
+  haematology_lab: 17,
+  radiology_imaging: 14,
+  clinical_specialties: 18,
+  clinical_skills_public_health: 20,
+};
 
 export interface ExistingPlatformMapping {
   domainId: EducationDomainId;
@@ -31,9 +82,9 @@ export const PLATFORM_RESOURCE_MAPPINGS: ExistingPlatformMapping[] = [
   {
     domainId: 'human_anatomy',
     moduleName: '3D BodyParts3D Atlas & Explorer',
-    countSummary: '2,234 selectable meshes · 3,432 FMA concepts · 12 canonical systems',
+    countSummary: '2,234 selectable meshes · 3,432 FMA concepts · 12 canonical systems · 14 HuBMAP female meshes',
     route: 'explorer',
-    note: 'Adult male reference geometry with explode, isolate, X-ray, clipping, and surgical layers.',
+    note: 'Adult reference geometry with explode, isolate, X-ray, clipping, and surgical layers.',
   },
   {
     domainId: 'human_anatomy',
@@ -71,6 +122,146 @@ export const PLATFORM_RESOURCE_MAPPINGS: ExistingPlatformMapping[] = [
     note: 'Multi-stage narration, captions, step knowledge checks, and local presentation export.',
   },
 ];
+
+export interface DomainCompletionSummary {
+  domainId: EducationDomainId;
+  code: string;
+  shortTitle: string;
+  totalChapters: number;
+  expectedChapters: number;
+  writtenCompleteCount: number;
+  readingCompleteCount: number;
+  readingLinksTotal: number;
+  presentationDecksCount: number;
+  verifiedVideosCount: number;
+  fallbackVideoScriptsCount: number;
+  mcqTotal: number;
+  shortAnswersTotal: number;
+  appliedCasesTotal: number;
+  assetBlockedChaptersCount: number;
+  completeForCoreScopeCount: number;
+  partiallyCompleteCount: number;
+  awaitingAcademicReviewCount: number;
+  facultyReviewedCount: number;
+  materialCompletionPct: number;
+  technicalAvailabilityPct: number;
+  knownLimitations: string[];
+}
+
+export interface PlatformCompletionSummary {
+  totalDomains: number;
+  totalChapters: number;
+  expectedChapters: number;
+  writtenCompleteCount: number;
+  readingLinksTotal: number;
+  presentationDecksCount: number;
+  totalSlides: number;
+  verifiedVideosCount: number;
+  fallbackVideoScriptsCount: number;
+  mcqTotal: number;
+  shortAnswersTotal: number;
+  appliedCasesTotal: number;
+  assetBlockedChaptersCount: number;
+  completeForCoreScopeCount: number;
+  partiallyCompleteCount: number;
+  awaitingAcademicReviewCount: number;
+  facultyReviewedCount: number;
+  byDomain: DomainCompletionSummary[];
+}
+
+export function getDomainCompletionSummary(domainId: EducationDomainId): DomainCompletionSummary {
+  const dom = getDomainById(domainId);
+  const topics = getTopicsByDomain(domainId);
+  const total = topics.length;
+  let writtenCompleteCount = 0;
+  let readingCompleteCount = 0;
+  let readingLinksTotal = 0;
+  let presentationDecksCount = 0;
+  let verifiedVideosCount = 0;
+  let fallbackVideoScriptsCount = 0;
+  let mcqTotal = 0;
+  let shortAnswersTotal = 0;
+  let appliedCasesTotal = 0;
+  let assetBlockedChaptersCount = 0;
+  let completeForCoreScopeCount = 0;
+  let partiallyCompleteCount = 0;
+  let awaitingAcademicReviewCount = 0;
+  let facultyReviewedCount = 0;
+  const limitationSet = new Set<string>();
+
+  for (const t of topics) {
+    const tr = t.completionTracker;
+    if (tr?.writtenMaterialStatus === 'complete_for_core_scope') writtenCompleteCount++;
+    if (tr?.readingStatus === 'complete_for_core_scope') readingCompleteCount++;
+    readingLinksTotal += t.readingLinks?.length ?? 0;
+    if (t.presentationDeck) presentationDecksCount++;
+    if (t.videoResource?.availabilityStatus === 'verified') verifiedVideosCount++;
+    if (t.videoResource?.availabilityStatus === 'unavailable_fallback_script') fallbackVideoScriptsCount++;
+    mcqTotal += t.selfChecks.length;
+    shortAnswersTotal += t.shortAnswerExercises?.length ?? 0;
+    appliedCasesTotal += t.appliedReasoningExercises?.length ?? 0;
+    if (t.assetDisclosure.status === 'asset_required') assetBlockedChaptersCount++;
+    if (tr?.overallStatus === 'complete_for_core_scope') completeForCoreScopeCount++;
+    if (tr?.overallStatus === 'partially_complete') partiallyCompleteCount++;
+    if (tr?.reviewStatus === 'awaiting_academic_review' || t.reviewStatus !== 'structured_reference') {
+      awaitingAcademicReviewCount++;
+    }
+    if ((t.reviewStatus as string) === 'faculty_reviewed') facultyReviewedCount++;
+    for (const lim of tr?.knownLimitations ?? []) {
+      limitationSet.add(lim);
+    }
+  }
+
+  return {
+    domainId,
+    code: dom?.code ?? '?',
+    shortTitle: dom?.shortTitle ?? domainId,
+    totalChapters: total,
+    expectedChapters: EXPECTED_DOMAIN_CHAPTER_COUNTS[domainId],
+    writtenCompleteCount,
+    readingCompleteCount,
+    readingLinksTotal,
+    presentationDecksCount,
+    verifiedVideosCount,
+    fallbackVideoScriptsCount,
+    mcqTotal,
+    shortAnswersTotal,
+    appliedCasesTotal,
+    assetBlockedChaptersCount,
+    completeForCoreScopeCount,
+    partiallyCompleteCount,
+    awaitingAcademicReviewCount,
+    facultyReviewedCount,
+    materialCompletionPct: total === 0 ? 0 : Math.round((writtenCompleteCount / total) * 100),
+    technicalAvailabilityPct: total === 0 ? 0 : Math.round(((total - assetBlockedChaptersCount) / total) * 100),
+    knownLimitations: Array.from(limitationSet).slice(0, 6),
+  };
+}
+
+export function getPlatformCompletionSummary(): PlatformCompletionSummary {
+  const byDomain = EDUCATION_DOMAINS.map((d) => getDomainCompletionSummary(d.id));
+  const totalSlides = EDUCATION_TOPICS.reduce((s, t) => s + (t.presentationDeck?.slides.length ?? 0), 0);
+  return {
+    totalDomains: EDUCATION_DOMAINS.length,
+    totalChapters: EDUCATION_TOPICS.length,
+    expectedChapters: Object.values(EXPECTED_DOMAIN_CHAPTER_COUNTS).reduce((a, b) => a + b, 0),
+    writtenCompleteCount: byDomain.reduce((s, d) => s + d.writtenCompleteCount, 0),
+    readingLinksTotal: byDomain.reduce((s, d) => s + d.readingLinksTotal, 0),
+    presentationDecksCount: byDomain.reduce((s, d) => s + d.presentationDecksCount, 0),
+    totalSlides,
+    verifiedVideosCount: byDomain.reduce((s, d) => s + d.verifiedVideosCount, 0),
+    fallbackVideoScriptsCount: byDomain.reduce((s, d) => s + d.fallbackVideoScriptsCount, 0),
+    mcqTotal: byDomain.reduce((s, d) => s + d.mcqTotal, 0),
+    shortAnswersTotal: byDomain.reduce((s, d) => s + d.shortAnswersTotal, 0),
+    appliedCasesTotal: byDomain.reduce((s, d) => s + d.appliedCasesTotal, 0),
+    assetBlockedChaptersCount: byDomain.reduce((s, d) => s + d.assetBlockedChaptersCount, 0),
+    completeForCoreScopeCount: byDomain.reduce((s, d) => s + d.completeForCoreScopeCount, 0),
+    partiallyCompleteCount: byDomain.reduce((s, d) => s + d.partiallyCompleteCount, 0),
+    awaitingAcademicReviewCount: byDomain.reduce((s, d) => s + d.awaitingAcademicReviewCount, 0),
+    facultyReviewedCount: byDomain.reduce((s, d) => s + d.facultyReviewedCount, 0),
+    byDomain,
+  };
+}
 
 export function getDomainById(id: EducationDomainId): EducationDomainSpec | undefined {
   return EDUCATION_DOMAINS.find((d) => d.id === id);

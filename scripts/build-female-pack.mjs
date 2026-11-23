@@ -5,24 +5,83 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 
 await MeshoptSimplifier.ready;
 
-const TMP_DIR = '/tmp/hubmap';
+const TMP_DIR = process.env.HUBMAP_DIR || '/tmp/hubmap_check';
 const OUT_DIR = path.resolve('public/models/female');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-// Co-registration from HuBMAP Visible Human Female CCF coordinates to BodyParts3D Y-up meters
-const H_CENTER = [-0.0086, 0.0590, -0.0911];
-const B_TARGET = [-0.0004, 0.9330, -0.0340];
-const REG_SCALE = [0.95, 0.97, 0.84];
+// ---------------------------------------------------------------------------
+// Two-region co-registration from HuBMAP Visible Human Female HRA v1.5 world
+// space (glTF node hierarchy resolved) into BodyParts3D Y-up meters.
+// ---------------------------------------------------------------------------
 
-function xformPoint(x, y, z) {
+// 1. Pelvis & pelvic viscera alignment (matched to BP3D Sacrum + L/R Hip + Rectum + Iliac vessels)
+const PELVIS_H_CENTER = [-0.0086, 0.0589, -0.0911];
+const PELVIS_B_TARGET = [-0.0004, 0.933, -0.034];
+const PELVIS_SCALE = [0.92, 0.97, 0.82];
+
+function xformPelvis(x, y, z) {
   return [
-    (x - H_CENTER[0]) * REG_SCALE[0] + B_TARGET[0],
-    (y - H_CENTER[1]) * REG_SCALE[1] + B_TARGET[1],
-    (z - H_CENTER[2]) * REG_SCALE[2] + B_TARGET[2],
+    (x - PELVIS_H_CENTER[0]) * PELVIS_SCALE[0] + PELVIS_B_TARGET[0],
+    (y - PELVIS_H_CENTER[1]) * PELVIS_SCALE[1] + PELVIS_B_TARGET[1],
+    (z - PELVIS_H_CENTER[2]) * PELVIS_SCALE[2] + PELVIS_B_TARGET[2],
   ];
 }
 
-function readGlb(filePath) {
+// 2. Thorax / Mammary Gland alignment (matched directly onto BP3D anterior pectoralis major fascia)
+function xformChest(x, y, z) {
+  return [
+    (x - -0.00605) * 0.96,
+    1.275 + (y - 0.414) * 0.92,
+    0.092 + (z - 0.021) * 1.0,
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// glTF 2.0 binary reader with full node-hierarchy worldMatrix evaluation
+// ---------------------------------------------------------------------------
+
+function mat4Mul(a, b) {
+  const out = new Float64Array(16);
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      out[c * 4 + r] =
+        a[0 * 4 + r] * b[c * 4 + 0] +
+        a[1 * 4 + r] * b[c * 4 + 1] +
+        a[2 * 4 + r] * b[c * 4 + 2] +
+        a[3 * 4 + r] * b[c * 4 + 3];
+    }
+  }
+  return out;
+}
+
+function nodeLocalMat(n) {
+  if (n.matrix) return Float64Array.from(n.matrix);
+  const t = n.translation || [0, 0, 0];
+  const q = n.rotation || [0, 0, 0, 1];
+  const s = n.scale || [1, 1, 1];
+  const [x, y, z, w] = q;
+  const x2 = x + x;
+  const y2 = y + y;
+  const z2 = z + z;
+  const xx = x * x2;
+  const xy = x * y2;
+  const xz = x * z2;
+  const yy = y * y2;
+  const yz = y * z2;
+  const zz = z * z2;
+  const wx = w * x2;
+  const wy = w * y2;
+  const wz = w * z2;
+  const [sx, sy, sz] = s;
+  return Float64Array.from([
+    (1 - (yy + zz)) * sx, (xy + wz) * sx, (xz - wy) * sx, 0,
+    (xy - wz) * sy, (1 - (xx + zz)) * sy, (yz + wx) * sy, 0,
+    (xz + wy) * sz, (yz - wx) * sz, (1 - (xx + yy)) * sz, 0,
+    t[0], t[1], t[2], 1,
+  ]);
+}
+
+function readGlbWithScene(filePath) {
   const buf = fs.readFileSync(filePath);
   const magic = buf.readUInt32LE(0);
   if (magic !== 0x46546c67) throw new Error(`Invalid GLB magic in ${filePath}`);
@@ -31,7 +90,33 @@ function readGlb(filePath) {
   const binOffset = 20 + jsonLen;
   const binLen = buf.readUInt32LE(binOffset);
   const bin = buf.subarray(binOffset + 8, binOffset + 8 + binLen);
-  return { gltf, bin };
+
+  const worldMats = new Array(gltf.nodes?.length ?? 0);
+  const ident = Float64Array.from([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+  const walk = (idx, parentMat) => {
+    const m = mat4Mul(parentMat, nodeLocalMat(gltf.nodes[idx]));
+    worldMats[idx] = m;
+    for (const ch of gltf.nodes[idx].children ?? []) {
+      walk(ch, m);
+    }
+  };
+  const scene = gltf.scenes?.[gltf.scene ?? 0];
+  for (const r of scene?.nodes ?? []) walk(r, ident);
+
+  return { gltf, bin, worldMats };
+}
+
+const glbCache = new Map();
+function getLoadedGlb(glbFile) {
+  if (!glbCache.has(glbFile)) {
+    glbCache.set(glbFile, readGlbWithScene(path.join(TMP_DIR, glbFile)));
+  }
+  return glbCache.get(glbFile);
 }
 
 function readAccessorPositions(gltf, bin, accIdx) {
@@ -49,43 +134,56 @@ function readAccessorPositions(gltf, bin, accIdx) {
   return out;
 }
 
-function readAccessorIndices(gltf, bin, accIdx) {
+function readAccessorIndices(gltf, bin, accIdx, vertexCount) {
+  if (accIdx === undefined) {
+    const out = new Uint32Array(vertexCount);
+    for (let i = 0; i < vertexCount; i++) out[i] = i;
+    return out;
+  }
   const acc = gltf.accessors[accIdx];
   const bv = gltf.bufferViews[acc.bufferView];
   const baseOffset = (bv.byteOffset ?? 0) + (acc.byteOffset ?? 0);
   const out = new Uint32Array(acc.count);
   if (acc.componentType === 5123) {
     const stride = bv.byteStride || 2;
-    for (let i = 0; i < acc.count; i++) {
-      out[i] = bin.readUInt16LE(baseOffset + i * stride);
-    }
+    for (let i = 0; i < acc.count; i++) out[i] = bin.readUInt16LE(baseOffset + i * stride);
   } else if (acc.componentType === 5125) {
     const stride = bv.byteStride || 4;
-    for (let i = 0; i < acc.count; i++) {
-      out[i] = bin.readUInt32LE(baseOffset + i * stride);
-    }
+    for (let i = 0; i < acc.count; i++) out[i] = bin.readUInt32LE(baseOffset + i * stride);
   } else {
     throw new Error(`Unsupported index componentType ${acc.componentType}`);
   }
   return out;
 }
 
-function extractGlbMeshes(glbFile, meshNameFilter, transformFn = xformPoint) {
-  const { gltf, bin } = readGlb(path.join(TMP_DIR, glbFile));
+function extractNodeMeshes(glbFile, nodeNamePredicate, transformFn) {
+  const { gltf, bin, worldMats } = getLoadedGlb(glbFile);
   const posList = [];
   const idxList = [];
   let vertOffset = 0;
 
-  for (const mesh of gltf.meshes ?? []) {
-    if (meshNameFilter && !meshNameFilter(mesh.name ?? '')) continue;
+  for (let ni = 0; ni < (gltf.nodes?.length ?? 0); ni++) {
+    const node = gltf.nodes[ni];
+    if (node.mesh === undefined) continue;
+    const mesh = gltf.meshes[node.mesh];
+    const name = node.name || mesh.name || '';
+    if (!nodeNamePredicate(name)) continue;
+
+    const m = worldMats[ni];
     for (const prim of mesh.primitives ?? []) {
       const posAccIdx = prim.attributes?.POSITION;
-      const idxAccIdx = prim.indices;
-      if (posAccIdx === undefined || idxAccIdx === undefined) continue;
+      if (posAccIdx === undefined) continue;
       const rawPos = readAccessorPositions(gltf, bin, posAccIdx);
-      const rawIdx = readAccessorIndices(gltf, bin, idxAccIdx);
+      const rawIdx = readAccessorIndices(gltf, bin, prim.indices, rawPos.length / 3);
+
       for (let i = 0; i < rawPos.length; i += 3) {
-        const [tx, ty, tz] = transformFn(rawPos[i], rawPos[i + 1], rawPos[i + 2]);
+        const x = rawPos[i];
+        const y = rawPos[i + 1];
+        const z = rawPos[i + 2];
+        const wx = m[0] * x + m[4] * y + m[8] * z + m[12];
+        const wy = m[1] * x + m[5] * y + m[9] * z + m[13];
+        const wz = m[2] * x + m[6] * y + m[10] * z + m[14];
+        const [tx, ty, tz] = transformFn(wx, wy, wz);
         posList.push(tx, ty, tz);
       }
       for (let i = 0; i < rawIdx.length; i++) {
@@ -94,8 +192,9 @@ function extractGlbMeshes(glbFile, meshNameFilter, transformFn = xformPoint) {
       vertOffset += rawPos.length / 3;
     }
   }
+
   if (posList.length === 0 || idxList.length === 0) {
-    throw new Error(`No matching geometry extracted from ${glbFile}`);
+    throw new Error(`No matching node geometry extracted from ${glbFile}`);
   }
   return {
     positions: new Float32Array(posList),
@@ -103,8 +202,7 @@ function extractGlbMeshes(glbFile, meshNameFilter, transformFn = xformPoint) {
   };
 }
 
-function weldAndSimplify({ positions, indices }, targetTriangles, minTriangles = 180) {
-  // Weld coincident vertices for smooth normals + clean meshopt simplification
+function weldAndSimplify({ positions, indices }, targetTriangles, minTriangles = 80, checkWinding = false) {
   const vertCount = positions.length / 3;
   const map = new Map();
   const remap = new Uint32Array(vertCount);
@@ -138,19 +236,20 @@ function weldAndSimplify({ positions, indices }, targetTriangles, minTriangles =
 
   if (currentTris > targetTriangles && currentTris > minTriangles) {
     const goal = Math.max(minTriangles, targetTriangles) * 3;
-    const [simplified] = MeshoptSimplifier.simplify(curIdx, curPos, 3, goal, 0.003);
-    const [compactRemap, count] = MeshoptSimplifier.compactMesh(simplified);
-    const nextPos = new Float32Array(count * 3);
-    for (let old = 0; old < compactRemap.length; old++) {
-      const n = compactRemap[old];
-      if (n === 0xffffffff) continue;
-      nextPos.set(curPos.subarray(old * 3, old * 3 + 3), n * 3);
+    const [simplified] = MeshoptSimplifier.simplify(curIdx, curPos, 3, goal, 0.0025);
+    if (simplified.length / 3 >= Math.min(minTriangles, 50)) {
+      const [compactRemap, count] = MeshoptSimplifier.compactMesh(simplified);
+      const nextPos = new Float32Array(count * 3);
+      for (let old = 0; old < compactRemap.length; old++) {
+        const n = compactRemap[old];
+        if (n === 0xffffffff) continue;
+        nextPos.set(curPos.subarray(old * 3, old * 3 + 3), n * 3);
+      }
+      curPos = nextPos;
+      curIdx = simplified;
     }
-    curPos = nextPos;
-    curIdx = simplified;
   }
 
-  // Compute smooth vertex normals -> Int16Array normalized
   const vLen = curPos.length / 3;
   const accum = new Float32Array(vLen * 3);
   for (let i = 0; i < curIdx.length; i += 3) {
@@ -187,32 +286,34 @@ function weldAndSimplify({ positions, indices }, targetTriangles, minTriangles =
     }
   }
 
-  const cx = (bmin[0] + bmax[0]) * 0.5;
-  const cy = (bmin[1] + bmax[1]) * 0.5;
-  const cz = (bmin[2] + bmax[2]) * 0.5;
-  let dotSum = 0;
-  for (let i = 0; i < curPos.length; i += 3) {
-    dotSum += (curPos[i] - cx) * normals[i] + (curPos[i + 1] - cy) * normals[i + 1] + (curPos[i + 2] - cz) * normals[i + 2];
-  }
-  if (dotSum < 0) {
-    for (let i = 0; i < curIdx.length; i += 3) {
-      const tmp = curIdx[i + 1];
-      curIdx[i + 1] = curIdx[i + 2];
-      curIdx[i + 2] = tmp;
+  if (checkWinding) {
+    const cx = (bmin[0] + bmax[0]) * 0.5;
+    const cy = (bmin[1] + bmax[1]) * 0.5;
+    const cz = (bmin[2] + bmax[2]) * 0.5;
+    let dotSum = 0;
+    for (let i = 0; i < curPos.length; i += 3) {
+      dotSum +=
+        (curPos[i] - cx) * normals[i] +
+        (curPos[i + 1] - cy) * normals[i + 1] +
+        (curPos[i + 2] - cz) * normals[i + 2];
     }
-    for (let i = 0; i < normals.length; i++) {
-      normals[i] = -normals[i];
+    if (dotSum < 0) {
+      for (let i = 0; i < curIdx.length; i += 3) {
+        const tmp = curIdx[i + 1];
+        curIdx[i + 1] = curIdx[i + 2];
+        curIdx[i + 2] = tmp;
+      }
+      for (let i = 0; i < normals.length; i++) normals[i] = -normals[i];
     }
   }
 
   return { positions: curPos, normals, indices: curIdx, bounds: [bmin, bmax] };
 }
 
-function buildTubeMesh(points, radiusFn, radialSegments = 24, squashX = 1.0, squashZ = 1.0) {
+function buildTubeMesh(points, radiusFn, radialSegments = 16) {
   const rings = points.length;
   const pos = [];
   const idx = [];
-
   for (let r = 0; r < rings; r++) {
     const p = points[r];
     const pPrev = points[Math.max(0, r - 1)];
@@ -222,204 +323,412 @@ function buildTubeMesh(points, radiusFn, radialSegments = 24, squashX = 1.0, squ
     let tz = pNext[2] - pPrev[2];
     const tLen = Math.hypot(tx, ty, tz) || 1;
     tx /= tLen; ty /= tLen; tz /= tLen;
-
-    // Reference axis for frame
     let rx = 1, ry = 0, rz = 0;
     if (Math.abs(tx) > 0.9) { rx = 0; ry = 0; rz = 1; }
-    // bitangent = normalize(T x R)
     let bx = ty * rz - tz * ry;
     let by = tz * rx - tx * rz;
     let bz = tx * ry - ty * rx;
     const bLen = Math.hypot(bx, by, bz) || 1;
     bx /= bLen; by /= bLen; bz /= bLen;
-    // normal = B x T
     const nx = by * tz - bz * ty;
     const ny = bz * tx - bx * tz;
     const nz = bx * ty - by * tx;
-
     const rad = radiusFn(r / (rings - 1));
     for (let s = 0; s < radialSegments; s++) {
       const ang = (s / radialSegments) * Math.PI * 2;
-      const ca = Math.cos(ang) * rad * squashX;
-      const sa = Math.sin(ang) * rad * squashZ;
-      pos.push(
-        p[0] + nx * ca + bx * sa,
-        p[1] + ny * ca + by * sa,
-        p[2] + nz * ca + bz * sa,
-      );
+      const ca = Math.cos(ang) * rad;
+      const sa = Math.sin(ang) * rad;
+      pos.push(p[0] + nx * ca + bx * sa, p[1] + ny * ca + by * sa, p[2] + nz * ca + bz * sa);
     }
   }
-
-  // Bottom and top center vertices to cap cleanly
-  const firstCenterIdx = rings * radialSegments;
+  const firstCenter = rings * radialSegments;
   pos.push(...points[0]);
-  const lastCenterIdx = firstCenterIdx + 1;
+  const lastCenter = firstCenter + 1;
   pos.push(...points[rings - 1]);
-
   for (let r = 0; r < rings - 1; r++) {
     for (let s = 0; s < radialSegments; s++) {
-      const sNext = (s + 1) % radialSegments;
+      const sn = (s + 1) % radialSegments;
       const a = r * radialSegments + s;
-      const b = r * radialSegments + sNext;
+      const b = r * radialSegments + sn;
       const c = (r + 1) * radialSegments + s;
-      const d = (r + 1) * radialSegments + sNext;
+      const d = (r + 1) * radialSegments + sn;
       idx.push(a, c, b, b, c, d);
     }
   }
   for (let s = 0; s < radialSegments; s++) {
-    const sNext = (s + 1) % radialSegments;
-    idx.push(firstCenterIdx, s, sNext);
+    const sn = (s + 1) % radialSegments;
+    idx.push(firstCenter, s, sn);
     const lastRing = (rings - 1) * radialSegments;
-    idx.push(lastCenterIdx, lastRing + sNext, lastRing + s);
+    idx.push(lastCenter, lastRing + sn, lastRing + s);
   }
-
   return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
 }
 
-function buildMammaryMesh(sideSign) {
-  // sideSign: +1 = Anatomical Left (+X), -1 = Anatomical Right (-X)
-  // Chest seat anchored directly to sternum/pectoralis major anterior surface (y = 1.21..1.34, z = 0.095..0.118)
-  const cx = sideSign * 0.092;
-  const cy = 1.270;
-  const cz = 0.098;
-  const uSegs = 28;
-  const vSegs = 22;
-  const pos = [];
-  const idx = [];
+const HUBMAP_SOURCE =
+  'HuBMAP HRA v1.5 Visible Human Female 3D Reference Library (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586)';
+const MAMMARY_SOURCE =
+  'HuBMAP HRA v1.1 Visible Human Female Mammary Gland (CC BY 4.0)';
 
-  for (let iv = 0; iv <= vSegs; iv++) {
-    const v = iv / vSegs; // 0 = base against chest wall, 1 = nipple apex
-    for (let iu = 0; iu <= uSegs; iu++) {
-      const u = (iu / uSegs) * Math.PI * 2;
-      const cu = Math.cos(u);
-      const su = Math.sin(u);
-      // Natural teardrop anatomical slope: fuller inferior-lateral lobe, tapering smoothly superiorly
-      const radialT = Math.cos(v * Math.PI * 0.5);
-      const lobularMod = 1 + 0.032 * Math.cos(u * 7 + v * 2.2) * Math.sin(v * Math.PI);
-      const rx = 0.056 * radialT * lobularMod;
-      const ry = (su < 0 ? 0.064 : 0.056) * radialT * lobularMod;
+const pExact = (exact) => (n) => n === exact;
 
-      let localX = cu * rx + sideSign * 0.008 * Math.sin(v * Math.PI);
-      // Slight natural lateral-inferior sag of mammary corpus
-      let localY = su * ry - 0.014 * Math.pow(Math.sin(v * Math.PI * 0.5), 1.4);
-      // Anterior projection + subtle areolar/nipple landmark near apex v > 0.85
-      let localZ = 0.056 * Math.sin(v * Math.PI * 0.5);
-      if (v > 0.86) {
-        const nipT = (v - 0.86) / 0.14;
-        localZ += 0.008 * Math.sin(nipT * Math.PI * 0.5);
-        localX *= 0.82;
-        localY *= 0.82;
-      }
-      // Subtle ribcage posterior curvature wrap
-      localZ -= 0.010 * Math.pow(cu, 2) * (1 - v);
-
-      pos.push(cx + localX, cy + localY, cz + localZ);
-    }
-  }
-
-  for (let iv = 0; iv < vSegs; iv++) {
-    for (let iu = 0; iu < uSegs; iu++) {
-      const a = iv * (uSegs + 1) + iu;
-      const b = a + 1;
-      const c = a + (uSegs + 1);
-      const d = c + 1;
-      idx.push(a, b, c, b, d, c);
-    }
-  }
-
-  return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
-}
-
-// 1. Extract & simplify real HuBMAP CC BY 4.0 GLBs
+// ---------------------------------------------------------------------------
+// 1. Real HuBMAP CC BY 4.0 Female Pelvic, Reproductive, Urinary, Vascular &
+//    Mammary Gland Meshes
+// ---------------------------------------------------------------------------
 const rawDefinitions = [
+  // --- Bony Pelvis (Skeletal) ---
   {
     id: 'HF_SACRUM',
-    name: 'Female sacrum & coccyx',
+    name: 'Female sacrum',
     conceptId: 'FMA16202',
     system: 'skeletal',
-    source: 'HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)',
-    geom: extractGlbMeshes('pelvis.glb', (n) => /sacrum|coccyx/i.test(n)),
-    targetTris: 2600,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_sacrum'), xformPelvis),
+    targetTris: 2200,
     minTris: 600,
   },
   {
-    id: 'HF_HIP_LEFT',
-    name: 'Left female hip bone (pelvis)',
-    conceptId: 'FMA16586',
+    id: 'HF_COCCYX',
+    name: 'Coccyx (tailbone)',
+    conceptId: 'FMA20225',
     system: 'skeletal',
-    source: 'HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)',
-    geom: extractGlbMeshes('pelvis.glb', (n) => /compact_bone_L/i.test(n)),
-    targetTris: 2800,
-    minTris: 700,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_coccyx'), xformPelvis),
+    targetTris: 550,
+    minTris: 180,
   },
   {
-    id: 'HF_HIP_RIGHT',
-    name: 'Right female hip bone (pelvis)',
-    conceptId: 'FMA16585',
+    id: 'HF_ILIUM_LEFT',
+    name: 'Left female ilium',
+    conceptId: 'FMA16589',
     system: 'skeletal',
-    source: 'HuBMAP HRA v2.x Visible Human Female Pelvis (CC BY 4.0)',
-    geom: extractGlbMeshes('pelvis.glb', (n) => /compact_bone_R/i.test(n)),
-    targetTris: 2800,
-    minTris: 700,
-  },
-  {
-    id: 'HF_BLADDER',
-    name: 'Female urinary bladder',
-    conceptId: 'FMA15900',
-    system: 'urinary',
-    source: 'HuBMAP HRA v2.x Visible Human Female Urinary Bladder (CC BY 4.0)',
-    geom: extractGlbMeshes('bladder.glb', (n) => !/ureteral_orifice/i.test(n)),
-    targetTris: 2200,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ilium_compact_bone_L'), xformPelvis),
+    targetTris: 1800,
     minTris: 500,
   },
   {
-    id: 'HF_UTERUS',
-    name: 'Uterus (Fundus & Body)',
-    conceptId: 'FMA17558',
+    id: 'HF_ILIUM_RIGHT',
+    name: 'Right female ilium',
+    conceptId: 'FMA16588',
+    system: 'skeletal',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ilium_compact_bone_R'), xformPelvis),
+    targetTris: 1800,
+    minTris: 500,
+  },
+  {
+    id: 'HF_ISCHIUM_LEFT',
+    name: 'Left female ischium',
+    conceptId: 'FMA16593',
+    system: 'skeletal',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ischium_compact_bone_L'), xformPelvis),
+    targetTris: 1000,
+    minTris: 350,
+  },
+  {
+    id: 'HF_ISCHIUM_RIGHT',
+    name: 'Right female ischium',
+    conceptId: 'FMA16592',
+    system: 'skeletal',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ischium_compact_bone_R'), xformPelvis),
+    targetTris: 1000,
+    minTris: 350,
+  },
+  {
+    id: 'HF_PUBIS_LEFT',
+    name: 'Left female pubis',
+    conceptId: 'FMA16596',
+    system: 'skeletal',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_pubis_compact_bone_L'), xformPelvis),
+    targetTris: 1000,
+    minTris: 350,
+  },
+  {
+    id: 'HF_PUBIS_RIGHT',
+    name: 'Right female pubis',
+    conceptId: 'FMA16595',
+    system: 'skeletal',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_pubis_compact_bone_R'), xformPelvis),
+    targetTris: 1000,
+    minTris: 350,
+  },
+
+  // --- Female Urinary Bladder & Orifices (Urinary) ---
+  {
+    id: 'HF_BLADDER_DOME',
+    name: 'Dome of urinary bladder',
+    conceptId: 'FMA15900',
+    system: 'urinary',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_fundus_of_urinary_bladder_dome'), xformPelvis),
+    targetTris: 1400,
+    minTris: 400,
+  },
+  {
+    id: 'HF_BLADDER_BASE',
+    name: 'Body & base of urinary bladder',
+    conceptId: 'FMA15916',
+    system: 'urinary',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_fundus_of_urinary_bladder_base'), xformPelvis),
+    targetTris: 1800,
+    minTris: 450,
+  },
+  {
+    id: 'HF_BLADDER_TRIGONE',
+    name: 'Trigone of urinary bladder',
+    conceptId: 'FMA15926',
+    system: 'urinary',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_trigone_of_urinary_bladder'), xformPelvis),
+    targetTris: 600,
+    minTris: 200,
+  },
+  {
+    id: 'HF_BLADDER_NECK',
+    name: 'Neck of urinary bladder',
+    conceptId: 'FMA15924',
+    system: 'urinary',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_urinary_bladder_neck_smooth_muscle'), xformPelvis),
+    targetTris: 600,
+    minTris: 200,
+  },
+  {
+    id: 'HF_URETERAL_ORIFICE_LEFT',
+    name: 'Left ureteric orifice',
+    conceptId: 'FMA15931',
+    system: 'urinary',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ureteral_orifice_L'), xformPelvis),
+    targetTris: 194,
+    minTris: 90,
+  },
+  {
+    id: 'HF_URETERAL_ORIFICE_RIGHT',
+    name: 'Right ureteric orifice',
+    conceptId: 'FMA15930',
+    system: 'urinary',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ureteral_orifice_R'), xformPelvis),
+    targetTris: 180,
+    minTris: 90,
+  },
+
+  // --- Uterus & Cervix Regions (Reproductive) ---
+  {
+    id: 'HF_UTERUS_FUNDUS',
+    name: 'Fundus of uterus',
+    conceptId: 'FMA17739',
     system: 'reproductive',
-    source: 'HuBMAP HRA v2.x Visible Human Female Uterus (CC BY 4.0)',
-    geom: extractGlbMeshes('uterus.glb', (n) => !/cervix|cervicovaginal|cervical_os/i.test(n)),
-    targetTris: 2400,
-    minTris: 600,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_fundus_of_uterus'), xformPelvis),
+    targetTris: 900,
+    minTris: 300,
+  },
+  {
+    id: 'HF_UTERUS_BODY',
+    name: 'Body of uterus',
+    conceptId: 'FMA17738',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_body_of_uterus'), xformPelvis),
+    targetTris: 1200,
+    minTris: 400,
+  },
+  {
+    id: 'HF_UTERUS_ANTERIOR_WALL',
+    name: 'Anterior wall of uterus',
+    conceptId: 'FMA17745',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_anterior_wall_of_uterus'), xformPelvis),
+    targetTris: 1200,
+    minTris: 350,
+  },
+  {
+    id: 'HF_UTERUS_POSTERIOR_WALL',
+    name: 'Posterior wall of uterus',
+    conceptId: 'FMA17746',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_posterior_wall_of_uterus'), xformPelvis),
+    targetTris: 1200,
+    minTris: 350,
+  },
+  {
+    id: 'HF_UTERUS_CORNUA',
+    name: 'Uterine horns (cornua)',
+    conceptId: 'FMA17742',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes(
+      'united_f.glb',
+      (n) => n === 'VH_F_cornua' || n === 'VH_F_abdominal_ostium_of_uterine_tube',
+      xformPelvis,
+    ),
+    targetTris: 800,
+    minTris: 250,
+  },
+  {
+    id: 'HF_UTERUS_LOWER_SEGMENT',
+    name: 'Lower uterine segment (isthmus of uterus)',
+    conceptId: 'FMA17741',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_lower_uterine_segment'), xformPelvis),
+    targetTris: 700,
+    minTris: 220,
   },
   {
     id: 'HF_CERVIX',
     name: 'Cervix of uterus',
     conceptId: 'FMA17740',
     system: 'reproductive',
-    source: 'HuBMAP HRA v2.x Visible Human Female Uterus (CC BY 4.0)',
-    geom: extractGlbMeshes('uterus.glb', (n) => /cervix|cervicovaginal|cervical_os/i.test(n)),
-    targetTris: 1200,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_cervix'), xformPelvis),
+    targetTris: 1000,
     minTris: 350,
   },
   {
-    id: 'HF_TUBE_LEFT',
-    name: 'Left uterine tube (Fallopian tube)',
-    conceptId: 'FMA18246',
+    id: 'HF_CERVICAL_OS_INTERNAL',
+    name: 'Internal cervical os',
+    conceptId: 'FMA17743',
     system: 'reproductive',
-    source: 'HuBMAP HRA v2.x Visible Human Female Fallopian Tube (CC BY 4.0)',
-    geom: extractGlbMeshes('tube_l.glb'),
-    targetTris: 1400,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_internal_cervical_os'), xformPelvis),
+    targetTris: 216,
+    minTris: 100,
+  },
+  {
+    id: 'HF_CERVICAL_OS_EXTERNAL',
+    name: 'External cervical os',
+    conceptId: 'FMA17744',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_external_cervical_os'), xformPelvis),
+    targetTris: 270,
+    minTris: 120,
+  },
+
+  // --- Vagina & Cervicovaginal Junction (REAL HuBMAP scan!) ---
+  {
+    id: 'HF_VAGINA',
+    name: 'Vagina',
+    conceptId: 'FMA19949',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_vagina'), xformPelvis),
+    targetTris: 1600,
+    minTris: 500,
+  },
+  {
+    id: 'HF_CERVICOVAGINAL_JUNCTION',
+    name: 'Cervicovaginal junction & vaginal fornices',
+    conceptId: 'FMA19971',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_cervicovaginal_junction'), xformPelvis),
+    targetTris: 900,
+    minTris: 300,
+  },
+
+  // --- Fallopian (Uterine) Tube Regions ---
+  {
+    id: 'HF_TUBE_ISTHMUS_LEFT',
+    name: 'Left isthmus of uterine tube',
+    conceptId: 'FMA18304',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_isthmus_of_fallopian_tube_L'), xformPelvis),
+    targetTris: 600,
+    minTris: 220,
+  },
+  {
+    id: 'HF_TUBE_ISTHMUS_RIGHT',
+    name: 'Right isthmus of uterine tube',
+    conceptId: 'FMA18303',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_isthmus_of_fallopian_tube_R'), xformPelvis),
+    targetTris: 600,
+    minTris: 220,
+  },
+  {
+    id: 'HF_TUBE_AMPULLA_LEFT',
+    name: 'Left ampulla of uterine tube',
+    conceptId: 'FMA18300',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ampulla_of_uterine_tube_L'), xformPelvis),
+    targetTris: 1200,
     minTris: 400,
   },
   {
-    id: 'HF_TUBE_RIGHT',
-    name: 'Right uterine tube (Fallopian tube)',
-    conceptId: 'FMA18245',
+    id: 'HF_TUBE_AMPULLA_RIGHT',
+    name: 'Right ampulla of uterine tube',
+    conceptId: 'FMA18299',
     system: 'reproductive',
-    source: 'HuBMAP HRA v2.x Visible Human Female Fallopian Tube (CC BY 4.0)',
-    geom: extractGlbMeshes('tube_r.glb'),
-    targetTris: 1400,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ampulla_of_uterine_tube_R'), xformPelvis),
+    targetTris: 1200,
     minTris: 400,
   },
+  {
+    id: 'HF_TUBE_INFUNDIBULUM_LEFT',
+    name: 'Left infundibulum of uterine tube',
+    conceptId: 'FMA18296',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_uterine_tube_infundibulum_L'), xformPelvis),
+    targetTris: 700,
+    minTris: 250,
+  },
+  {
+    id: 'HF_TUBE_INFUNDIBULUM_RIGHT',
+    name: 'Right infundibulum of uterine tube',
+    conceptId: 'FMA18295',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_uterine_tube_infundibulum_R'), xformPelvis),
+    targetTris: 700,
+    minTris: 250,
+  },
+  {
+    id: 'HF_TUBE_FIMBRIAE_LEFT',
+    name: 'Left fimbriae of uterine tube',
+    conceptId: 'FMA18298',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_fibria_of_uterine_tube_L'), xformPelvis),
+    targetTris: 900,
+    minTris: 300,
+  },
+  {
+    id: 'HF_TUBE_FIMBRIAE_RIGHT',
+    name: 'Right fimbriae of uterine tube',
+    conceptId: 'FMA18297',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_fibria_of_uterine_tube_R'), xformPelvis),
+    targetTris: 900,
+    minTris: 300,
+  },
+
+  // --- Ovaries & Pelvic Supporting Ligaments ---
   {
     id: 'HF_OVARY_LEFT',
     name: 'Left ovary',
     conceptId: 'FMA7214',
     system: 'reproductive',
-    source: 'HuBMAP HRA v2.x Visible Human Female Ovary (CC BY 4.0)',
-    geom: extractGlbMeshes('ovary_l.glb'),
-    targetTris: 400,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_left_ovary'), xformPelvis),
+    targetTris: 424,
     minTris: 180,
   },
   {
@@ -427,14 +736,380 @@ const rawDefinitions = [
     name: 'Right ovary',
     conceptId: 'FMA7213',
     system: 'reproductive',
-    source: 'HuBMAP HRA v2.x Visible Human Female Ovary (CC BY 4.0)',
-    geom: extractGlbMeshes('ovary_r.glb'),
-    targetTris: 400,
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_right_ovary'), xformPelvis),
+    targetTris: 410,
     minTris: 180,
+  },
+  {
+    id: 'HF_OVARIAN_LIGAMENT_LEFT',
+    name: 'Left proper ovarian ligament',
+    conceptId: 'FMA19761',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ovarian_ligament_L'), xformPelvis),
+    targetTris: 208,
+    minTris: 100,
+  },
+  {
+    id: 'HF_OVARIAN_LIGAMENT_RIGHT',
+    name: 'Right proper ovarian ligament',
+    conceptId: 'FMA19760',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_ovarian_ligament_R'), xformPelvis),
+    targetTris: 198,
+    minTris: 100,
+  },
+  {
+    id: 'HF_SUSPENSORY_OVARY_LEFT',
+    name: 'Left suspensory ligament of ovary',
+    conceptId: 'FMA19763',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_suspensory_ligament_of_ovary_L'), xformPelvis),
+    targetTris: 450,
+    minTris: 180,
+  },
+  {
+    id: 'HF_SUSPENSORY_OVARY_RIGHT',
+    name: 'Right suspensory ligament of ovary',
+    conceptId: 'FMA19762',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_suspensory_ligament_of_ovary_R'), xformPelvis),
+    targetTris: 450,
+    minTris: 180,
+  },
+  {
+    // Note: in HuBMAP united_f.glb, VH_F_right_round_ligament_of_uterus lies on +X (anatomical Left)
+    // and VH_F_left_round_ligament_of_uterus lies on -X (anatomical Right). Mapped strictly by laterality (+X/-X).
+    id: 'HF_ROUND_LIGAMENT_LEFT',
+    name: 'Left round ligament of uterus',
+    conceptId: 'FMA19759',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_right_round_ligament_of_uterus'), xformPelvis),
+    targetTris: 450,
+    minTris: 180,
+  },
+  {
+    id: 'HF_ROUND_LIGAMENT_RIGHT',
+    name: 'Right round ligament of uterus',
+    conceptId: 'FMA19758',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_left_round_ligament_of_uterus'), xformPelvis),
+    targetTris: 450,
+    minTris: 180,
+  },
+  {
+    id: 'HF_CARDINAL_LIGAMENT_LEFT',
+    name: 'Left cardinal (transverse cervical) ligament',
+    conceptId: 'FMA19769',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_left_cardinal_ligament_of_uterus'), xformPelvis),
+    targetTris: 800,
+    minTris: 250,
+  },
+  {
+    id: 'HF_CARDINAL_LIGAMENT_RIGHT',
+    name: 'Right cardinal (transverse cervical) ligament',
+    conceptId: 'FMA19768',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_right_cardinal_ligament_of_uterus'), xformPelvis),
+    targetTris: 800,
+    minTris: 250,
+  },
+  {
+    id: 'HF_UTEROSACRAL_LIGAMENT_LEFT',
+    name: 'Left uterosacral ligament',
+    conceptId: 'FMA19767',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_left_uterosacral_ligament'), xformPelvis),
+    targetTris: 600,
+    minTris: 200,
+  },
+  {
+    id: 'HF_UTEROSACRAL_LIGAMENT_RIGHT',
+    name: 'Right uterosacral ligament',
+    conceptId: 'FMA19766',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_right_uterosacral_ligament'), xformPelvis),
+    targetTris: 600,
+    minTris: 200,
+  },
+  {
+    id: 'HF_BROAD_LIGAMENT',
+    name: 'Broad ligament of uterus',
+    conceptId: 'FMA19749',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_broad_ligament'), xformPelvis),
+    targetTris: 1600,
+    minTris: 450,
+  },
+  {
+    id: 'HF_MESOSALPINX_LEFT',
+    name: 'Left mesosalpinx',
+    conceptId: 'FMA19753',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_mesosalpinx_L'), xformPelvis),
+    targetTris: 500,
+    minTris: 180,
+  },
+  {
+    id: 'HF_MESOSALPINX_RIGHT',
+    name: 'Right mesosalpinx',
+    conceptId: 'FMA19752',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_mesosalpinx_R'), xformPelvis),
+    targetTris: 500,
+    minTris: 180,
+  },
+  {
+    id: 'HF_MESOVARIUM_LEFT',
+    name: 'Left mesovarium',
+    conceptId: 'FMA19757',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_mesovarium_L'), xformPelvis),
+    targetTris: 350,
+    minTris: 120,
+  },
+  {
+    id: 'HF_MESOVARIUM_RIGHT',
+    name: 'Right mesovarium',
+    conceptId: 'FMA19756',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_mesovarium_R'), xformPelvis),
+    targetTris: 183,
+    minTris: 90,
+  },
+  {
+    id: 'HF_UTEROVESICAL_POUCH',
+    name: 'Vesicouterine peritoneal pouch',
+    conceptId: 'FMA19773',
+    system: 'reproductive',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_uterovesical_pouch'), xformPelvis),
+    targetTris: 1200,
+    minTris: 350,
+  },
+
+  // --- Female Uterine Blood Supply (Arterial / Venous) ---
+  {
+    id: 'HF_UTERINE_ARTERY_LEFT',
+    name: 'Left uterine artery',
+    conceptId: 'FMA18824',
+    system: 'arterial',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_left_uterine_artery'), xformPelvis),
+    targetTris: 500,
+    minTris: 200,
+  },
+  {
+    id: 'HF_UTERINE_ARTERY_RIGHT',
+    name: 'Right uterine artery',
+    conceptId: 'FMA18823',
+    system: 'arterial',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_right_uterine_artery'), xformPelvis),
+    targetTris: 500,
+    minTris: 200,
+  },
+  {
+    id: 'HF_UTERINE_VEIN_LEFT',
+    name: 'Left uterine vein',
+    conceptId: 'FMA18908',
+    system: 'venous',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_left_uterine_vein'), xformPelvis),
+    targetTris: 600,
+    minTris: 220,
+  },
+  {
+    id: 'HF_UTERINE_VEIN_RIGHT',
+    name: 'Right uterine vein',
+    conceptId: 'FMA18907',
+    system: 'venous',
+    source: HUBMAP_SOURCE,
+    geom: extractNodeMeshes('united_f.glb', pExact('VH_F_right_uterine_vein'), xformPelvis),
+    targetTris: 600,
+    minTris: 220,
+  },
+
+  // --- Female Mammary Glands: Detailed Sub-Structures (mam_l.glb & mam_r.glb) ---
+  {
+    id: 'HF_MAMMARY_FAT_LEFT',
+    name: 'Left mammary adipose stroma',
+    conceptId: 'FMA57991',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_fat_L'), xformChest),
+    targetTris: 2200,
+    minTris: 600,
+  },
+  {
+    id: 'HF_MAMMARY_FAT_RIGHT',
+    name: 'Right mammary adipose stroma',
+    conceptId: 'FMA57990',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_fat_R'), xformChest),
+    targetTris: 2200,
+    minTris: 600,
+  },
+  {
+    id: 'HF_MAMMARY_LOBES_LEFT',
+    name: 'Left mammary gland lobes (alveolar lobules)',
+    conceptId: 'FMA67804',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_mammary_lobes_L'), xformChest),
+    targetTris: 2400,
+    minTris: 700,
+  },
+  {
+    id: 'HF_MAMMARY_LOBES_RIGHT',
+    name: 'Right mammary gland lobes (alveolar lobules)',
+    conceptId: 'FMA67804',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_mammary_lobes_R'), xformChest),
+    targetTris: 2400,
+    minTris: 700,
+  },
+  {
+    id: 'HF_LACTIFEROUS_DUCTS_LEFT',
+    name: 'Left main lactiferous ducts',
+    conceptId: 'FMA67806',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_main_lactiferous_ducts_L'), xformChest),
+    targetTris: 1600,
+    minTris: 500,
+  },
+  {
+    id: 'HF_LACTIFEROUS_DUCTS_RIGHT',
+    name: 'Right main lactiferous ducts',
+    conceptId: 'FMA67806',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_main_lactiferous_ducts_R'), xformChest),
+    targetTris: 1600,
+    minTris: 500,
+  },
+  {
+    id: 'HF_LACTIFEROUS_SINUSES_LEFT',
+    name: 'Left lactiferous sinuses',
+    conceptId: 'FMA72025',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_main_lactiferous_sinuses_L'), xformChest),
+    targetTris: 800,
+    minTris: 260,
+  },
+  {
+    id: 'HF_LACTIFEROUS_SINUSES_RIGHT',
+    name: 'Right lactiferous sinuses',
+    conceptId: 'FMA72025',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_main_lactiferous_sinuses_R'), xformChest),
+    targetTris: 800,
+    minTris: 260,
+  },
+  {
+    id: 'HF_COOPER_LIGAMENTS_LEFT',
+    name: 'Left suspensory ligaments of breast (Cooper)',
+    conceptId: 'FMA76818',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_suspensory_ligaments_L'), xformChest),
+    targetTris: 1800,
+    minTris: 500,
+  },
+  {
+    id: 'HF_COOPER_LIGAMENTS_RIGHT',
+    name: 'Right suspensory ligaments of breast (Cooper)',
+    conceptId: 'FMA76818',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_suspensory_ligaments_R'), xformChest),
+    targetTris: 1800,
+    minTris: 500,
+  },
+  {
+    id: 'HF_AREOLA_LEFT',
+    name: 'Left areola of breast',
+    conceptId: 'FMA57995',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_areola_L'), xformChest),
+    targetTris: 700,
+    minTris: 240,
+  },
+  {
+    id: 'HF_AREOLA_RIGHT',
+    name: 'Right areola of breast',
+    conceptId: 'FMA57995',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_areola_R'), xformChest),
+    targetTris: 700,
+    minTris: 240,
+  },
+  {
+    id: 'HF_NIPPLE_LEFT',
+    name: 'Left nipple (mammary papilla)',
+    conceptId: 'FMA67796',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_nipple_L'), xformChest),
+    targetTris: 450,
+    minTris: 160,
+  },
+  {
+    id: 'HF_NIPPLE_RIGHT',
+    name: 'Right nipple (mammary papilla)',
+    conceptId: 'FMA67796',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_nipple_R'), xformChest),
+    targetTris: 450,
+    minTris: 160,
+  },
+  {
+    id: 'HF_AREOLAR_TUBERCLES_LEFT',
+    name: 'Left areolar glands (Montgomery tubercles)',
+    conceptId: 'FMA72031',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_l.glb', pExact('VH_F_areolar_tubercles_L'), xformChest),
+    targetTris: 450,
+    minTris: 160,
+  },
+  {
+    id: 'HF_AREOLAR_TUBERCLES_RIGHT',
+    name: 'Right areolar glands (Montgomery tubercles)',
+    conceptId: 'FMA72031',
+    system: 'reproductive',
+    source: MAMMARY_SOURCE,
+    geom: extractNodeMeshes('mam_r.glb', pExact('VH_F_areolar_tubercles_R'), xformChest),
+    targetTris: 450,
+    minTris: 160,
   },
 ];
 
-// Derive exact cervix & bladder base anchor coordinates from the transformed HuBMAP meshes
+// Derive exact bladder neck anchor from transformed HuBMAP bladder neck mesh
 function computeGeomCenter(geom) {
   let sx = 0, sy = 0, sz = 0;
   const n = geom.positions.length / 3;
@@ -446,80 +1121,31 @@ function computeGeomCenter(geom) {
   return [sx / n, sy / n, sz / n];
 }
 
-const cervixDef = rawDefinitions.find((d) => d.id === 'HF_CERVIX');
-const bladderDef = rawDefinitions.find((d) => d.id === 'HF_BLADDER');
-const cervixCenter = computeGeomCenter(cervixDef.geom);
-const bladderCenter = computeGeomCenter(bladderDef.geom);
+const neckDef = rawDefinitions.find((d) => d.id === 'HF_BLADDER_NECK');
+const neckCenter = computeGeomCenter(neckDef.geom);
 
-// Contoured vaginal canal descending anteriorly-inferiorly from cervix external os between bladder & rectum
-const vaginaPts = [];
-for (let i = 0; i <= 12; i++) {
-  const t = i / 12;
-  vaginaPts.push([
-    cervixCenter[0] * (1 - t * 0.7),
-    cervixCenter[1] - t * 0.088,
-    cervixCenter[2] + t * 0.042 + Math.sin(t * Math.PI) * 0.004,
-  ]);
-}
-rawDefinitions.push({
-  id: 'HF_VAGINA',
-  name: 'Vagina',
-  conceptId: 'FMA19949',
-  system: 'reproductive',
-  source: 'Anatomically co-registered fibromuscular reconstruction anchored to HuBMAP cervix',
-  geom: buildTubeMesh(
-    vaginaPts,
-    (t) => (t < 0.2 ? 0.0175 - (0.2 - t) * 0.012 : 0.0175 - t * 0.004),
-    24,
-    0.85,
-    1.15,
-  ),
-  targetTris: 800,
-  minTris: 250,
-});
-
-// Female urethra (~3.8 cm) descending anterior to vagina from inferior bladder neck
+// HuBMAP HRA united-female does not separately segment the short (~3.8 cm) female urethra;
+// anchor an anatomically co-registered urethral conduit inferiorly/anteriorly from HuBMAP's real bladder neck.
 const urethraPts = [
-  [bladderCenter[0], bladderCenter[1] - 0.018, bladderCenter[2] + 0.004],
-  [bladderCenter[0] * 0.7, bladderCenter[1] - 0.036, bladderCenter[2] + 0.011],
-  [bladderCenter[0] * 0.35, bladderCenter[1] - 0.056, bladderCenter[2] + 0.018],
+  [neckCenter[0], neckCenter[1] + 0.002, neckCenter[2]],
+  [neckCenter[0] + 0.0005, neckCenter[1] - 0.017, neckCenter[2] + 0.006],
+  [neckCenter[0] + 0.001, neckCenter[1] - 0.036, neckCenter[2] + 0.013],
 ];
 rawDefinitions.push({
   id: 'HF_URETHRA',
   name: 'Female urethra',
   conceptId: 'FMA19667',
   system: 'urinary',
-  source: 'Anatomically co-registered urethral reconstruction anchored to HuBMAP female bladder neck',
-  geom: buildTubeMesh(urethraPts, () => 0.0046, 16, 1.0, 1.0),
-  targetTris: 300,
-  minTris: 120,
+  source: 'Anatomically co-registered female urethral conduit anchored to HuBMAP bladder neck',
+  geom: buildTubeMesh(urethraPts, () => 0.0044, 16),
+  targetTris: 260,
+  minTris: 100,
+  checkWinding: true,
 });
 
-// Bilateral mammary glands anchored directly over thoracic pectoralis major fascia
-rawDefinitions.push(
-  {
-    id: 'HF_MAMMARY_LEFT',
-    name: 'Left mammary gland',
-    conceptId: 'FMA57991',
-    system: 'reproductive',
-    source: 'Anatomically proportioned thoracic mammary reconstruction over pectoralis major',
-    geom: buildMammaryMesh(1),
-    targetTris: 1200,
-    minTris: 400,
-  },
-  {
-    id: 'HF_MAMMARY_RIGHT',
-    name: 'Right mammary gland',
-    conceptId: 'FMA57990',
-    system: 'reproductive',
-    source: 'Anatomically proportioned thoracic mammary reconstruction over pectoralis major',
-    geom: buildMammaryMesh(-1),
-    targetTris: 1200,
-    minTris: 400,
-  },
-);
-
-// Pack binary buffers
+// ---------------------------------------------------------------------------
+// Pack into indexed binary buffer
+// ---------------------------------------------------------------------------
 const segments = [];
 let bytes = 0;
 let totalTriangles = 0;
@@ -539,7 +1165,12 @@ function appendTyped(arr) {
 
 const parts = [];
 for (const def of rawDefinitions) {
-  const processed = weldAndSimplify(def.geom, def.targetTris, def.minTris);
+  const processed = weldAndSimplify(
+    def.geom,
+    def.targetTris,
+    def.minTris,
+    Boolean(def.checkWinding),
+  );
   const posOff = appendTyped(processed.positions);
   const normOff = appendTyped(processed.normals);
   const idxOff = appendTyped(processed.indices);
@@ -567,29 +1198,236 @@ const gzBuffer = zlib.gzipSync(binBuffer, { level: 9 });
 fs.writeFileSync(path.join(OUT_DIR, 'female-0.bin'), binBuffer);
 fs.writeFileSync(path.join(OUT_DIR, 'female-0.bin.gz'), gzBuffer);
 
+// ---------------------------------------------------------------------------
+// Hierarchical & granular FMA concepts so searching either parent organ
+// ("Uterus", "Left mammary gland", "Left hip bone") or sub-part ("Fimbriae",
+// "Lactiferous ducts", "Cooper ligaments", "Trigone") resolves cleanly.
+// ---------------------------------------------------------------------------
 const concepts = [
-  { id: 'FMA16202', name: 'Female sacrum & coccyx', elements: ['HF_SACRUM'] },
-  { id: 'FMA16586', name: 'Left female hip bone (pelvis)', elements: ['HF_HIP_LEFT'] },
-  { id: 'FMA16585', name: 'Right female hip bone (pelvis)', elements: ['HF_HIP_RIGHT'] },
-  { id: 'FMA15900', name: 'Female urinary bladder', elements: ['HF_BLADDER'] },
+  // Skeletal Pelvis
+  { id: 'FMA16202', name: 'Female sacrum', elements: ['HF_SACRUM'] },
+  { id: 'FMA20225', name: 'Coccyx (tailbone)', elements: ['HF_COCCYX'] },
+  { id: 'FMA16589', name: 'Left female ilium', elements: ['HF_ILIUM_LEFT'] },
+  { id: 'FMA16588', name: 'Right female ilium', elements: ['HF_ILIUM_RIGHT'] },
+  { id: 'FMA16593', name: 'Left female ischium', elements: ['HF_ISCHIUM_LEFT'] },
+  { id: 'FMA16592', name: 'Right female ischium', elements: ['HF_ISCHIUM_RIGHT'] },
+  { id: 'FMA16596', name: 'Left female pubis', elements: ['HF_PUBIS_LEFT'] },
+  { id: 'FMA16595', name: 'Right female pubis', elements: ['HF_PUBIS_RIGHT'] },
+  {
+    id: 'FMA16586',
+    name: 'Left female hip bone (pelvis)',
+    elements: ['HF_ILIUM_LEFT', 'HF_ISCHIUM_LEFT', 'HF_PUBIS_LEFT'],
+  },
+  {
+    id: 'FMA16585',
+    name: 'Right female hip bone (pelvis)',
+    elements: ['HF_ILIUM_RIGHT', 'HF_ISCHIUM_RIGHT', 'HF_PUBIS_RIGHT'],
+  },
+
+  // Urinary Bladder & Urethra
+  {
+    id: 'FMA15900',
+    name: 'Female urinary bladder',
+    elements: [
+      'HF_BLADDER_DOME',
+      'HF_BLADDER_BASE',
+      'HF_BLADDER_TRIGONE',
+      'HF_BLADDER_NECK',
+      'HF_URETERAL_ORIFICE_LEFT',
+      'HF_URETERAL_ORIFICE_RIGHT',
+    ],
+  },
+  { id: 'FMA15916', name: 'Body & base of urinary bladder', elements: ['HF_BLADDER_BASE'] },
+  { id: 'FMA15926', name: 'Trigone of urinary bladder', elements: ['HF_BLADDER_TRIGONE'] },
+  { id: 'FMA15924', name: 'Neck of urinary bladder', elements: ['HF_BLADDER_NECK'] },
+  { id: 'FMA15931', name: 'Left ureteric orifice', elements: ['HF_URETERAL_ORIFICE_LEFT'] },
+  { id: 'FMA15930', name: 'Right ureteric orifice', elements: ['HF_URETERAL_ORIFICE_RIGHT'] },
   { id: 'FMA19667', name: 'Female urethra', elements: ['HF_URETHRA'] },
-  { id: 'FMA17558', name: 'Uterus', elements: ['HF_UTERUS', 'HF_CERVIX'] },
-  { id: 'FMA17740', name: 'Cervix of uterus', elements: ['HF_CERVIX'] },
-  { id: 'FMA18246', name: 'Left uterine tube (Fallopian tube)', elements: ['HF_TUBE_LEFT'] },
-  { id: 'FMA18245', name: 'Right uterine tube (Fallopian tube)', elements: ['HF_TUBE_RIGHT'] },
+
+  // Uterus & Cervix
+  {
+    id: 'FMA17558',
+    name: 'Uterus',
+    elements: [
+      'HF_UTERUS_FUNDUS',
+      'HF_UTERUS_BODY',
+      'HF_UTERUS_ANTERIOR_WALL',
+      'HF_UTERUS_POSTERIOR_WALL',
+      'HF_UTERUS_CORNUA',
+      'HF_UTERUS_LOWER_SEGMENT',
+      'HF_CERVIX',
+      'HF_CERVICAL_OS_INTERNAL',
+      'HF_CERVICAL_OS_EXTERNAL',
+    ],
+  },
+  { id: 'FMA17739', name: 'Fundus of uterus', elements: ['HF_UTERUS_FUNDUS'] },
+  { id: 'FMA17738', name: 'Body of uterus', elements: ['HF_UTERUS_BODY'] },
+  { id: 'FMA17745', name: 'Anterior wall of uterus', elements: ['HF_UTERUS_ANTERIOR_WALL'] },
+  { id: 'FMA17746', name: 'Posterior wall of uterus', elements: ['HF_UTERUS_POSTERIOR_WALL'] },
+  { id: 'FMA17742', name: 'Uterine horns (cornua)', elements: ['HF_UTERUS_CORNUA'] },
+  { id: 'FMA17741', name: 'Lower uterine segment (isthmus of uterus)', elements: ['HF_UTERUS_LOWER_SEGMENT'] },
+  {
+    id: 'FMA17740',
+    name: 'Cervix of uterus',
+    elements: ['HF_CERVIX', 'HF_CERVICAL_OS_INTERNAL', 'HF_CERVICAL_OS_EXTERNAL'],
+  },
+  { id: 'FMA17743', name: 'Internal cervical os', elements: ['HF_CERVICAL_OS_INTERNAL'] },
+  { id: 'FMA17744', name: 'External cervical os', elements: ['HF_CERVICAL_OS_EXTERNAL'] },
+
+  // Vagina & Junction
+  { id: 'FMA19949', name: 'Vagina', elements: ['HF_VAGINA'] },
+  { id: 'FMA19971', name: 'Cervicovaginal junction & vaginal fornices', elements: ['HF_CERVICOVAGINAL_JUNCTION'] },
+
+  // Fallopian Tubes
+  {
+    id: 'FMA18246',
+    name: 'Left uterine tube (Fallopian tube)',
+    elements: [
+      'HF_TUBE_ISTHMUS_LEFT',
+      'HF_TUBE_AMPULLA_LEFT',
+      'HF_TUBE_INFUNDIBULUM_LEFT',
+      'HF_TUBE_FIMBRIAE_LEFT',
+    ],
+  },
+  {
+    id: 'FMA18245',
+    name: 'Right uterine tube (Fallopian tube)',
+    elements: [
+      'HF_TUBE_ISTHMUS_RIGHT',
+      'HF_TUBE_AMPULLA_RIGHT',
+      'HF_TUBE_INFUNDIBULUM_RIGHT',
+      'HF_TUBE_FIMBRIAE_RIGHT',
+    ],
+  },
+  { id: 'FMA18304', name: 'Left isthmus of uterine tube', elements: ['HF_TUBE_ISTHMUS_LEFT'] },
+  { id: 'FMA18303', name: 'Right isthmus of uterine tube', elements: ['HF_TUBE_ISTHMUS_RIGHT'] },
+  { id: 'FMA18300', name: 'Left ampulla of uterine tube', elements: ['HF_TUBE_AMPULLA_LEFT'] },
+  { id: 'FMA18299', name: 'Right ampulla of uterine tube', elements: ['HF_TUBE_AMPULLA_RIGHT'] },
+  { id: 'FMA18296', name: 'Left infundibulum of uterine tube', elements: ['HF_TUBE_INFUNDIBULUM_LEFT'] },
+  { id: 'FMA18295', name: 'Right infundibulum of uterine tube', elements: ['HF_TUBE_INFUNDIBULUM_RIGHT'] },
+  { id: 'FMA18298', name: 'Left fimbriae of uterine tube', elements: ['HF_TUBE_FIMBRIAE_LEFT'] },
+  { id: 'FMA18297', name: 'Right fimbriae of uterine tube', elements: ['HF_TUBE_FIMBRIAE_RIGHT'] },
+
+  // Ovaries & Ligaments
   { id: 'FMA7214', name: 'Left ovary', elements: ['HF_OVARY_LEFT'] },
   { id: 'FMA7213', name: 'Right ovary', elements: ['HF_OVARY_RIGHT'] },
   { id: 'FMA7209', name: 'Ovary (bilateral)', elements: ['HF_OVARY_LEFT', 'HF_OVARY_RIGHT'] },
-  { id: 'FMA19949', name: 'Vagina', elements: ['HF_VAGINA'] },
-  { id: 'FMA57991', name: 'Left mammary gland', elements: ['HF_MAMMARY_LEFT'] },
-  { id: 'FMA57990', name: 'Right mammary gland', elements: ['HF_MAMMARY_RIGHT'] },
-  { id: 'FMA9601', name: 'Mammary glands (bilateral)', elements: ['HF_MAMMARY_LEFT', 'HF_MAMMARY_RIGHT'] },
+  { id: 'FMA19761', name: 'Left proper ovarian ligament', elements: ['HF_OVARIAN_LIGAMENT_LEFT'] },
+  { id: 'FMA19760', name: 'Right proper ovarian ligament', elements: ['HF_OVARIAN_LIGAMENT_RIGHT'] },
+  { id: 'FMA19763', name: 'Left suspensory ligament of ovary', elements: ['HF_SUSPENSORY_OVARY_LEFT'] },
+  { id: 'FMA19762', name: 'Right suspensory ligament of ovary', elements: ['HF_SUSPENSORY_OVARY_RIGHT'] },
+  { id: 'FMA19759', name: 'Left round ligament of uterus', elements: ['HF_ROUND_LIGAMENT_LEFT'] },
+  { id: 'FMA19758', name: 'Right round ligament of uterus', elements: ['HF_ROUND_LIGAMENT_RIGHT'] },
+  { id: 'FMA19769', name: 'Left cardinal (transverse cervical) ligament', elements: ['HF_CARDINAL_LIGAMENT_LEFT'] },
+  { id: 'FMA19768', name: 'Right cardinal (transverse cervical) ligament', elements: ['HF_CARDINAL_LIGAMENT_RIGHT'] },
+  { id: 'FMA19767', name: 'Left uterosacral ligament', elements: ['HF_UTEROSACRAL_LIGAMENT_LEFT'] },
+  { id: 'FMA19766', name: 'Right uterosacral ligament', elements: ['HF_UTEROSACRAL_LIGAMENT_RIGHT'] },
+  { id: 'FMA19749', name: 'Broad ligament of uterus', elements: ['HF_BROAD_LIGAMENT'] },
+  { id: 'FMA19753', name: 'Left mesosalpinx', elements: ['HF_MESOSALPINX_LEFT'] },
+  { id: 'FMA19752', name: 'Right mesosalpinx', elements: ['HF_MESOSALPINX_RIGHT'] },
+  { id: 'FMA19757', name: 'Left mesovarium', elements: ['HF_MESOVARIUM_LEFT'] },
+  { id: 'FMA19756', name: 'Right mesovarium', elements: ['HF_MESOVARIUM_RIGHT'] },
+  { id: 'FMA19773', name: 'Vesicouterine peritoneal pouch', elements: ['HF_UTEROVESICAL_POUCH'] },
+
+  // Uterine Vessels
+  { id: 'FMA18824', name: 'Left uterine artery', elements: ['HF_UTERINE_ARTERY_LEFT'] },
+  { id: 'FMA18823', name: 'Right uterine artery', elements: ['HF_UTERINE_ARTERY_RIGHT'] },
+  { id: 'FMA18908', name: 'Left uterine vein', elements: ['HF_UTERINE_VEIN_LEFT'] },
+  { id: 'FMA18907', name: 'Right uterine vein', elements: ['HF_UTERINE_VEIN_RIGHT'] },
+
+  // Mammary Glands
+  {
+    id: 'FMA57991',
+    name: 'Left mammary gland',
+    elements: [
+      'HF_MAMMARY_FAT_LEFT',
+      'HF_MAMMARY_LOBES_LEFT',
+      'HF_LACTIFEROUS_DUCTS_LEFT',
+      'HF_LACTIFEROUS_SINUSES_LEFT',
+      'HF_COOPER_LIGAMENTS_LEFT',
+      'HF_AREOLA_LEFT',
+      'HF_NIPPLE_LEFT',
+      'HF_AREOLAR_TUBERCLES_LEFT',
+    ],
+  },
+  {
+    id: 'FMA57990',
+    name: 'Right mammary gland',
+    elements: [
+      'HF_MAMMARY_FAT_RIGHT',
+      'HF_MAMMARY_LOBES_RIGHT',
+      'HF_LACTIFEROUS_DUCTS_RIGHT',
+      'HF_LACTIFEROUS_SINUSES_RIGHT',
+      'HF_COOPER_LIGAMENTS_RIGHT',
+      'HF_AREOLA_RIGHT',
+      'HF_NIPPLE_RIGHT',
+      'HF_AREOLAR_TUBERCLES_RIGHT',
+    ],
+  },
+  {
+    id: 'FMA9601',
+    name: 'Mammary glands (bilateral)',
+    elements: [
+      'HF_MAMMARY_FAT_LEFT',
+      'HF_MAMMARY_LOBES_LEFT',
+      'HF_LACTIFEROUS_DUCTS_LEFT',
+      'HF_LACTIFEROUS_SINUSES_LEFT',
+      'HF_COOPER_LIGAMENTS_LEFT',
+      'HF_AREOLA_LEFT',
+      'HF_NIPPLE_LEFT',
+      'HF_AREOLAR_TUBERCLES_LEFT',
+      'HF_MAMMARY_FAT_RIGHT',
+      'HF_MAMMARY_LOBES_RIGHT',
+      'HF_LACTIFEROUS_DUCTS_RIGHT',
+      'HF_LACTIFEROUS_SINUSES_RIGHT',
+      'HF_COOPER_LIGAMENTS_RIGHT',
+      'HF_AREOLA_RIGHT',
+      'HF_NIPPLE_RIGHT',
+      'HF_AREOLAR_TUBERCLES_RIGHT',
+    ],
+  },
+  {
+    id: 'FMA67804',
+    name: 'Mammary gland lobes (alveolar lobules)',
+    elements: ['HF_MAMMARY_LOBES_LEFT', 'HF_MAMMARY_LOBES_RIGHT'],
+  },
+  {
+    id: 'FMA67806',
+    name: 'Main lactiferous ducts',
+    elements: ['HF_LACTIFEROUS_DUCTS_LEFT', 'HF_LACTIFEROUS_DUCTS_RIGHT'],
+  },
+  {
+    id: 'FMA72025',
+    name: 'Lactiferous sinuses',
+    elements: ['HF_LACTIFEROUS_SINUSES_LEFT', 'HF_LACTIFEROUS_SINUSES_RIGHT'],
+  },
+  {
+    id: 'FMA76818',
+    name: 'Suspensory ligaments of breast (Cooper)',
+    elements: ['HF_COOPER_LIGAMENTS_LEFT', 'HF_COOPER_LIGAMENTS_RIGHT'],
+  },
+  {
+    id: 'FMA57995',
+    name: 'Areola of breast',
+    elements: ['HF_AREOLA_LEFT', 'HF_AREOLA_RIGHT'],
+  },
+  {
+    id: 'FMA67796',
+    name: 'Nipple (mammary papilla)',
+    elements: ['HF_NIPPLE_LEFT', 'HF_NIPPLE_RIGHT'],
+  },
+  {
+    id: 'FMA72031',
+    name: 'Areolar glands (Montgomery tubercles)',
+    elements: ['HF_AREOLAR_TUBERCLES_LEFT', 'HF_AREOLAR_TUBERCLES_RIGHT'],
+  },
 ];
 
 const manifest = {
-  version: 'female-overlay-1.0',
+  version: 'female-overlay-2.0',
   sex: 'female',
-  source: 'HuBMAP HRA v2.x Visible Human Female (CC BY 4.0) + co-registered anatomical reconstructions',
+  source:
+    'HuBMAP HRA v1.5 Visible Human Female (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586) + co-registered female urethral conduit',
   chunks: [
     {
       url: '/models/female/female-0.bin',
@@ -606,10 +1444,10 @@ const manifest = {
 fs.writeFileSync(path.join(OUT_DIR, 'female-atlas.json'), JSON.stringify(manifest, null, 2));
 
 console.log(
-  `Built female anatomical overlay pack: ${parts.length} parts, ${concepts.length} concepts, ${totalTriangles.toLocaleString()} tris | raw=${(binBuffer.length / 1024).toFixed(1)}KB | gz=${(gzBuffer.length / 1024).toFixed(1)}KB`,
+  `Built enhanced female anatomical overlay pack: ${parts.length} parts, ${concepts.length} concepts, ${totalTriangles.toLocaleString()} tris | raw=${(binBuffer.length / 1024).toFixed(1)}KB | gz=${(gzBuffer.length / 1024).toFixed(1)}KB`,
 );
 for (const p of parts) {
   console.log(
-    `  ${p.id.padEnd(16)} | ${(p.indexCount / 3).toString().padStart(4)} tris | min=${p.bounds[0].map((n) => n.toFixed(3)).join(',')} max=${p.bounds[1].map((n) => n.toFixed(3)).join(',')}`,
+    `  ${p.id.padEnd(28)} | ${(p.indexCount / 3).toString().padStart(4)} tris | min=${p.bounds[0].map((n) => n.toFixed(3)).join(',')} max=${p.bounds[1].map((n) => n.toFixed(3)).join(',')}`,
   );
 }

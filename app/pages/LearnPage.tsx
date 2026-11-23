@@ -45,7 +45,10 @@ export default function LearnPage({
   onOpenEducatorWorkspace,
 }: Props) {
   const [category, setCategory] = useState<LearningCategoryId>(
-    initialCategory ?? (initialDomainId && initialDomainId !== 'human_anatomy' ? 'curriculum-hub' : 'by-system'),
+    initialCategory ??
+      (initialTopicId?.startsWith('edu-') || (initialDomainId && !initialSystemId)
+        ? 'curriculum-hub'
+        : 'by-system'),
   );
   const [educatorModeOpen, setEducatorModeOpen] = useState(false);
   const [systemLessonIntent, setSystemLessonIntent] = useState<CanonicalSystemId | null>(
@@ -54,7 +57,7 @@ export default function LearnPage({
   useEffect(() => {
     if (initialCategory) {
       setCategory(initialCategory);
-    } else if (initialDomainId && initialDomainId !== 'human_anatomy') {
+    } else if (initialTopicId?.startsWith('edu-') || (initialDomainId && !initialSystemId)) {
       setCategory('curriculum-hub');
     } else if (initialFrameworkId && !initialSystemId) {
       setCategory('curriculum-hub');
