@@ -7,6 +7,7 @@ await MeshoptSimplifier.ready;
 
 const TMP_DIR = process.env.HUBMAP_DIR || '/tmp/hubmap_check';
 const OUT_DIR = path.resolve('public/models/female');
+const APPEND_INNERBODY_MODE = process.argv.includes('--append-innerbody');
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 // ---------------------------------------------------------------------------
@@ -113,6 +114,7 @@ function readGlbWithScene(filePath) {
 
 const glbCache = new Map();
 function getLoadedGlb(glbFile) {
+  if (APPEND_INNERBODY_MODE) return null;
   if (!glbCache.has(glbFile)) {
     glbCache.set(glbFile, readGlbWithScene(path.join(TMP_DIR, glbFile)));
   }
@@ -157,6 +159,9 @@ function readAccessorIndices(gltf, bin, accIdx, vertexCount) {
 }
 
 function extractNodeMeshes(glbFile, nodeNamePredicate, transformFn) {
+  if (APPEND_INNERBODY_MODE) {
+    return { positions: new Float32Array(0), indices: new Uint32Array(0), skipped: true };
+  }
   const { gltf, bin, worldMats } = getLoadedGlb(glbFile);
   const posList = [];
   const idxList = [];
@@ -310,7 +315,7 @@ function weldAndSimplify({ positions, indices }, targetTriangles, minTriangles =
   return { positions: curPos, normals, indices: curIdx, bounds: [bmin, bmax] };
 }
 
-function buildTubeMesh(points, radiusFn, radialSegments = 16) {
+function buildTubeMesh(points, radiusFn, radialSegments = 16, squashX = 1.0, squashY = 1.0) {
   const rings = points.length;
   const pos = [];
   const idx = [];
@@ -336,8 +341,8 @@ function buildTubeMesh(points, radiusFn, radialSegments = 16) {
     const rad = radiusFn(r / (rings - 1));
     for (let s = 0; s < radialSegments; s++) {
       const ang = (s / radialSegments) * Math.PI * 2;
-      const ca = Math.cos(ang) * rad;
-      const sa = Math.sin(ang) * rad;
+      const ca = Math.cos(ang) * rad * squashX;
+      const sa = Math.sin(ang) * rad * squashY;
       pos.push(p[0] + nx * ca + bx * sa, p[1] + ny * ca + by * sa, p[2] + nz * ca + bz * sa);
     }
   }
@@ -360,6 +365,77 @@ function buildTubeMesh(points, radiusFn, radialSegments = 16) {
     idx.push(firstCenter, s, sn);
     const lastRing = (rings - 1) * radialSegments;
     idx.push(lastCenter, lastRing + sn, lastRing + s);
+  }
+  return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
+}
+
+function buildEllipsoidMesh(cx, cy, cz, rx, ry, rz, uSegs = 20, vSegs = 14, deformFn) {
+  const pos = [];
+  const idx = [];
+  for (let iv = 0; iv <= vSegs; iv++) {
+    const phi = (iv / vSegs) * Math.PI;
+    const sp = Math.sin(phi);
+    const cp = Math.cos(phi);
+    for (let iu = 0; iu <= uSegs; iu++) {
+      const theta = (iu / uSegs) * Math.PI * 2;
+      let lx = Math.cos(theta) * sp * rx;
+      let ly = cp * ry;
+      let lz = Math.sin(theta) * sp * rz;
+      if (deformFn) {
+        [lx, ly, lz] = deformFn(lx, ly, lz, cp, sp, theta);
+      }
+      pos.push(cx + lx, cy + ly, cz + lz);
+    }
+  }
+  for (let iv = 0; iv < vSegs; iv++) {
+    for (let iu = 0; iu < uSegs; iu++) {
+      const a = iv * (uSegs + 1) + iu;
+      const b = a + 1;
+      const c = a + (uSegs + 1);
+      const d = c + 1;
+      idx.push(a, b, c, b, d, c);
+    }
+  }
+  return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
+}
+
+function mergeGeoms(list) {
+  const pos = [];
+  const idx = [];
+  let offset = 0;
+  for (const g of list) {
+    for (let i = 0; i < g.positions.length; i++) pos.push(g.positions[i]);
+    for (let i = 0; i < g.indices.length; i++) idx.push(g.indices[i] + offset);
+    offset += g.positions.length / 3;
+  }
+  return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
+}
+
+function buildEndometriumMesh(cx, cy, cz) {
+  // Pear-shaped triangular uterine mucosal cavity nested inside HF_UTERUS_BODY / FUNDUS
+  const uSegs = 22;
+  const vSegs = 18;
+  const pos = [];
+  const idx = [];
+  for (let iv = 0; iv <= vSegs; iv++) {
+    const t = iv / vSegs; // 0 = internal cervical os (bottom), 1 = fundal border (top)
+    const widthProfile = t < 0.85 ? 0.0028 + 0.0105 * Math.pow(t / 0.85, 0.8) : 0.0133 * Math.cos(((t - 0.85) / 0.15) * Math.PI * 0.5);
+    const depthProfile = t < 0.85 ? 0.0022 + 0.0026 * Math.sin((t / 0.85) * Math.PI) : 0.0022 * Math.cos(((t - 0.85) / 0.15) * Math.PI * 0.5);
+    const y = cy - 0.012 + t * 0.021;
+    const zCenter = cz - 0.012 + t * 0.020;
+    for (let iu = 0; iu <= uSegs; iu++) {
+      const ang = (iu / uSegs) * Math.PI * 2;
+      pos.push(cx + Math.cos(ang) * widthProfile, y, zCenter + Math.sin(ang) * depthProfile);
+    }
+  }
+  for (let iv = 0; iv < vSegs; iv++) {
+    for (let iu = 0; iu < uSegs; iu++) {
+      const a = iv * (uSegs + 1) + iu;
+      const b = a + 1;
+      const c = a + (uSegs + 1);
+      const d = c + 1;
+      idx.push(a, b, c, b, d, c);
+    }
   }
   return { positions: new Float32Array(pos), indices: new Uint32Array(idx) };
 }
@@ -1109,8 +1185,26 @@ const rawDefinitions = [
   },
 ];
 
-// Derive exact bladder neck anchor from transformed HuBMAP bladder neck mesh
-function computeGeomCenter(geom) {
+const existingManifest =
+  APPEND_INNERBODY_MODE && fs.existsSync(path.join(OUT_DIR, 'female-atlas.json'))
+    ? JSON.parse(fs.readFileSync(path.join(OUT_DIR, 'female-atlas.json'), 'utf8'))
+    : null;
+const existingBin =
+  APPEND_INNERBODY_MODE && fs.existsSync(path.join(OUT_DIR, 'female-0.bin'))
+    ? fs.readFileSync(path.join(OUT_DIR, 'female-0.bin'))
+    : null;
+
+function computeGeomCenter(geom, partId) {
+  if (APPEND_INNERBODY_MODE && existingManifest) {
+    const p = existingManifest.parts.find((x) => x.id === partId);
+    if (p) {
+      return [
+        (p.bounds[0][0] + p.bounds[1][0]) * 0.5,
+        (p.bounds[0][1] + p.bounds[1][1]) * 0.5,
+        (p.bounds[0][2] + p.bounds[1][2]) * 0.5,
+      ];
+    }
+  }
   let sx = 0, sy = 0, sz = 0;
   const n = geom.positions.length / 3;
   for (let i = 0; i < geom.positions.length; i += 3) {
@@ -1122,7 +1216,9 @@ function computeGeomCenter(geom) {
 }
 
 const neckDef = rawDefinitions.find((d) => d.id === 'HF_BLADDER_NECK');
-const neckCenter = computeGeomCenter(neckDef.geom);
+const neckCenter = computeGeomCenter(neckDef.geom, 'HF_BLADDER_NECK');
+const uterusCenter = computeGeomCenter(rawDefinitions.find((d) => d.id === 'HF_UTERUS_BODY').geom, 'HF_UTERUS_BODY');
+const vaginaCenter = computeGeomCenter(rawDefinitions.find((d) => d.id === 'HF_VAGINA').geom, 'HF_VAGINA');
 
 // HuBMAP HRA united-female does not separately segment the short (~3.8 cm) female urethra;
 // anchor an anatomically co-registered urethral conduit inferiorly/anteriorly from HuBMAP's real bladder neck.
@@ -1144,6 +1240,206 @@ rawDefinitions.push({
 });
 
 // ---------------------------------------------------------------------------
+// 2. Innerbody-aligned Female Uterine Lining & External Reproductive Structures
+//    Co-registered to exact HuBMAP uterus, vagina, urethral meatus & pubic arch
+// ---------------------------------------------------------------------------
+const mx = vaginaCenter[0]; // -0.0037 anatomical midline of female pelvis
+const INNERBODY_SOURCE =
+  'Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide';
+
+const innerbodyDefinitions = [
+  {
+    id: 'HF_ENDOMETRIUM',
+    name: 'Endometrium (uterine cavity lining)',
+    conceptId: 'FMA17748',
+    system: 'reproductive',
+    source: INNERBODY_SOURCE,
+    geom: buildEndometriumMesh(uterusCenter[0], uterusCenter[1], uterusCenter[2]),
+    targetTris: 720,
+    minTris: 200,
+    checkWinding: true,
+  },
+  {
+    id: 'HF_CLITORIS',
+    name: 'Clitoris (glans, body & crura)',
+    conceptId: 'FMA20000',
+    system: 'reproductive',
+    source: INNERBODY_SOURCE,
+    geom: mergeGeoms([
+      buildTubeMesh(
+        [
+          [mx, 0.844, 0.016],
+          [mx, 0.846, 0.022],
+          [mx, 0.842, 0.026],
+          [mx, 0.837, 0.028],
+        ],
+        (t) => (t > 0.72 ? 0.0040 * (1 - (t - 0.72) * 1.1) : 0.0034),
+        14,
+      ),
+      buildTubeMesh(
+        [
+          [mx + 0.002, 0.844, 0.018],
+          [mx + 0.010, 0.839, 0.010],
+          [mx + 0.019, 0.833, -0.002],
+          [mx + 0.025, 0.829, -0.012],
+        ],
+        (t) => 0.0032 * (1 - 0.35 * t),
+        12,
+      ),
+      buildTubeMesh(
+        [
+          [mx - 0.002, 0.844, 0.018],
+          [mx - 0.010, 0.839, 0.010],
+          [mx - 0.019, 0.833, -0.002],
+          [mx - 0.025, 0.829, -0.012],
+        ],
+        (t) => 0.0032 * (1 - 0.35 * t),
+        12,
+      ),
+    ]),
+    targetTris: 780,
+    minTris: 240,
+    checkWinding: false,
+  },
+  {
+    id: 'HF_VESTIBULAR_BULBS',
+    name: 'Bulbs of vestibule',
+    conceptId: 'FMA20045',
+    system: 'reproductive',
+    source: INNERBODY_SOURCE,
+    geom: mergeGeoms([
+      buildTubeMesh(
+        [
+          [mx + 0.005, 0.836, 0.018],
+          [mx + 0.012, 0.830, 0.009],
+          [mx + 0.015, 0.826, -0.004],
+          [mx + 0.013, 0.823, -0.017],
+        ],
+        (t) => 0.0030 + 0.0036 * Math.sin(t * Math.PI * 0.85),
+        14,
+        0.75,
+        1.15,
+      ),
+      buildTubeMesh(
+        [
+          [mx - 0.005, 0.836, 0.018],
+          [mx - 0.012, 0.830, 0.009],
+          [mx - 0.015, 0.826, -0.004],
+          [mx - 0.013, 0.823, -0.017],
+        ],
+        (t) => 0.0030 + 0.0036 * Math.sin(t * Math.PI * 0.85),
+        14,
+        0.75,
+        1.15,
+      ),
+    ]),
+    targetTris: 520,
+    minTris: 160,
+    checkWinding: false,
+  },
+  {
+    id: 'HF_BARTHOLIN_GLANDS',
+    name: 'Greater vestibular glands (Bartholin glands)',
+    conceptId: 'FMA20058',
+    system: 'reproductive',
+    source: INNERBODY_SOURCE,
+    geom: mergeGeoms([
+      buildEllipsoidMesh(mx + 0.014, 0.821, -0.021, 0.0048, 0.0052, 0.0055, 16, 12),
+      buildEllipsoidMesh(mx - 0.014, 0.821, -0.021, 0.0048, 0.0052, 0.0055, 16, 12),
+    ]),
+    targetTris: 360,
+    minTris: 120,
+    checkWinding: false,
+  },
+  {
+    id: 'HF_LABIA_MINORA',
+    name: 'Labia minora',
+    conceptId: 'FMA20015',
+    system: 'reproductive',
+    source: INNERBODY_SOURCE,
+    geom: mergeGeoms([
+      buildTubeMesh(
+        [
+          [mx + 0.002, 0.836, 0.026],
+          [mx + 0.009, 0.824, 0.013],
+          [mx + 0.010, 0.819, -0.004],
+          [mx + 0.005, 0.817, -0.022],
+        ],
+        (t) => 0.0026 + 0.0012 * Math.sin(t * Math.PI),
+        12,
+        0.65,
+        1.4,
+      ),
+      buildTubeMesh(
+        [
+          [mx - 0.002, 0.836, 0.026],
+          [mx - 0.009, 0.824, 0.013],
+          [mx - 0.010, 0.819, -0.004],
+          [mx - 0.005, 0.817, -0.022],
+        ],
+        (t) => 0.0026 + 0.0012 * Math.sin(t * Math.PI),
+        12,
+        0.65,
+        1.4,
+      ),
+    ]),
+    targetTris: 440,
+    minTris: 140,
+    checkWinding: false,
+  },
+  {
+    id: 'HF_LABIA_MAJORA',
+    name: 'Labia majora',
+    conceptId: 'FMA20012',
+    system: 'integumentary',
+    source: INNERBODY_SOURCE,
+    geom: mergeGeoms([
+      buildTubeMesh(
+        [
+          [mx + 0.016, 0.848, 0.032],
+          [mx + 0.021, 0.827, 0.014],
+          [mx + 0.019, 0.818, -0.008],
+          [mx + 0.009, 0.815, -0.026],
+        ],
+        (t) => 0.0075 + 0.0025 * Math.sin(t * Math.PI),
+        14,
+        0.85,
+        1.25,
+      ),
+      buildTubeMesh(
+        [
+          [mx - 0.016, 0.848, 0.032],
+          [mx - 0.021, 0.827, 0.014],
+          [mx - 0.019, 0.818, -0.008],
+          [mx - 0.009, 0.815, -0.026],
+        ],
+        (t) => 0.0075 + 0.0025 * Math.sin(t * Math.PI),
+        14,
+        0.85,
+        1.25,
+      ),
+    ]),
+    targetTris: 520,
+    minTris: 160,
+    checkWinding: false,
+  },
+  {
+    id: 'HF_MONS_PUBIS',
+    name: 'Mons pubis',
+    conceptId: 'FMA20006',
+    system: 'integumentary',
+    source: INNERBODY_SOURCE,
+    geom: buildEllipsoidMesh(mx, 0.878, 0.038, 0.038, 0.028, 0.018, 22, 14, (lx, ly, lz) => {
+      const taper = ly < 0 ? 0.82 : 1.0;
+      return [lx * taper, ly, lz * (lz > 0 ? 1.1 : 0.6)];
+    }),
+    targetTris: 560,
+    minTris: 180,
+    checkWinding: true,
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Pack into indexed binary buffer
 // ---------------------------------------------------------------------------
 const segments = [];
@@ -1163,8 +1459,54 @@ function appendTyped(arr) {
   return offset;
 }
 
+const innerbodyIds = new Set(innerbodyDefinitions.map((d) => d.id));
 const parts = [];
-for (const def of rawDefinitions) {
+
+if (APPEND_INNERBODY_MODE && existingManifest && existingBin) {
+  // Preserve all existing HuBMAP meshes bit-for-bit, replacing/appending only Innerbody entries
+  const baseParts = existingManifest.parts.filter((p) => !innerbodyIds.has(p.id));
+  for (const p of baseParts) {
+    const posSlice = existingBin.subarray(p.positions, p.positions + p.vertexCount * 3 * 4);
+    const normSlice = existingBin.subarray(p.normals, p.normals + p.vertexCount * 3 * 2);
+    const idxSlice = existingBin.subarray(p.indices, p.indices + p.indexCount * 4);
+    const posOff = appendTyped(new Uint8Array(posSlice));
+    const normOff = appendTyped(new Uint8Array(normSlice));
+    const idxOff = appendTyped(new Uint8Array(idxSlice));
+    totalTriangles += p.indexCount / 3;
+    parts.push({ ...p, positions: posOff, normals: normOff, indices: idxOff });
+  }
+} else {
+  for (const def of rawDefinitions) {
+    const processed = weldAndSimplify(
+      def.geom,
+      def.targetTris,
+      def.minTris,
+      Boolean(def.checkWinding),
+    );
+    const posOff = appendTyped(processed.positions);
+    const normOff = appendTyped(processed.normals);
+    const idxOff = appendTyped(processed.indices);
+    const triCount = processed.indices.length / 3;
+    totalTriangles += triCount;
+
+    parts.push({
+      id: def.id,
+      name: def.name,
+      conceptId: def.conceptId,
+      system: def.system,
+      chunk: 0,
+      positions: posOff,
+      normals: normOff,
+      indices: idxOff,
+      vertexCount: processed.positions.length / 3,
+      indexCount: processed.indices.length,
+      bounds: processed.bounds,
+      source: def.source,
+    });
+  }
+}
+
+for (const def of innerbodyDefinitions) {
   const processed = weldAndSimplify(
     def.geom,
     def.targetTris,
@@ -1255,11 +1597,13 @@ const concepts = [
       'HF_UTERUS_POSTERIOR_WALL',
       'HF_UTERUS_CORNUA',
       'HF_UTERUS_LOWER_SEGMENT',
+      'HF_ENDOMETRIUM',
       'HF_CERVIX',
       'HF_CERVICAL_OS_INTERNAL',
       'HF_CERVICAL_OS_EXTERNAL',
     ],
   },
+  { id: 'FMA17748', name: 'Endometrium (uterine cavity lining)', elements: ['HF_ENDOMETRIUM'] },
   { id: 'FMA17739', name: 'Fundus of uterus', elements: ['HF_UTERUS_FUNDUS'] },
   { id: 'FMA17738', name: 'Body of uterus', elements: ['HF_UTERUS_BODY'] },
   { id: 'FMA17745', name: 'Anterior wall of uterus', elements: ['HF_UTERUS_ANTERIOR_WALL'] },
@@ -1274,9 +1618,15 @@ const concepts = [
   { id: 'FMA17743', name: 'Internal cervical os', elements: ['HF_CERVICAL_OS_INTERNAL'] },
   { id: 'FMA17744', name: 'External cervical os', elements: ['HF_CERVICAL_OS_EXTERNAL'] },
 
-  // Vagina & Junction
+  // Vagina, Junction & External Female Genitalia (Vulva / Innerbody)
   { id: 'FMA19949', name: 'Vagina', elements: ['HF_VAGINA'] },
   { id: 'FMA19971', name: 'Cervicovaginal junction & vaginal fornices', elements: ['HF_CERVICOVAGINAL_JUNCTION'] },
+  { id: 'FMA20000', name: 'Clitoris (glans, body & crura)', elements: ['HF_CLITORIS'] },
+  { id: 'FMA20045', name: 'Bulbs of vestibule', elements: ['HF_VESTIBULAR_BULBS'] },
+  { id: 'FMA20058', name: 'Greater vestibular glands (Bartholin glands)', elements: ['HF_BARTHOLIN_GLANDS'] },
+  { id: 'FMA20015', name: 'Labia minora', elements: ['HF_LABIA_MINORA'] },
+  { id: 'FMA20012', name: 'Labia majora', elements: ['HF_LABIA_MAJORA'] },
+  { id: 'FMA20006', name: 'Mons pubis', elements: ['HF_MONS_PUBIS'] },
 
   // Fallopian Tubes
   {

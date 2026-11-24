@@ -108,7 +108,9 @@ export type TissueType =
   | 'endocrine_gland'
   | 'lymphoid'
   | 'ocular_sensory'
-  | 'reproductive_tissue';
+  | 'reproductive_tissue'
+  | 'mammary_stroma'
+  | 'areolar_skin';
 
 export interface TissueMaterialPreset {
   id: TissueType;
@@ -394,6 +396,26 @@ export const TISSUE_MATERIAL_PRESETS: Record<TissueType, TissueMaterialPreset> =
     opacity: 1,
     materialNote: 'Natural pelvic visceral soft-tissue tone.',
   },
+  mammary_stroma: {
+    id: 'mammary_stroma',
+    label: 'Mammary Adipose Stroma',
+    naturalColor: '#D4AC96',
+    classificationColor: '#D4B678',
+    roughness: 0.62,
+    metalness: 0.0,
+    opacity: 0.34,
+    materialNote: 'Semi-translucent mammary adipose-fibrous stroma revealing deep alveolar lobules, lactiferous ducts, and Cooper ligaments.',
+  },
+  areolar_skin: {
+    id: 'areolar_skin',
+    label: 'Areola & Nipple Cutaneous Tissue',
+    naturalColor: '#9E6256',
+    classificationColor: '#9A5A50',
+    roughness: 0.56,
+    metalness: 0.0,
+    opacity: 1,
+    materialNote: 'Pigmented cutaneous surface of the mammary areola, nipple papilla, and Montgomery glands.',
+  },
 };
 
 /**
@@ -406,6 +428,13 @@ export function classifyPartTissue(part: Pick<Part, 'id' | 'name' | 'system' | '
   // Specific anatomical structure overrides regardless of broad system grouping
   if (/tooth|molar|premolar|incisor|canine|dentin|enamel/.test(n)) return 'teeth_enamel';
   if (/tendon|aponeurosis/.test(n)) return 'tendon';
+  if (/mammary adipose stroma/.test(n)) return 'mammary_stroma';
+  if (/areola|nipple|montgomery/.test(n)) return 'areolar_skin';
+  if (/mammary gland lobes|alveolar lobules/.test(n)) return 'endocrine_gland';
+  if (/endometrium/.test(n)) return 'cardiac_muscle';
+  if (/mesosalpinx|mesovarium|peritoneal pouch|vesicouterine|uterovesical|broad ligament/.test(n)) {
+    return 'fascia_membrane';
+  }
   if (/ligament|retinaculum|capsule|meniscus|labrum/.test(n)) return 'ligament';
   if (/cartilage|intervertebral disk|intervertebral disc|epiglottis|tracheal ring/.test(n)) return 'cartilage';
   if (/fascia|tentorium|dura|pericardium|pleura|peritoneum|mesentery|omentum|sheath|septum of/.test(n)) {

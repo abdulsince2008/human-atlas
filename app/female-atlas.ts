@@ -1,6 +1,27 @@
-import type { Atlas, Concept, Part } from './anatomy';
+import type { Atlas, Concept, Part, SystemId } from './anatomy';
 
 export type AnatomySex = 'male' | 'female';
+
+export const PREFERRED_SEX_STORAGE_KEY = 'a360.preferredSex.v1';
+
+export function readPersistedAnatomySex(): AnatomySex {
+  if (typeof window === 'undefined') return 'male';
+  try {
+    const raw = window.localStorage.getItem(PREFERRED_SEX_STORAGE_KEY);
+    return raw === 'female' ? 'female' : 'male';
+  } catch {
+    return 'male';
+  }
+}
+
+export function writePersistedAnatomySex(sex: AnatomySex): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(PREFERRED_SEX_STORAGE_KEY, sex);
+  } catch {
+    // Ignore storage restrictions in private mode
+  }
+}
 
 /**
  * Adult male BodyParts3D 4.0 part IDs that are replaced or hidden when
@@ -50,6 +71,62 @@ export const FEMALE_REPLACED_MALE_PART_IDS: readonly string[] = [
 ];
 
 export const FEMALE_REPLACED_MALE_PART_SET = new Set<string>(FEMALE_REPLACED_MALE_PART_IDS);
+
+export const FEMALE_ONLY_CONCEPT_IDS: readonly string[] = [
+  'FMA16589', 'FMA16588', 'FMA16593', 'FMA16592', 'FMA16596', 'FMA16595',
+  'FMA15916', 'FMA15926', 'FMA15924', 'FMA15931', 'FMA15930',
+  'FMA17558', 'FMA17748', 'FMA17739', 'FMA17738', 'FMA17745', 'FMA17746',
+  'FMA17742', 'FMA17741', 'FMA17740', 'FMA17743', 'FMA17744',
+  'FMA19949', 'FMA19971', 'FMA20000', 'FMA20045', 'FMA20058', 'FMA20015', 'FMA20012', 'FMA20006',
+  'FMA18246', 'FMA18245', 'FMA18304', 'FMA18303', 'FMA18300', 'FMA18299',
+  'FMA18296', 'FMA18295', 'FMA18298', 'FMA18297',
+  'FMA7214', 'FMA7213', 'FMA7209',
+  'FMA19761', 'FMA19760', 'FMA19763', 'FMA19762', 'FMA19759', 'FMA19758',
+  'FMA19769', 'FMA19768', 'FMA19767', 'FMA19766', 'FMA19749', 'FMA19753', 'FMA19752', 'FMA19757', 'FMA19756', 'FMA19773',
+  'FMA18824', 'FMA18823',
+  'FMA57991', 'FMA57990', 'FMA9601', 'FMA67804', 'FMA67806', 'FMA72025', 'FMA76818', 'FMA57995', 'FMA67796', 'FMA72031',
+];
+
+export const FEMALE_ONLY_CONCEPT_SET = new Set<string>(FEMALE_ONLY_CONCEPT_IDS);
+
+export function isFemaleSpecificTarget(
+  conceptId?: string | null,
+  partId?: string | null,
+): boolean {
+  if (partId && partId.startsWith('HF_')) return true;
+  if (conceptId && FEMALE_ONLY_CONCEPT_SET.has(conceptId)) return true;
+  return false;
+}
+
+export function isMaleOnlyTarget(
+  baseAtlas: Atlas | null,
+  conceptId?: string | null,
+  partId?: string | null,
+): boolean {
+  if (partId && FEMALE_REPLACED_MALE_PART_SET.has(partId)) return true;
+  if (conceptId && baseAtlas) {
+    const concept = baseAtlas.concepts.find((c) => c.id === conceptId);
+    if (
+      concept &&
+      concept.elements.length > 0 &&
+      concept.elements.every((el) => FEMALE_REPLACED_MALE_PART_SET.has(el))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function getSystemDescriptionForSex(
+  systemId: SystemId,
+  fallbackDescription: string,
+  sex: AnatomySex,
+): string {
+  if (systemId === 'reproductive' && sex === 'female') {
+    return 'The female reproductive structures represented here include the ovaries, uterine (Fallopian) tubes, uterus, cervix, vagina, external vulvar anatomy, supporting pelvic ligaments, and mammary glands.';
+  }
+  return fallbackDescription;
+}
 
 export interface FemaleAtlasManifest extends Atlas {
   sex: 'female';

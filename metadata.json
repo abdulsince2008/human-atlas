@@ -1,0 +1,8 @@
+{
+  "name": "Anatomy 360",
+  "description": "Interactive 3D human anatomy and medical education platform featuring male and female 3D anatomical models, guided clinical mechanisms, curriculum syllabi, and an AI study & 3D navigation assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

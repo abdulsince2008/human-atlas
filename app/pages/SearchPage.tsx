@@ -14,6 +14,12 @@ import type { CanonicalSystemId } from '../anatomy-systems';
 import type { AppRoute } from '../components/SiteHeader';
 import StructureReferenceCard from '../components/StructureReferenceCard';
 import { useStudy } from '../components/StudyContext';
+import {
+  getActiveConceptsForSex,
+  getActivePartsForSex,
+  loadFemaleAtlasManifest,
+  type FemaleAtlasManifest,
+} from '../female-atlas';
 import { EDUCATION_TRACKS } from '../education/education-curricula';
 import type {
   CurriculumAuthorityId,
@@ -89,6 +95,28 @@ export default function SearchPage({
   const [focusedHit, setFocusedHit] = useState<UnifiedSearchResultItem | null>(null);
 
   const { state, addRecentSearch, isBookmarked, toggleBookmark } = useStudy();
+  const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
+
+  useEffect(() => {
+    if (state.preferredSex === 'female' && !femaleAtlas) {
+      void loadFemaleAtlasManifest()
+        .then(setFemaleAtlas)
+        .catch(() => {
+          // Graceful fallback to base atlas
+        });
+    }
+  }, [state.preferredSex, femaleAtlas]);
+
+  const effectiveAtlas = useMemo<Atlas | null>(() => {
+    if (!atlas) return null;
+    if (state.preferredSex !== 'female' || !femaleAtlas) return atlas;
+    return {
+      ...atlas,
+      sex: 'female',
+      parts: getActivePartsForSex(atlas, femaleAtlas, 'female'),
+      concepts: getActiveConceptsForSex(atlas, femaleAtlas, 'female'),
+    };
+  }, [atlas, femaleAtlas, state.preferredSex]);
 
   useEffect(() => {
     if (typeof initialQuery === 'string' && initialQuery !== query) {
@@ -100,20 +128,20 @@ export default function SearchPage({
 
   const discovery = useMemo(
     () =>
-      searchUnifiedEducationCatalog(query, atlas, {
+      searchUnifiedEducationCatalog(query, effectiveAtlas, {
         category: categoryFilter,
         domainId: domainFilter,
         trackId: trackFilter,
         modelOnly,
         limit: 80,
       }),
-    [query, atlas, categoryFilter, domainFilter, trackFilter, modelOnly],
+    [query, effectiveAtlas, categoryFilter, domainFilter, trackFilter, modelOnly],
   );
 
   const focusedRecordV2 = useMemo(() => {
     if (!focusedHit?.conceptId) return null;
-    return getStructureRecordV2(focusedHit.conceptId, atlas, focusedHit.title);
-  }, [focusedHit, atlas]);
+    return getStructureRecordV2(focusedHit.conceptId, effectiveAtlas, focusedHit.title);
+  }, [focusedHit, effectiveAtlas]);
 
   const applyQuery = (q: string) => {
     setQuery(q);

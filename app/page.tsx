@@ -251,6 +251,36 @@ export default function Home() {
     setVisibleMeshSystems(null);
   }, []);
 
+  const openActivityFromExplorer = useCallback(
+    (nextRoute: AppRoute, targetId?: string) => {
+      if (nextRoute === 'relationships' && targetId) {
+        setRelationshipConceptId(targetId);
+        navigate('relationships');
+        return;
+      }
+      if (nextRoute === 'systems' && targetId) {
+        setReferenceConceptId(targetId);
+        navigate('systems');
+        return;
+      }
+      if (nextRoute === 'present' && targetId) {
+        setPresentationIntent((prev) => ({ id: targetId, seq: (prev?.seq ?? 0) + 1 }));
+        window.location.hash = `#/present?id=${encodeURIComponent(targetId)}`;
+        setRoute('present');
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+        return;
+      }
+      if (nextRoute === 'learn') {
+        setLearnDomainIntent('human_anatomy');
+        if (targetId) setLearnTopicIntent(targetId);
+        navigate('learn');
+        return;
+      }
+      navigate(nextRoute);
+    },
+    [navigate],
+  );
+
   const openSystemInLearn = useCallback(
     (systemId: CanonicalSystemId, topicId?: string) => {
       setLearnCategoryIntent('by-system');
@@ -617,6 +647,7 @@ export default function Home() {
                 onClearExternalIntent={clearExternalIntent}
                 onOpenFullSearch={() => navigate('search')}
                 onOpenRelationships={openRelationships}
+                onOpenActivity={openActivityFromExplorer}
               />
             </Suspense>
           )}

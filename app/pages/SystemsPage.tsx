@@ -1,8 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Search } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import StructureReferenceCard from '../components/StructureReferenceCard';
+import { useStudy } from '../components/StudyContext';
+import {
+  getActiveConceptsForSex,
+  getActivePartsForSex,
+  getSystemDescriptionForSex,
+  loadFemaleAtlasManifest,
+  type FemaleAtlasManifest,
+} from '../female-atlas';
 import {
   getStructureRecordV2,
   KNOWLEDGE_GRAPH_V2,
@@ -36,11 +44,35 @@ export default function SystemsPage({
   onOpenFlashcards,
   onOpenPracticalLab,
 }: Props) {
+  const { state: studyState, setPreferredSex } = useStudy();
+  const preferredSex = studyState.preferredSex;
+  const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
   const [filter, setFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<StructureCategory | 'all'>('all');
   const [selectedConceptId, setSelectedConceptId] = useState<string | null>(
     initialConceptId ?? null,
   );
+
+  useEffect(() => {
+    if (preferredSex === 'female' && !femaleAtlas) {
+      void loadFemaleAtlasManifest()
+        .then(setFemaleAtlas)
+        .catch(() => {
+          // Fallback to base atlas if overlay cannot load
+        });
+    }
+  }, [preferredSex, femaleAtlas]);
+
+  const effectiveAtlas = useMemo<Atlas | null>(() => {
+    if (!atlas) return null;
+    if (preferredSex !== 'female' || !femaleAtlas) return atlas;
+    return {
+      ...atlas,
+      sex: 'female',
+      parts: getActivePartsForSex(atlas, femaleAtlas, 'female'),
+      concepts: getActiveConceptsForSex(atlas, femaleAtlas, 'female'),
+    };
+  }, [atlas, femaleAtlas, preferredSex]);
 
   const active = useMemo(
     () => CANONICAL_SYSTEMS.find((s) => s.id === selectedSystem) ?? CANONICAL_SYSTEMS[0],
@@ -65,15 +97,15 @@ export default function SystemsPage({
   }, [active.id]);
 
   const systemParts = useMemo(() => {
-    if (!atlas) return [];
+    if (!effectiveAtlas) return [];
     const allowed = new Set(active.meshSystems);
     const term = filter.toLowerCase().trim();
-    const list = atlas.parts.filter((p) => allowed.has(p.system));
+    const list = effectiveAtlas.parts.filter((p) => allowed.has(p.system));
     if (!term) return list;
     return list.filter(
       (p) => p.name.toLowerCase().includes(term) || p.conceptId.toLowerCase().includes(term),
     );
-  }, [atlas, active, filter]);
+  }, [effectiveAtlas, active, filter]);
 
   const activeRefConceptId =
     selectedConceptId ??
@@ -82,8 +114,8 @@ export default function SystemsPage({
     null;
 
   const activeRecord = useMemo(
-    () => (activeRefConceptId ? getStructureRecordV2(activeRefConceptId, atlas) : null),
-    [activeRefConceptId, atlas],
+    () => (activeRefConceptId ? getStructureRecordV2(activeRefConceptId, effectiveAtlas) : null),
+    [activeRefConceptId, effectiveAtlas],
   );
 
   return (
@@ -99,9 +131,29 @@ export default function SystemsPage({
 
       <div className="a360-split-layout">
         <aside className="a360-system-nav" aria-label="Anatomical systems">
+          <div
+            className="a360-sex-toggle-inline"
+            role="group"
+            aria-label="Anatomical sex reference"
+          >
+            <button
+              type="button"
+              className={preferredSex === 'male' ? 'active' : ''}
+              onClick={() => setPreferredSex('male')}
+            >
+              Male
+            </button>
+            <button
+              type="button"
+              className={preferredSex === 'female' ? 'active' : ''}
+              onClick={() => setPreferredSex('female')}
+            >
+              Female
+            </button>
+          </div>
           {CANONICAL_SYSTEMS.map((sys) => {
-            const count = atlas
-              ? atlas.parts.filter((p) => sys.meshSystems.includes(p.system)).length
+            const count = effectiveAtlas
+              ? effectiveAtlas.parts.filter((p) => sys.meshSystems.includes(p.system)).length
               : 0;
             const isSelected = sys.id === active.id;
             return (
@@ -128,7 +180,10 @@ export default function SystemsPage({
           <div className="a360-detail-top">
             <div>
               <p className="a360-kicker">
-                {active.coverageLabel} · {active.meshSystems.join(' / ')}
+                {active.id === 'reproductive' && preferredSex === 'female'
+                  ? 'Available in 3D (Female HuBMAP + BodyParts3D)'
+                  : active.coverageLabel}{' '}
+                · {active.meshSystems.join(' / ')}
               </p>
               <h2>{active.name.en}</h2>
             </div>
@@ -151,10 +206,17 @@ export default function SystemsPage({
             </div>
           </div>
 
-          <p className="a360-body-copy">{active.description.en}</p>
+          <p className="a360-body-copy">
+            {active.id === 'reproductive'
+              ? getSystemDescriptionForSex('reproductive', active.description.en, preferredSex)
+              : active.description.en}
+          </p>
 
           <div className="a360-coverage-box">
-            <strong>3D Coverage & Dataset Note:</strong> {active.coverageNote}
+            <strong>3D Coverage &amp; Dataset Note:</strong>{' '}
+            {active.id === 'reproductive' && preferredSex === 'female'
+              ? 'Adult Female mode indexes co-registered HuBMAP Female pelvic, reproductive, bladder, and mammary structures (79 meshes) while keeping shared systemic anatomy intact.'
+              : active.coverageNote}
           </div>
 
           {systemKnowledgeRecords.length > 0 && (
@@ -205,7 +267,7 @@ export default function SystemsPage({
           {activeRecord && (
             <StructureReferenceCard
               record={activeRecord}
-              atlas={atlas}
+              atlas={effectiveAtlas}
               onInspectConcept={onInspectConcept}
               onOpenRelationships={onOpenRelationships}
               onOpenLearnSystem={onOpenLearnSystem}

@@ -327,6 +327,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       bounds: T.Box3;
       center: T.Vector3;
       baseColorHex: string;
+      baseOpacity: number;
       baseNormalStrength: number;
       offset: T.Vector3;
     }
@@ -799,12 +800,18 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           const preset = TISSUE_MATERIAL_PRESETS[tissue];
           const texSet = tissueTextureLib.getForSystem(p.system);
           const baseNormalStrength = texSet.normalStrength;
+          const isPeritonealFold = /broad ligament|mesosalpinx|mesovarium|peritoneal pouch|vesicouterine/i.test(p.name);
+          const baseOpacity = isPeritonealFold ? 0.44 : p.system === 'integumentary' ? 0.28 : preset.opacity;
+          const initTransparent = baseOpacity < 0.995;
 
           const m = new T.MeshStandardMaterial({
             color: preset.naturalColor,
             roughness: preset.roughness,
             metalness: Math.min(0.05, preset.metalness),
             side: T.DoubleSide,
+            transparent: initTransparent,
+            opacity: baseOpacity,
+            depthWrite: !initTransparent,
             normalMap: texSet.normalMap,
             normalScale: new T.Vector2(
               baseNormalStrength * quality.microDetailStrength,
@@ -814,7 +821,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
             aoMap: texSet.aoMap,
             aoMapIntensity: 0.32,
             envMapIntensity: quality.envMapIntensity,
-            clippingPlanes: activeClipPlanes.length > 0 ? activeClipPlanes : undefined,
+            ...(activeClipPlanes.length > 0 ? { clippingPlanes: activeClipPlanes } : {}),
           });
 
           const mesh = new T.Mesh(g, m);
@@ -831,6 +838,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
             bounds: partBounds,
             center: center.clone(),
             baseColorHex: preset.naturalColor,
+            baseOpacity,
             baseNormalStrength,
             offset: center.clone(),
           });
@@ -1155,8 +1163,15 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           const p = fe.part;
           const isPinned = pinnedPickSet.has(p.id);
           const sysOp = isPinned ? 1 : (s.systemOpacities?.[p.system] ?? 1);
-          const partOp = s.partOpacities?.[p.id] ?? 1;
-          if (hasSolid && !isPinned && (activeDimmed.has(p.system) || sysOp <= 0.3 || partOp <= 0.3)) {
+          const partOp = s.partOpacities?.[p.id] ?? fe.baseOpacity;
+          if (
+            hasSolid &&
+            !isPinned &&
+            (p.system === 'integumentary' ||
+              activeDimmed.has(p.system) ||
+              sysOp <= 0.3 ||
+              partOp <= 0.45)
+          ) {
             continue;
           }
           worldBox.copy(fe.bounds).applyMatrix4(fe.mesh.matrixWorld);
@@ -1788,10 +1803,22 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
             if (!baseVisible) continue;
 
             const isPinned = pinnedSet.has(fp.id);
-            const sysOp = s.systemOpacities?.[fp.system] ?? 1.0;
-            const partOp = s.partOpacities?.[fp.id] ?? 1.0;
+            const isEnvelope = fp.system === 'integumentary';
+            const explicitSysOp = s.systemOpacities?.[fp.system];
+            const partOp = s.partOpacities?.[fp.id];
+            const naturalOp =
+              partOp !== undefined
+                ? partOp
+                : isSelected
+                  ? Math.max(0.9, fe.baseOpacity)
+                  : isEnvelope
+                    ? Math.max(fe.baseOpacity, s.outerLayerOpacity ?? fe.baseOpacity)
+                    : fe.baseOpacity;
+            const sysOp = explicitSysOp !== undefined ? explicitSysOp : 1.0;
             const isDimmed = !isPinned && (ghostActive ? !isSelected : dimmedSet.has(fp.system) && !isSelected);
-            const effAlpha = isPinned ? 1.0 : (isDimmed ? Math.min(0.14, sysOp) : sysOp) * partOp;
+            const effAlpha = isPinned
+              ? 1.0
+              : (isDimmed ? Math.min(0.14, sysOp) : sysOp) * naturalOp;
             const shouldTransparent = effAlpha < 0.995;
 
             if (fe.material.transparent !== shouldTransparent || fe.material.depthWrite !== !shouldTransparent) {

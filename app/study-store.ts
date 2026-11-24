@@ -10,6 +10,12 @@ import {
   type ReviewRating,
 } from './spaced-repetition';
 import type { CustomSyllabusProfile } from './syllabus/syllabus-types';
+import {
+  readPersistedAnatomySex,
+  writePersistedAnatomySex,
+  PREFERRED_SEX_STORAGE_KEY,
+  type AnatomySex,
+} from './female-atlas';
 
 export const STUDY_SCHEMA_VERSION = 1;
 const IDB_DB_NAME = 'Anatomy360StudyDB';
@@ -58,6 +64,7 @@ export interface StudyStateV1 {
   updatedAt: number;
   migratedLegacy: boolean;
   onboardingDismissed: boolean;
+  preferredSex: AnatomySex;
   profile: LocalStudentProfile;
   completedTopicIds: string[];
   quizProgress: {
@@ -80,6 +87,7 @@ export function createEmptyStudyState(): StudyStateV1 {
     updatedAt: Date.now(),
     migratedLegacy: false,
     onboardingDismissed: false,
+    preferredSex: readPersistedAnatomySex(),
     profile: {
       displayName: 'Anatomy Student',
       track: 'MBBS / Medical',
@@ -270,6 +278,7 @@ export function validateAndSanitizeStudyState(raw: unknown): {
       updatedAt: typeof obj.updatedAt === 'number' ? obj.updatedAt : Date.now(),
       migratedLegacy: Boolean(obj.migratedLegacy),
       onboardingDismissed: Boolean(obj.onboardingDismissed),
+      preferredSex: obj.preferredSex === 'female' ? 'female' : 'male',
       profile: {
         displayName:
           typeof profileObj.displayName === 'string' && profileObj.displayName.trim()
@@ -354,6 +363,7 @@ function mergeLegacyIntoState(base: StudyStateV1): StudyStateV1 {
 function syncLegacyMirrors(state: StudyStateV1): void {
   if (typeof window === 'undefined') return;
   try {
+    writePersistedAnatomySex(state.preferredSex);
     window.localStorage.setItem(LEGACY_KEYS.learnTopics, JSON.stringify(state.completedTopicIds));
     window.localStorage.setItem(LEGACY_KEYS.quizProgress, JSON.stringify(state.quizProgress));
     window.localStorage.setItem(
@@ -457,6 +467,7 @@ export function createBrowserStudyAdapter(): StudyStoreAdapter {
           window.localStorage.removeItem(LEGACY_KEYS.quizProgress);
           window.localStorage.removeItem(LEGACY_KEYS.practicalLab);
           window.localStorage.removeItem(FALLBACK_STORAGE_KEY);
+          window.localStorage.removeItem(PREFERRED_SEX_STORAGE_KEY);
         } catch {
           // Ignore
         }

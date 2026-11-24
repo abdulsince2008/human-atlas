@@ -5,9 +5,9 @@
   "chunks": [
     {
       "url": "/models/female/female-0.bin",
-      "bytes": 2595100,
+      "bytes": 2655808,
       "gzip": "/models/female/female-0.bin.gz",
-      "gzipBytes": 1583126
+      "gzipBytes": 1609903
     }
   ],
   "parts": [
@@ -1810,6 +1810,181 @@
         ]
       ],
       "source": "Anatomically co-registered female urethral conduit anchored to HuBMAP bladder neck"
+    },
+    {
+      "id": "HF_ENDOMETRIUM",
+      "name": "Endometrium (uterine cavity lining)",
+      "conceptId": "FMA17748",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2595100,
+      "normals": 2599564,
+      "indices": 2601796,
+      "vertexCount": 372,
+      "indexCount": 2160,
+      "bounds": [
+        [
+          -0.017236772924661636,
+          0.8992669582366943,
+          -0.016010360792279243
+        ],
+        [
+          0.009033164009451866,
+          0.9202669262886047,
+          0.006252750754356384
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_CLITORIS",
+      "name": "Clitoris (glans, body & crura)",
+      "conceptId": "FMA20000",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2610436,
+      "normals": 2612332,
+      "indices": 2613280,
+      "vertexCount": 158,
+      "indexCount": 912,
+      "bounds": [
+        [
+          -0.03054969571530819,
+          0.8270687460899353,
+          -0.013200189918279648
+        ],
+        [
+          0.023084435611963272,
+          0.8492503762245178,
+          0.0305055882781744
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_VESTIBULAR_BULBS",
+      "name": "Bulbs of vestibule",
+      "conceptId": "FMA20045",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2616928,
+      "normals": 2618320,
+      "indices": 2619016,
+      "vertexCount": 116,
+      "indexCount": 672,
+      "bounds": [
+        [
+          -0.023620259016752243,
+          0.8179113864898682,
+          -0.018280072137713432
+        ],
+        [
+          0.016154998913407326,
+          0.8389495015144348,
+          0.020130373537540436
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_BARTHOLIN_GLANDS",
+      "name": "Greater vestibular glands (Bartholin glands)",
+      "conceptId": "FMA20058",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2621704,
+      "normals": 2625568,
+      "indices": 2627500,
+      "vertexCount": 322,
+      "indexCount": 1908,
+      "bounds": [
+        [
+          -0.0225326307117939,
+          0.8158000111579895,
+          -0.026499999687075615
+        ],
+        [
+          0.015067369677126408,
+          0.826200008392334,
+          -0.01549999974668026
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_LABIA_MINORA",
+      "name": "Labia minora",
+      "conceptId": "FMA20015",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 2635132,
+      "normals": 2636332,
+      "indices": 2636932,
+      "vertexCount": 100,
+      "indexCount": 576,
+      "bounds": [
+        [
+          -0.01608341373503208,
+          0.8133822679519653,
+          -0.0225880965590477
+        ],
+        [
+          0.008618154563009739,
+          0.8386746644973755,
+          0.028468940407037735
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_LABIA_MAJORA",
+      "name": "Labia majora",
+      "conceptId": "FMA20012",
+      "system": "integumentary",
+      "chunk": 0,
+      "positions": 2639236,
+      "normals": 2640628,
+      "indices": 2641324,
+      "vertexCount": 116,
+      "indexCount": 672,
+      "bounds": [
+        [
+          -0.03293318673968315,
+          0.8058723211288452,
+          -0.029391398653388023
+        ],
+        [
+          0.025467926636338234,
+          0.8541398048400879,
+          0.03910379484295845
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_MONS_PUBIS",
+      "name": "Mons pubis",
+      "conceptId": "FMA20006",
+      "system": "integumentary",
+      "chunk": 0,
+      "positions": 2644012,
+      "normals": 2647396,
+      "indices": 2649088,
+      "vertexCount": 282,
+      "indexCount": 1680,
+      "bounds": [
+        [
+          -0.041732631623744965,
+          0.8500000238418579,
+          0.027309928089380264
+        ],
+        [
+          0.0342673696577549,
+          0.906000018119812,
+          0.05759846419095993
+        ]
+      ],
+      "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
     }
   ],
   "concepts": [
@@ -1951,9 +2126,17 @@
         "HF_UTERUS_POSTERIOR_WALL",
         "HF_UTERUS_CORNUA",
         "HF_UTERUS_LOWER_SEGMENT",
+        "HF_ENDOMETRIUM",
         "HF_CERVIX",
         "HF_CERVICAL_OS_INTERNAL",
         "HF_CERVICAL_OS_EXTERNAL"
+      ]
+    },
+    {
+      "id": "FMA17748",
+      "name": "Endometrium (uterine cavity lining)",
+      "elements": [
+        "HF_ENDOMETRIUM"
       ]
     },
     {
@@ -2033,6 +2216,48 @@
       "name": "Cervicovaginal junction & vaginal fornices",
       "elements": [
         "HF_CERVICOVAGINAL_JUNCTION"
+      ]
+    },
+    {
+      "id": "FMA20000",
+      "name": "Clitoris (glans, body & crura)",
+      "elements": [
+        "HF_CLITORIS"
+      ]
+    },
+    {
+      "id": "FMA20045",
+      "name": "Bulbs of vestibule",
+      "elements": [
+        "HF_VESTIBULAR_BULBS"
+      ]
+    },
+    {
+      "id": "FMA20058",
+      "name": "Greater vestibular glands (Bartholin glands)",
+      "elements": [
+        "HF_BARTHOLIN_GLANDS"
+      ]
+    },
+    {
+      "id": "FMA20015",
+      "name": "Labia minora",
+      "elements": [
+        "HF_LABIA_MINORA"
+      ]
+    },
+    {
+      "id": "FMA20012",
+      "name": "Labia majora",
+      "elements": [
+        "HF_LABIA_MAJORA"
+      ]
+    },
+    {
+      "id": "FMA20006",
+      "name": "Mons pubis",
+      "elements": [
+        "HF_MONS_PUBIS"
       ]
     },
     {
@@ -2380,5 +2605,5 @@
       ]
     }
   ],
-  "triangles": 121580
+  "triangles": 124440
 }

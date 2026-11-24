@@ -21,6 +21,7 @@ import {
   Scissors,
   Search,
   SlidersHorizontal,
+  Sparkles,
   Square,
   Undo2,
   X,
@@ -43,6 +44,7 @@ import {
 } from '../anatomy';
 import { CURATED_KNOWLEDGE, lookupStructureKnowledge } from '../anatomy-knowledge';
 import { canonicalSystemForMeshSystem } from '../anatomy-systems';
+import { resolveConceptForAiQuery, type AiAction } from '../ai/navigator-contract';
 import { buildDissectionRegistry } from '../dissection-registry';
 import {
   buildSceneStateFromEngine,
@@ -77,8 +79,13 @@ import {
 import {
   getActiveConceptsForSex,
   getActivePartsForSex,
+  getSystemDescriptionForSex,
+  isFemaleSpecificTarget,
+  isMaleOnlyTarget,
   isPartHiddenForSex,
   loadFemaleAtlasManifest,
+  readPersistedAnatomySex,
+  writePersistedAnatomySex,
   type AnatomySex,
   type FemaleAtlasManifest,
 } from '../female-atlas';
@@ -94,6 +101,8 @@ import {
   type BrainCameraPreset,
   type MuscleFunctionalRole,
 } from '../visualization-colors';
+import AiNavigatorPanel from './AiNavigatorPanel';
+import type { AppRoute } from './SiteHeader';
 import { useStudy } from './StudyContext';
 import StudyResourceList from './StudyResourceList';
 import { Button } from '@/components/ui/button';
@@ -118,6 +127,7 @@ interface Props {
   onClearExternalIntent: () => void;
   onOpenFullSearch: () => void;
   onOpenRelationships?: (conceptId: string) => void;
+  onOpenActivity?: (route: AppRoute, targetId?: string) => void;
 }
 
 type RailTab = 'systems' | 'studio';
@@ -159,10 +169,18 @@ export default function ExplorerView({
   onClearExternalIntent,
   onOpenFullSearch,
   onOpenRelationships,
+  onOpenActivity,
 }: Props) {
   const studioRef = useRef<HTMLDivElement>(null);
   const detailTitle = useRef<HTMLHeadingElement>(null);
-  const { isBookmarked, toggleBookmark } = useStudy();
+  const {
+    ready: studyReady,
+    state: studyState,
+    setPreferredSex,
+    isBookmarked,
+    toggleBookmark,
+  } = useStudy();
+  const userChangedSexRef = useRef(false);
 
   const [engine, setEngine] = useState<InteractionEngineState>(() =>
     createInitialEngineState(DEFAULT_VISIBLE),
@@ -188,10 +206,19 @@ export default function ExplorerView({
   const surgicalHiddenIdsRef = useRef<string[]>([]);
 
   const [progress, setProgress] = useState(0);
-  const [anatomySex, setAnatomySex] = useState<AnatomySex>('male');
+  const [anatomySex, setAnatomySex] = useState<AnatomySex>(() => readPersistedAnatomySex());
   const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
   const [sceneError, setSceneError] = useState('');
   const [panel, setPanel] = useState<'layers' | 'search' | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiUndoSnapshot, setAiUndoSnapshot] = useState<{
+    engine: InteractionEngineState;
+    view: View;
+    anatomySex: AnatomySex;
+    chosen: Concept | null;
+    visualizationMode: VisualizationMode;
+    brainRegionalColors: boolean;
+  } | null>(null);
   const [details, setDetails] = useState(false);
   const [query, setQuery] = useState('');
   const [chosen, setChosen] = useState<Concept | null>(null);
@@ -216,13 +243,13 @@ export default function ExplorerView({
     [atlas, femaleAtlas, anatomySex],
   );
   const effectiveAtlas = useMemo(
-    () => (atlas ? { ...atlas, parts: activeParts, concepts: activeConcepts } : null),
-    [atlas, activeParts, activeConcepts],
+    () => (atlas ? { ...atlas, sex: anatomySex, parts: activeParts, concepts: activeConcepts } : null),
+    [atlas, anatomySex, activeParts, activeConcepts],
   );
 
   const registry = useMemo(
-    () => (atlas ? buildDissectionRegistry(atlas) : null),
-    [atlas],
+    () => (effectiveAtlas ? buildDissectionRegistry(effectiveAtlas) : null),
+    [effectiveAtlas],
   );
 
   const parts = useMemo(() => new Map(activeParts.map((p) => [p.id, p])), [activeParts]);
@@ -354,7 +381,10 @@ export default function ExplorerView({
 
   const selectAnatomySex = useCallback(
     (nextSex: AnatomySex) => {
+      userChangedSexRef.current = true;
       setAnatomySex(nextSex);
+      writePersistedAnatomySex(nextSex);
+      setPreferredSex(nextSex);
       if (nextSex === 'female' && !femaleAtlas) {
         void loadFemaleAtlasManifest()
           .then(setFemaleAtlas)
@@ -379,14 +409,37 @@ export default function ExplorerView({
         }
       }
     },
-    [femaleAtlas, engine.selected],
+    [femaleAtlas, engine.selected, setPreferredSex],
   );
+
+  // Sync persisted Sex from StudyContext on hydration and eagerly load Female overlay manifest when needed
+  useEffect(() => {
+    if (studyReady && !userChangedSexRef.current && studyState.preferredSex !== anatomySex) {
+      setAnatomySex(studyState.preferredSex);
+    }
+  }, [studyReady, studyState.preferredSex, anatomySex]);
+
+  useEffect(() => {
+    if (anatomySex === 'female' && !femaleAtlas) {
+      void loadFemaleAtlasManifest()
+        .then(setFemaleAtlas)
+        .catch(() => {
+          // Scene viewer surface reports fetch failure if unavailable
+        });
+    }
+  }, [anatomySex, femaleAtlas]);
 
   const selectedParts = engine.selected
     .map((id) => parts.get(id))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
   const selected = selectedParts[0];
-  const system = SYSTEMS.find((s) => s.id === selected?.system);
+  const rawSystem = SYSTEMS.find((s) => s.id === selected?.system);
+  const system = rawSystem
+    ? {
+        ...rawSystem,
+        description: getSystemDescriptionForSex(rawSystem.id, rawSystem.description, anatomySex),
+      }
+    : undefined;
   const knowledge =
     chosen && selected ? lookupStructureKnowledge(chosen.id, chosen.name, selected.system) : null;
   const canonicalSys = selected ? canonicalSystemForMeshSystem(selected.system) : null;
@@ -468,12 +521,37 @@ export default function ExplorerView({
   useEffect(() => {
     if (!atlas) return;
     if (initialFocusConceptId) {
+      if (isFemaleSpecificTarget(initialFocusConceptId, null) && anatomySex !== 'female') {
+        selectAnatomySex('female');
+        return;
+      }
+      if (
+        isMaleOnlyTarget(atlas, initialFocusConceptId, null) &&
+        anatomySex !== 'male'
+      ) {
+        selectAnatomySex('male');
+        return;
+      }
+      if (isFemaleSpecificTarget(initialFocusConceptId, null) && !femaleAtlas) {
+        return;
+      }
       const c = conceptsById.get(initialFocusConceptId);
       if (c) {
         chooseConcept(c, true);
       }
       onClearExternalIntent();
     } else if (initialFocusPartId) {
+      if (isFemaleSpecificTarget(null, initialFocusPartId) && anatomySex !== 'female') {
+        selectAnatomySex('female');
+        return;
+      }
+      if (isMaleOnlyTarget(atlas, null, initialFocusPartId) && anatomySex !== 'male') {
+        selectAnatomySex('male');
+        return;
+      }
+      if (isFemaleSpecificTarget(null, initialFocusPartId) && !femaleAtlas) {
+        return;
+      }
       if (parts.has(initialFocusPartId)) {
         choosePart(initialFocusPartId, true);
       }
@@ -490,12 +568,25 @@ export default function ExplorerView({
       setDetails(false);
       onClearExternalIntent();
     }
-  }, [atlas, initialFocusConceptId, initialFocusPartId, initialVisibleSystems]);
+  }, [
+    atlas,
+    femaleAtlas,
+    anatomySex,
+    conceptsById,
+    parts,
+    initialFocusConceptId,
+    initialFocusPartId,
+    initialVisibleSystems,
+    selectAnatomySex,
+    chooseConcept,
+    choosePart,
+    onClearExternalIntent,
+  ]);
 
   useEffect(() => {
-    if (!atlas) return;
-    return registerAtlasTools(atlas, (c) => flushSync(() => chooseConcept(c, true)));
-  }, [atlas, chooseConcept]);
+    if (!effectiveAtlas) return;
+    return registerAtlasTools(effectiveAtlas, (c) => flushSync(() => chooseConcept(c, true)));
+  }, [effectiveAtlas, chooseConcept]);
 
   // Active animation playback loop (only runs when a supported rigid clip is actively playing)
   const activeAnimSpec = useMemo(
@@ -543,15 +634,15 @@ export default function ExplorerView({
 
   const getGroupSystems = useCallback(
     (partIds: string[]): SystemId[] => {
-      if (!atlas) return [];
+      if (activeParts.length === 0) return [];
       const setIds = new Set(partIds);
       const sysSet = new Set<SystemId>();
-      for (const p of atlas.parts) {
+      for (const p of activeParts) {
         if (setIds.has(p.id)) sysSet.add(p.system);
       }
       return [...sysSet];
     },
-    [atlas],
+    [activeParts],
   );
 
   const triggerAnimatedGroupExplode = useCallback(
@@ -795,8 +886,199 @@ export default function ExplorerView({
 
   const openPanel = (next: 'layers' | 'search') => {
     setDetails(false);
+    setAiOpen(false);
     setPanel((p) => (p === next ? null : next));
   };
+
+  const executeAiActions = useCallback(
+    async (actions: AiAction[]): Promise<string[]> => {
+      setAiUndoSnapshot({
+        engine,
+        view,
+        anatomySex,
+        chosen,
+        visualizationMode,
+        brainRegionalColors,
+      });
+
+      let workingSex = anatomySex;
+      let loadedFemale = femaleAtlas;
+      const appliedLabels: string[] = [];
+
+      for (const action of actions) {
+        if (action.type === 'switch_sex') {
+          if (action.sex === 'female' && !loadedFemale) {
+            try {
+              loadedFemale = await loadFemaleAtlasManifest();
+              setFemaleAtlas(loadedFemale);
+            } catch {
+              // Error banner handled by manifest loader
+            }
+          }
+          workingSex = action.sex;
+          selectAnatomySex(action.sex);
+          appliedLabels.push(action.sex === 'female' ? 'Switched to Female model' : 'Switched to Male model');
+        } else if (action.type === 'reset_view') {
+          setGroupAnimTarget(null);
+          setEngine((st) => resetEntireModel(st, DEFAULT_VISIBLE));
+          setVisualizationMode('natural');
+          setBrainRegionalColors(false);
+          setActiveMusclePilotId(null);
+          setView('three-quarter');
+          setInteractionMode('orbit');
+          setRotate(false);
+          setChosen(null);
+          setDetails(false);
+          appliedLabels.push('Reset 3D view');
+        } else if (action.type === 'set_systems') {
+          setEngine((st) => {
+            let nextVisible = [...st.visible];
+            if (action.mode === 'all') {
+              nextVisible = activeSystems.map((s) => s.id);
+            } else if (action.mode === 'skeleton') {
+              nextVisible = ['skeletal'];
+            } else if (action.mode === 'organs') {
+              nextVisible = ['cardiac', 'respiratory', 'digestive', 'urinary', 'endocrine', 'reproductive'];
+            } else if (action.mode === 'only' && action.systems.length > 0) {
+              nextVisible = action.systems;
+            } else if (action.mode === 'show') {
+              nextVisible = Array.from(new Set([...st.visible, ...action.systems]));
+            } else if (action.mode === 'hide') {
+              const hideSet = new Set(action.systems);
+              nextVisible = st.visible.filter((s) => !hideSet.has(s));
+            }
+            return {
+              ...st,
+              visible: nextVisible,
+              isolate: false,
+            };
+          });
+          appliedLabels.push(
+            action.systems.length > 0
+              ? `Systems (${action.mode}): ${action.systems.join(', ')}`
+              : `Systems: ${action.mode}`,
+          );
+        } else if (action.type === 'focus_structure') {
+          if (!atlas) continue;
+          if (!loadedFemale) {
+            try {
+              loadedFemale = await loadFemaleAtlasManifest();
+              setFemaleAtlas(loadedFemale);
+            } catch {
+              // Continue with base atlas
+            }
+          }
+          const searchAtlas: Atlas = {
+            ...atlas,
+            parts: getActivePartsForSex(atlas, loadedFemale, workingSex),
+            concepts: getActiveConceptsForSex(atlas, loadedFemale, workingSex),
+          };
+          const resolved = resolveConceptForAiQuery(action.query, searchAtlas, loadedFemale);
+          if (resolved) {
+            if (resolved.requiresSex && resolved.requiresSex !== workingSex) {
+              workingSex = resolved.requiresSex;
+              selectAnatomySex(resolved.requiresSex);
+              appliedLabels.push(`Switched to ${resolved.requiresSex === 'female' ? 'Female' : 'Male'} model`);
+            }
+            setChosen(resolved.concept);
+            setEngine((st) => ({
+              ...st,
+              hiddenPartIds: st.hiddenPartIds.filter((id) => !resolved.concept.elements.includes(id)),
+              selected: resolved.concept.elements,
+              isolate: action.isolate ?? st.isolate,
+              ghostSurroundings: action.ghost ?? st.ghostSurroundings,
+              focusRequestCounter: st.focusRequestCounter + 1,
+            }));
+            setRotate(false);
+            setDetails(true);
+            appliedLabels.push(`Focused ${resolved.concept.name}`);
+          }
+        } else if (action.type === 'set_camera_view') {
+          setView(action.view);
+          setRotate(false);
+          setEngine((st) => ({ ...st, resetCounter: st.resetCounter + 1 }));
+          appliedLabels.push(`View: ${action.view}`);
+        } else if (action.type === 'set_render_mode') {
+          if (action.visualizationMode) {
+            setVisualizationMode(action.visualizationMode);
+            setBrainRegionalColors(action.visualizationMode === 'regional_brain');
+            appliedLabels.push(`Appearance: ${action.visualizationMode.replace('_', ' ')}`);
+          }
+          setEngine((st) => {
+            let next = { ...st };
+            if (typeof action.isolate === 'boolean') {
+              next.isolate = action.isolate;
+            }
+            if (typeof action.ghostSurroundings === 'boolean') {
+              next.ghostSurroundings = action.ghostSurroundings;
+              if (action.ghostSurroundings) next.isolate = false;
+            }
+            if (typeof action.explode === 'number') {
+              next.explode = action.explode;
+            }
+            if (typeof action.xrayOpacity === 'number' && st.selected.length > 0) {
+              next = setStructureOpacity(next, st.selected, action.xrayOpacity, false);
+            }
+            if (action.clipAxis) {
+              if (action.clipAxis === 'none') {
+                next = setClippingState(next, { enabled: false });
+              } else {
+                next = setClippingState(next, {
+                  enabled: true,
+                  axis: action.clipAxis,
+                  offset: action.clipOffset ?? 0.5,
+                });
+              }
+            }
+            return next;
+          });
+          if (typeof action.isolate === 'boolean') {
+            appliedLabels.push(action.isolate ? 'Isolated structure' : 'Restored surroundings');
+          }
+          if (typeof action.ghostSurroundings === 'boolean') {
+            appliedLabels.push(action.ghostSurroundings ? 'Transparent body' : 'Opaque body');
+          }
+          if (action.clipAxis && action.clipAxis !== 'none') {
+            appliedLabels.push(`${getAxisLabel(action.clipAxis)} cross-section`);
+          }
+          if (typeof action.explode === 'number' && action.explode > 0) {
+            appliedLabels.push(`Exploded ${Math.round(action.explode * 100)}%`);
+          }
+        } else if (action.type === 'open_activity' && onOpenActivity) {
+          appliedLabels.push(`Opening ${action.label ?? action.route}`);
+          onOpenActivity(action.route as AppRoute, action.targetId);
+        }
+      }
+
+      return appliedLabels;
+    },
+    [
+      engine,
+      view,
+      anatomySex,
+      chosen,
+      visualizationMode,
+      brainRegionalColors,
+      femaleAtlas,
+      selectAnatomySex,
+      activeSystems,
+      atlas,
+      onOpenActivity,
+    ],
+  );
+
+  const undoAiView = useCallback(() => {
+    if (!aiUndoSnapshot) return;
+    setEngine(aiUndoSnapshot.engine);
+    setView(aiUndoSnapshot.view);
+    if (aiUndoSnapshot.anatomySex !== anatomySex) {
+      selectAnatomySex(aiUndoSnapshot.anatomySex);
+    }
+    setChosen(aiUndoSnapshot.chosen);
+    setVisualizationMode(aiUndoSnapshot.visualizationMode);
+    setBrainRegionalColors(aiUndoSnapshot.brainRegionalColors);
+    setAiUndoSnapshot(null);
+  }, [aiUndoSnapshot, anatomySex, selectAnatomySex]);
 
   const toggleFullscreen = async () => {
     try {
@@ -961,6 +1243,21 @@ export default function ExplorerView({
               >
                 <Undo2 size={16} />
                 <span>Restore Last</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                className={aiOpen ? 'active' : ''}
+                aria-pressed={aiOpen}
+                onClick={() => {
+                  setPanel(null);
+                  setAiOpen((v) => !v);
+                }}
+                aria-label="Open AI Study Navigator"
+                data-testid="toggle-ai-navigator-btn"
+              >
+                <Sparkles size={16} />
+                <span>AI Guide</span>
               </Button>
 
               <Button
@@ -2401,6 +2698,19 @@ export default function ExplorerView({
             </section>
           )}
 
+          <AiNavigatorPanel
+            open={aiOpen}
+            onClose={() => setAiOpen(false)}
+            anatomySex={anatomySex}
+            activeAtlas={effectiveAtlas}
+            selectedConcept={chosen}
+            visibleSystems={engine.visible}
+            studyTrack={studyState.profile.track}
+            canUndoAiView={Boolean(aiUndoSnapshot)}
+            onUndoAiView={undoAiView}
+            onExecuteActions={executeAiActions}
+          />
+
           <nav className="view-controls glass" aria-label="Camera controls">
             {presetViews.map((v) => (
               <Button
@@ -2590,7 +2900,7 @@ export default function ExplorerView({
           <div>
             <strong>Preparing 3D anatomy</strong>
             <span>
-              {progress}% · Loading {atlas?.parts.length.toLocaleString() ?? '2,234'} meshes
+              {progress}% · Loading {activeParts.length.toLocaleString() || '2,234'} meshes
             </span>
             <div className="loading-track">
               <i style={{ width: `${progress}%` }} />

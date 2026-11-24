@@ -23,6 +23,7 @@ import {
   type StudyStateV1,
 } from '../study-store';
 import type { CustomSyllabusProfile } from '../syllabus/syllabus-types';
+import { writePersistedAnatomySex, type AnatomySex } from '../female-atlas';
 
 export interface StudyContextValue {
   ready: boolean;
@@ -48,6 +49,7 @@ export interface StudyContextValue {
   saveCustomSyllabus: (syllabus: CustomSyllabusProfile) => void;
   deleteCustomSyllabus: (syllabusId: string) => void;
   saveEducatorSequence: (key: string, topicIds: string[]) => void;
+  setPreferredSex: (sex: AnatomySex) => void;
 }
 
 const StudyContext = createContext<StudyContextValue | null>(null);
@@ -321,6 +323,21 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     [commit],
   );
 
+  const setPreferredSex = useCallback(
+    (sex: AnatomySex) => {
+      writePersistedAnatomySex(sex);
+      commit((prev) =>
+        prev.preferredSex === sex
+          ? prev
+          : {
+              ...prev,
+              preferredSex: sex,
+            },
+      );
+    },
+    [commit],
+  );
+
   const revisionQueue = useMemo(() => buildRevisionQueue(state), [state]);
 
   const value = useMemo<StudyContextValue>(
@@ -344,6 +361,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       saveCustomSyllabus,
       deleteCustomSyllabus,
       saveEducatorSequence,
+      setPreferredSex,
     }),
     [
       ready,
@@ -364,6 +382,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       saveCustomSyllabus,
       deleteCustomSyllabus,
       saveEducatorSequence,
+      setPreferredSex,
     ],
   );
 
