@@ -82,9 +82,9 @@ export const PLATFORM_RESOURCE_MAPPINGS: ExistingPlatformMapping[] = [
   {
     domainId: 'human_anatomy',
     moduleName: '3D BodyParts3D Atlas & Explorer',
-    countSummary: '2,234 selectable meshes · 3,432 FMA concepts · 12 canonical systems · 14 HuBMAP female meshes',
+    countSummary: '2,234 selectable male meshes · 79 co-registered female parts (71 HuBMAP + 8 reconstructions) · 3,432+ FMA concepts · 12 canonical systems',
     route: 'explorer',
-    note: 'Adult reference geometry with explode, isolate, X-ray, clipping, and surgical layers.',
+    note: 'Adult Male/Female reference geometry with explode, isolate, X-ray, clipping, and surgical layers.',
   },
   {
     domainId: 'human_anatomy',
@@ -103,9 +103,9 @@ export const PLATFORM_RESOURCE_MAPPINGS: ExistingPlatformMapping[] = [
   {
     domainId: 'histology',
     moduleName: 'Histology & Microanatomy Library',
-    countSummary: '10 tissue entries with self-checks (real microscopy images pending)',
+    countSummary: '10 tissue entries with 10 verified CC-licensed light micrographs + self-checks (full C1–C18 slide library pending)',
     route: 'histology',
-    note: 'Structured microanatomy guides; licensed H&E photomicrographs explicitly marked Asset Required.',
+    note: '10 tissue entries bundle CC-licensed photomicrographs with scale/stain notes; broader 18-chapter systemic histology series remains Asset Required.',
   },
   {
     domainId: 'pathology',
@@ -362,95 +362,3 @@ export function getTrackById(id: EducationTrackId) {
   return EDUCATION_TRACKS.find((t) => t.id === id);
 }
 
-export interface DomainCompletionSummary {
-  domainId: EducationDomainId;
-  code: string;
-  shortTitle: string;
-  totalChapters: number;
-  writtenCompleteCount: number;
-  readingLinksTotal: number;
-  presentationDecksCount: number;
-  verifiedVideosCount: number;
-  mcqTotal: number;
-  assetBlockedChaptersCount: number;
-  facultyReviewedCount: number;
-}
-
-export interface PlatformCompletionSummary {
-  totalDomains: number;
-  totalChapters: number;
-  writtenCompleteCount: number;
-  readingLinksTotal: number;
-  presentationDecksCount: number;
-  verifiedVideosCount: number;
-  mcqTotal: number;
-  assetBlockedChaptersCount: number;
-  facultyReviewedCount: number;
-  byDomain: DomainCompletionSummary[];
-}
-
-export function getDomainCompletionSummary(domainId: EducationDomainId): DomainCompletionSummary {
-  const dom = getDomainById(domainId);
-  const topics = getTopicsByDomain(domainId);
-  let writtenCompleteCount = 0;
-  let readingLinksTotal = 0;
-  let presentationDecksCount = 0;
-  let verifiedVideosCount = 0;
-  let mcqTotal = 0;
-  let assetBlockedChaptersCount = 0;
-  let facultyReviewedCount = 0;
-
-  for (const t of topics) {
-    const tracker = t.completionTracker;
-    const isWrittenDone = tracker
-      ? tracker.writtenMaterialStatus === 'complete_for_core_scope' ||
-        tracker.writtenMaterialStatus === 'content_drafted'
-      : Object.values(t.depthExplanations).some((v) => typeof v === 'string' && v.trim().length > 20);
-    if (isWrittenDone) writtenCompleteCount += 1;
-
-    readingLinksTotal += t.readingLinks?.length ?? tracker?.readingLinksCount ?? 0;
-    if (t.presentationDeck) presentationDecksCount += 1;
-    if (t.videoResource?.availabilityStatus === 'verified') verifiedVideosCount += 1;
-    mcqTotal += t.selfChecks.length;
-
-    if (
-      t.assetDisclosure.status === 'asset_required' ||
-      tracker?.visualStatus === 'blocked_by_source_availability'
-    ) {
-      assetBlockedChaptersCount += 1;
-    }
-    if (tracker?.reviewStatus === 'faculty_reviewed') {
-      facultyReviewedCount += 1;
-    }
-  }
-
-  return {
-    domainId,
-    code: dom?.code ?? domainId.toUpperCase(),
-    shortTitle: dom?.shortTitle ?? domainId,
-    totalChapters: topics.length,
-    writtenCompleteCount,
-    readingLinksTotal,
-    presentationDecksCount,
-    verifiedVideosCount,
-    mcqTotal,
-    assetBlockedChaptersCount,
-    facultyReviewedCount,
-  };
-}
-
-export function getPlatformCompletionSummary(): PlatformCompletionSummary {
-  const byDomain = EDUCATION_DOMAINS.map((d) => getDomainCompletionSummary(d.id));
-  return {
-    totalDomains: EDUCATION_DOMAINS.length,
-    totalChapters: byDomain.reduce((s, d) => s + d.totalChapters, 0),
-    writtenCompleteCount: byDomain.reduce((s, d) => s + d.writtenCompleteCount, 0),
-    readingLinksTotal: byDomain.reduce((s, d) => s + d.readingLinksTotal, 0),
-    presentationDecksCount: byDomain.reduce((s, d) => s + d.presentationDecksCount, 0),
-    verifiedVideosCount: byDomain.reduce((s, d) => s + d.verifiedVideosCount, 0),
-    mcqTotal: byDomain.reduce((s, d) => s + d.mcqTotal, 0),
-    assetBlockedChaptersCount: byDomain.reduce((s, d) => s + d.assetBlockedChaptersCount, 0),
-    facultyReviewedCount: byDomain.reduce((s, d) => s + d.facultyReviewedCount, 0),
-    byDomain,
-  };
-}

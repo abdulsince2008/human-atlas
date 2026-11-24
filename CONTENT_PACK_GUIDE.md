@@ -1,6 +1,6 @@
 # Anatomy 360 — Content Pack & Multi-Atlas Authoring Guide
 
-Anatomy 360 separates **canonical anatomical identity** (`FMA` concept IDs and `CanonicalSystemId` strings) from **rendering chunks**, **educational copy**, and **assessment packs**. New curriculum packs and future 3D body models (e.g., Adult Female or Pediatric atlases) can be validated client-side via `#/atlases` (**Atlas & Pack Manager**) without changing core Three.js scene code or quiz/learn components.
+Anatomy 360 separates **canonical anatomical identity** (`FMA` concept IDs and `CanonicalSystemId` strings) from **rendering chunks**, **educational copy**, and **assessment packs**. Alongside the Adult Male BodyParts3D baseline (`public/models/atlas.json`) and the 79-part Female Overlay (`public/models/female/female-atlas.json`), new curriculum packs and future 3D body models (e.g., expanded Female vascular/nervous/visceral sets or Pediatric atlases) can be validated client-side via `#/atlases` (**Atlas & Pack Manager**) without changing core Three.js scene code or quiz/learn components.
 
 ---
 

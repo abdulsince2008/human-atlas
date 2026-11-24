@@ -10,6 +10,11 @@ import {
   XCircle,
 } from 'lucide-react';
 import type { ChapterPresentationDeck, ChapterPresentationSlide } from '../education/education-types';
+import {
+  buildChapterPresentationPdf,
+  buildChapterPresentationPptx,
+  triggerBinaryDownload,
+} from '../utils/teaching-exports';
 
 interface Props {
   deck: ChapterPresentationDeck;
@@ -92,6 +97,7 @@ export default function ChapterDeckViewer({ deck, chapterCode }: Props) {
   const [slideIdx, setSlideIdx] = useState(0);
   const [showNotes, setShowNotes] = useState(true);
   const [selectedQuizIdx, setSelectedQuizIdx] = useState<number | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<'pptx' | 'pdf' | null>(null);
 
   useEffect(() => {
     setSlideIdx(0);
@@ -118,6 +124,34 @@ export default function ChapterDeckViewer({ deck, chapterCode }: Props) {
     a.download = `${(chapterCode ?? deck.id).toLowerCase()}-presentation-deck.md`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPptx = async () => {
+    setExportingFormat('pptx');
+    try {
+      const bytes = await buildChapterPresentationPptx(deck, chapterCode);
+      triggerBinaryDownload(
+        `${(chapterCode ?? deck.id).toLowerCase()}-presentation-deck.pptx`,
+        bytes,
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      );
+    } finally {
+      setExportingFormat(null);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    setExportingFormat('pdf');
+    try {
+      const bytes = buildChapterPresentationPdf(deck, chapterCode);
+      triggerBinaryDownload(
+        `${(chapterCode ?? deck.id).toLowerCase()}-presentation-deck.pdf`,
+        bytes,
+        'application/pdf',
+      );
+    } finally {
+      setExportingFormat(null);
+    }
   };
 
   return (
@@ -151,11 +185,31 @@ export default function ChapterDeckViewer({ deck, chapterCode }: Props) {
           </button>
           <button
             type="button"
-            onClick={handleDownloadDeck}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800 whitespace-nowrap shrink-0"
+            disabled={exportingFormat !== null}
+            onClick={handleDownloadPptx}
+            data-testid="download-deck-pptx"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800 whitespace-nowrap shrink-0 disabled:opacity-60"
           >
             <Download size={13} />
-            <span>Download Slide Deck (.md)</span>
+            <span>{exportingFormat === 'pptx' ? 'Building .pptx…' : 'Download Slides (.pptx)'}</span>
+          </button>
+          <button
+            type="button"
+            disabled={exportingFormat !== null}
+            onClick={handleDownloadPdf}
+            data-testid="download-deck-pdf"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 whitespace-nowrap shrink-0 disabled:opacity-60"
+          >
+            <Download size={13} />
+            <span>Download Slides (.pdf)</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadDeck}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 whitespace-nowrap shrink-0"
+          >
+            <Download size={13} />
+            <span>Download (.md)</span>
           </button>
         </div>
       </div>

@@ -29,7 +29,7 @@ This register enumerates all **16 domains (`A`–`P`)** and **267 chapters** ver
 ## Legacy & Existing Module Preservation
 
 All **267** domain chapters extend — without duplicating or replacing — pre-existing Anatomy 360 modules:
-- **BodyParts3D 3D Atlas:** `2,234` adult male meshes (`3,432` FMA concepts) + `14` HuBMAP female meshes mapped to `A1`–`A14` and cross-domain anatomical anchors (`relatedFmaConceptIds`).
+- **BodyParts3D + Female Overlay 3D Atlas:** `2,234` adult male BodyParts3D meshes (`3,432` FMA concepts) + a co-registered `79`-part Female Anatomy Overlay (`71` HuBMAP HRA CC BY 4.0 meshes + `8` aligned procedural reconstructions; `124.4k` triangles) mapped to `A1`–`A14` and cross-domain anatomical anchors (`relatedFmaConceptIds`), with remaining female vascular/nervous/visceral/variant/validation gaps disclosed.
 - **System Anatomy Lessons (`app/learning-data.ts`):** `12` canonical system lessons (`28` topics, `8` guided pathways, `32` terminology items) synchronized via `onOpenSystemLesson`.
 - **Quantitative Physiology Simulators (`app/data/physiology-data.ts`):** `5` active evaluators + `1` planned endocrine spec linked to `E1`–`E16`.
-- **Built-In 3D Presentations (`app/presentation/builtin-presentations.ts`):** `5` interactive 3D walkthroughs linked alongside `267` original 9-slide chapter decks (`ChapterPresentationDeck`).
+- **Built-In 3D Presentations (`app/presentation/builtin-presentations.ts`):** `5` interactive 3D walkthroughs linked alongside `267` engine-generated 9-slide chapter decks (`ChapterPresentationDeck`, exportable as `.pptx`, `.pdf`, and `.md`).

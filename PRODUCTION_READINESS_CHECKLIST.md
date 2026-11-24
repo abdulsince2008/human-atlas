@@ -30,7 +30,7 @@ This checklist separates **Automated Technical Checks** (verified in code/CI) fr
 ## C. Human & External Asset Sign-Offs (Required Before Claiming Complete External Media Coverage)
 
 - [ ] **Legal Attribution Verification:** Confirm `BodyParts3D, © DBCLS (CC BY 4.0)` and MIT notices remain visible in About (`#/about`), Home footer, and packaged `THIRD_PARTY_LICENSES.md`.
-- [ ] **Adult Female Reference 3D Model:** Bundle verified CC BY 4.0 / CC0 chunked binary meshes and manifest (e.g., HuBMAP / verified anatomical source) into `public/models/` before flipping female atlas entry from `unavailable_assets` to `available`.
-- [ ] **Real Microscopy Micrographs:** Obtain CC BY 4.0 / CC0 photomicrographs with scale bars and populate `SpecimenAssetSlot.imageUrl` fields in `app/data/histology-data.ts`.
+- [x] **Adult Female Reference 3D Overlay (v1):** Bundled `public/models/female/female-atlas.json` (**79** parts / **124.4k** triangles: **71** HuBMAP HRA CC BY 4.0 meshes + **8** anatomically aligned procedural reconstructions) and wired Male/Female switching into Explorer & Scene. *Remaining:* expand broader female vascular, nervous, visceral coverage, anatomical variants, and region-by-region validation.
+- [ ] **Complete Microscopy & Radiology Chapter Datasets (`85` Chapters):** While **10** verified CC-licensed Histology micrographs (`public/media/histology/`) and **5** de-identified normal Radiology plates (`public/media/radiology/`) are bundled, per-chapter clinical slide/smear/DICOM series (`asset_required`) remain pending.
 - [ ] **Urdu Localization Faculty Sign-Off:** Complete domain-reviewed Urdu medical translations for `LocalizedText.ur` fields prior to exposing a language switcher.
 - [ ] **Production Static CDN Caching:** Verify `.bin.gz` / `.bin` model chunks serve cleanly over HTTPS with cache-control headers on Cloudflare Pages or target CDN.

@@ -3,10 +3,10 @@
 > Only features that have been implemented and verified are listed here.
 
 - [x] **Biomedical Curriculum Overview (`#/learn`, `app/education/`, `app/components/MedicalCurriculumHub.tsx`):**
-  - Introductory overview modules across 16 biomedical & clinical domains (17 modules total — introductory overviews, not completed courses)
-  - 5 level-differentiated learning tracks with strict track+reference domain and topic filtering (zero silent fallback on unmatched combinations)
-  - 11 curriculum references (distinct regulators, statutory frameworks, exam boards, and university examples) with geographic/adoption caveats and verified PM&DC 6,200 minimum contact hours benchmark
-  - Static 2D conceptual schematics with rendered pathway connections, verified BodyParts3D FMA 3D inspection links, applied activities, self-assessment MCQs wired to `StudyContext`, topic completion tracking, and strict `asset_missing` disclosures for Histology microscopy and Radiology imaging
+  - **16** biomedical & clinical domains (`267` chapters) paired with `chapter-package-engine.ts` structured decks (`267 × 9` slides), 5-scene video storyboards, short-answer rubrics, applied cases, and 570 reading links resolved from 63 source records
+  - **6** level-differentiated learning tracks with strict track+reference domain and topic filtering (zero silent fallback on unmatched combinations)
+  - **13** curriculum alignment references (distinct regulators, statutory frameworks, exam boards, and university examples) with geographic/adoption caveats and verified PM&DC 6,200 minimum contact hours benchmark
+  - Static 2D conceptual schematics with rendered pathway connections, verified BodyParts3D FMA 3D inspection links, applied activities, self-assessment MCQs wired to `StudyContext`, topic completion tracking, `.pptx`/`.pdf`/`.md` exports, and strict `asset_missing` / `asset_required` disclosures for complete Histology microscopy and Radiology imaging series (supplemented by 10 starter CC micrographs and 5 starter normal Radiology plates)
   - Structural/referential automated validation (`app/education/education-validation.ts`, `app/education.test.ts`, `scripts/test-platform.mjs` Section 7 — structural checks only, not medical accuracy certification)
 - [x] **Repository Migration & Static Production Build:** Configured `vite.config.ts` (`0.0.0.0:3000`, `allowedHosts: true`), verified static `dist/` production output with lazy-loaded 3D chunks (`ExplorerView`, `PresentationStudioPage`, `scene`).
 - [x] **3D Graphics, PBR, UV, Shadows & Runtime LOD Pipeline (`app/graphics/`, `app/scene.tsx`, `app/tissue-materials.ts`):**

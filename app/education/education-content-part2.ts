@@ -555,7 +555,7 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
       { term: 'Hounsfield Units (HU)', definition: 'Quantitative CT radiodensity scale (Air ≈ −1000, Water = 0, Cortical bone ≈ +1000).' },
     ],
     keyFacts: [
-      'Anatomy 360 currently has NO bundled licensed DICOM/X-ray/CT/MRI/ultrasound image datasets; real imaging assets are explicitly marked Asset Required.',
+      'Anatomy 360 bundles 5 de-identified CC-licensed normal imaging reference plates in the Visualise tab (PA Chest X-ray, Axial Brain CT, Axial Brain MRI T2, Kidney Ultrasound, DP Foot X-ray), while multi-slice DICOM and pathology series across N1–N14 remain Asset Required.',
       'Students can practice anatomical plane orientation using the 3D Explorer’s real-time axial, coronal, and sagittal clipping planes.',
     ],
     crossSubjectLinks: [
@@ -569,7 +569,7 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
       title: 'Core Medical Imaging Modalities Comparison',
       kind: 'comparison',
       caption: 'Physical energy source and primary anatomical strengths across four foundational imaging modalities.',
-      disclaimer: 'Conceptual comparison chart — NO real radiographs or DICOM datasets are bundled yet (Asset Required).',
+      disclaimer: 'Conceptual comparison chart — 5 de-identified normal reference plates are bundled below; full DICOM/pathology stacks remain Asset Required.',
       nodes: [
         { id: 'r1', label: 'Plain X-Ray', sublabel: 'Ionising · Rapid bone & chest overview', tone: 'slate' },
         { id: 'r2', label: 'CT Scan', sublabel: 'Ionising · Rapid 3D cross-sections & trauma', tone: 'amber' },
@@ -585,8 +585,8 @@ export const EDUCATION_TOPICS_PART_2: EducationTopic[] = [
     assetDisclosure: {
       status: 'asset_required',
       summary:
-        'Modality physics and orientation concepts are implemented, but NO real licensed X-ray, CT, MRI, or ultrasound image datasets are currently bundled. No fake radiographs are generated.',
-      missingAssets: ['De-identified, openly licensed normal Chest X-ray, Brain MRI, and Abdominal CT teaching image sets'],
+        'Five de-identified CC-licensed normal reference plates (PA Chest X-ray, Axial Brain CT, Axial Brain MRI T2, Kidney Ultrasound, DP Foot X-ray) are bundled alongside 3D Explorer clipping planes, while full multi-slice DICOM and pathology stacks across N1–N14 remain Asset Required.',
+      missingAssets: ['Multi-slice DICOM CT/MRI volumes and clinical pathology imaging series across chapters N1–N14'],
     },
     selfChecks: [
       {

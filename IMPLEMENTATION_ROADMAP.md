@@ -14,7 +14,7 @@
 
 ## Phase 3 — Anatomical Organization & Search
 - Organize the 12 canonical anatomical systems (Skeletal, Muscular, Nervous, Cardiovascular, Respiratory, Digestive, Urinary, Reproductive, Endocrine, Lymphatic, Integumentary, Sensory Organs) mapped cleanly to the 15 underlying BodyParts3D mesh layers.
-- Explicitly mark coverage status (`Full`, `Partial`, `Male Reference Only`, `Planned`) without inventing unavailable geometry.
+- Explicitly mark coverage status (`Full`, `Partial`, `Male & Female 3D (Partial)`, `Planned`) without inventing unavailable geometry.
 - Upgrade anatomical search to match anatomical names, common names, synonyms, FMA IDs, and system names—including clearly labeled planned entries for structures not yet in the 3D mesh set.
 
 ## Phase 4 — Educational Layer & Application Pages

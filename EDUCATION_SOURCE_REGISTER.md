@@ -28,7 +28,8 @@ All external educational sources referenced across the **267 chapters (`A`–`P`
 
 - **BodyParts3D 4.0 / Anatomography (`public/models/atlas.json`):** 2,234 adult male meshes · **CC BY 4.0** (Database Center for Life Science).
 - **Foundational Model of Anatomy (FMA):** 3,432 indexed concepts · **FMA Custom Academic License** (`app/data/provenance-registry.ts`).
-- **HuBMAP 3D Reference Organs (`public/models/female/female-atlas.json`):** 14 female reference meshes · **CC BY 4.0**.
+- **Female Anatomy Overlay (`public/models/female/female-atlas.json`):** 79 parts (`124.4k` triangles) — **71** HuBMAP HRA **CC BY 4.0** meshes (`55` Visible Human Female + `16` Mammary Gland) + **8** anatomically aligned procedural reconstructions (broader female vascular/nervous/visceral/variant/validation gaps remain).
+- **Wikimedia Commons CC-Licensed Media (`public/media/`):** 10 Histology light micrographs (`histology-data.ts`) + 5 de-identified normal Radiology plates (`radiology-data.ts`).
 - **Terminologia Anatomica (TA2):** Referenced nomenclature terms · **CC BY-ND 4.0**.
 
 ---

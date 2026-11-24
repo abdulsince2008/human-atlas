@@ -50,6 +50,8 @@ import type {
 import ChapterDeckViewer from './ChapterDeckViewer';
 import type { AppRoute } from './SiteHeader';
 import { useStudy } from './StudyContext';
+import { RADIOLOGY_CASES, type RadiologyModality } from '../data/radiology-data';
+import { buildChapterStudyGuidePdf, triggerBinaryDownload } from '../utils/teaching-exports';
 
 interface Props {
   atlas: Atlas | null;
@@ -266,6 +268,7 @@ export default function MedicalCurriculumHub({
   const [revealedCases, setRevealedCases] = useState<Record<string, boolean>>({});
   const [selectedDiagramNodeId, setSelectedDiagramNodeId] = useState<string | null>(null);
   const [showFullPlatformMatrix, setShowFullPlatformMatrix] = useState(false);
+  const [radiologyFilter, setRadiologyFilter] = useState<RadiologyModality | 'all'>('all');
 
   useEffect(() => {
     if (initialFrameworkId) {
@@ -976,6 +979,26 @@ export default function MedicalCurriculumHub({
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
+                          data-testid="download-study-guide-pdf"
+                          onClick={() => {
+                            const bytes = buildChapterStudyGuidePdf(
+                              activeTopic,
+                              getTrackById(depthInfo.trackUsed)?.shortLabel ?? depthInfo.trackUsed,
+                              depthInfo.text,
+                            );
+                            triggerBinaryDownload(
+                              `${(activeTopic.chapterCode ?? activeTopic.id).toLowerCase()}-study-guide.pdf`,
+                              bytes,
+                              'application/pdf',
+                            );
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800 whitespace-nowrap"
+                        >
+                          <Download size={13} />
+                          <span>Download Study Guide (.pdf)</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() =>
                             downloadMarkdownFile(
                               `${(activeTopic.chapterCode ?? activeTopic.id).toLowerCase()}-study-guide.md`,
@@ -986,10 +1009,10 @@ export default function MedicalCurriculumHub({
                               ),
                             )
                           }
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800 whitespace-nowrap"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 whitespace-nowrap"
                         >
                           <Download size={13} />
-                          <span>Download Study Guide (.md)</span>
+                          <span>Download (.md)</span>
                         </button>
                         {onOpenEducatorWorkspace && (
                           <button
@@ -1391,6 +1414,104 @@ export default function MedicalCurriculumHub({
                         </div>
                       )}
                     </div>
+
+                    {/* Bundled De-Identified Normal Radiology Reference Gallery (Domain N) */}
+                    {activeDomain.id === 'radiology_imaging' && (
+                      <div
+                        className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-4"
+                        data-testid="radiology-reference-gallery"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-900">
+                              Bundled Normal Clinical Imaging Reference Plates ({RADIOLOGY_CASES.length} Modalities)
+                            </h4>
+                            <p className="text-xs text-slate-600">
+                              De-identified normal CC0 / CC BY / CC BY-SA reference studies for anatomical correlation. Broader 14-chapter Domain N pathology series remain text-first (<code>asset_required</code>).
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter radiology modality">
+                            {(['all', 'X-Ray', 'CT', 'MRI', 'Ultrasound'] as const).map((mod) => (
+                              <button
+                                key={mod}
+                                type="button"
+                                onClick={() => setRadiologyFilter(mod)}
+                                className={`rounded-lg border px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
+                                  radiologyFilter === mod
+                                    ? 'border-teal-700 bg-teal-700 text-white'
+                                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                                }`}
+                              >
+                                {mod === 'all' ? 'All Modalities' : mod}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                          {RADIOLOGY_CASES.filter(
+                            (rc) => radiologyFilter === 'all' || rc.modality === radiologyFilter,
+                          ).map((rc) => (
+                            <article
+                              key={rc.id}
+                              className="rounded-xl border border-slate-200 bg-white p-4 space-y-3"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                                <span className="font-mono font-bold text-teal-800">
+                                  {rc.modality} · {rc.planeOrProjection}
+                                </span>
+                                <span className="text-slate-500">{rc.license}</span>
+                              </div>
+                              <h5 className="text-sm font-bold text-slate-900">{rc.title}</h5>
+                              <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-950">
+                                <img
+                                  src={rc.imageUrl}
+                                  alt={`${rc.title} — ${rc.planeOrProjection}`}
+                                  loading="lazy"
+                                  className="h-60 w-full object-contain"
+                                />
+                              </div>
+                              <p className="text-xs leading-relaxed text-slate-700">{rc.summary}</p>
+                              <p className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-[11px] text-slate-700">
+                                <strong>Orientation &amp; Signal Convention:</strong> {rc.orientationConvention}
+                              </p>
+                              <div>
+                                <p className="text-[11px] font-bold text-slate-700">Key Landmarks</p>
+                                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-slate-700">
+                                  {rc.anatomicalLandmarks.map((lm) => (
+                                    <li key={lm}>{lm}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-[11px] text-slate-600">
+                                <span>
+                                  {rc.author} · {rc.license} ·{' '}
+                                  <a
+                                    href={rc.sourceUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="font-semibold text-teal-800 hover:underline"
+                                  >
+                                    Commons Source
+                                  </a>
+                                </span>
+                                {rc.linkedConceptIds[0] && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onInspectConcept(rc.linkedConceptIds[0])}
+                                    className="inline-flex items-center gap-1 rounded border border-teal-200 bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-100"
+                                  >
+                                    <span>Inspect 3D Structure</span>
+                                    <ArrowRight size={12} />
+                                  </button>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-amber-800">{rc.clinicalDisclaimer}</p>
+                            </article>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

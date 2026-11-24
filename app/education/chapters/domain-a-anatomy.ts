@@ -5,7 +5,7 @@ import type { VERIFIED_SOURCES } from '../verified-sources';
 const ANAT_DISCLOSURE = {
   status: 'partial' as const,
   summary:
-    'Integrated with Anatomy 360’s 2,234 adult male BodyParts3D 4.0 meshes (3,432 FMA concepts), 14 HuBMAP female reference meshes, 12 System Lessons (28 topics), and Surgical Layer Dissections. Fine cranial meninges, parathyroid glands, inner-ear cochlea, and small autonomic plexuses remain outside current mesh granularity and are taught conceptually.',
+    'Integrated with Anatomy 360’s 2,234 adult male BodyParts3D 4.0 meshes (3,432 FMA concepts), 79 Adult Female overlay parts (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions, 124.4k triangles), 12 System Lessons (28 topics), and Surgical Layer Dissections. Remaining gaps include broader female-specific vascular/nervous/visceral coverage, anatomical variants, region-by-region validation, cranial meninges, parathyroid glands, and inner-ear cochlea.',
   missingAssets: [
     'Micro-scale 3D surface geometry for cranial meninges, parathyroid glands, inner-ear ossicles, and fine peripheral nerve plexuses',
   ],
@@ -132,7 +132,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     'General Anatomy',
     'Anatomical Position, Orthogonal Planes, Directional Terms, Cavities & Surface Organization',
     'Standard anatomical reference posture, sagittal/coronal/transverse planes, proximal/distal vs medial/lateral terms, dorsal/ventral cavities, and Terminologia Anatomica.',
-    'Links directly to 3D Explorer Sagittal, Coronal & Axial Clipping Planes across 2,234 adult male + 14 HuBMAP female meshes',
+    'Links directly to 3D Explorer Sagittal, Coronal & Axial Clipping Planes across 2,234 adult male + 79 Adult Female overlay parts',
     ['ap_ch1_terminology', 'anat_soc_uk'],
     {
       colA: 'Sagittal & Coronal Planes',
@@ -329,7 +329,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     'Pelvis and Perineum',
     'Pelvic Floor (Levator Ani), Fascia, Pudendal/Splanchnic Nerves, Bladder, Rectum & Reproductive Organs',
     'Bony pelvic inlet/outlet, levator ani (puborectalis sling), internal iliac branches, ureteral-uterine "water under the bridge", rectum/anal pectinate line, perineal pouches, and male/female HuBMAP organs.',
-    'Links to 3D Urinary Bladder FMA15900, Ureter FMA9704, Prostate FMA9600, Testis FMA7210, Pelvic Muscle FMA19086 + 14 Female HuBMAP Reproductive/Pelvic Meshes (toggle Female Atlas)',
+    'Links to 3D Urinary Bladder FMA15900, Ureter FMA9704, Prostate FMA9600, Testis FMA7210, Pelvic Muscle FMA19086 + 79 Adult Female Overlay Parts (71 HuBMAP + 8 Reconstructions; toggle Female Mode)',
     ['ap_ch25_urinary', 'ap_ch27_repro'],
     {
       colA: 'Above Anal Pectinate (Dentate) Line',
@@ -342,7 +342,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     [
       'The pelvic diaphragm (levator ani: puborectalis, pubococcygeus, iliococcygeus + coccygeus) supports pelvic viscera; puborectalis loops slinglike around the anorectal junction maintaining the 90° faecal continence angle.',
       'During hysterectomy or uterine-artery ligation, recall "water under the bridge": the retroperitoneal URETER runs immediately POSTERIOR-INFERIOR to the uterine artery ~1.5 cm lateral to the cervix.',
-      'Anatomy 360 ships dedicated 14 HuBMAP female pelvic meshes (uterus, ovaries, fallopian tubes, vagina, pelvic bones) accessible via the Female Atlas toggle alongside male prostate/testes/bladder meshes.',
+      'Anatomy 360 ships 79 co-registered Adult Female overlay parts (71 HuBMAP HRA CC BY 4.0 meshes + 8 anatomically aligned pelvic/urethral reconstructions for uterus, ovaries, fallopian tubes, vagina, external vulvar anatomy, bladder, pelvis & mammary glands) accessible via the Female toggle.',
     ],
     'A "straddle" perineal fall rupturing the bulbous urethra beneath intact Buck/Colles fascia extravasates urine up the anterior abdominal wall between Scarpa fascia and external oblique aponeurosis, NEVER down into the thighs (held back by fascia lata attachment).',
     ['FMA16585', 'FMA19086', 'FMA15900', 'FMA9704', 'FMA9600', 'FMA7210'],
@@ -553,7 +553,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     'Anatomical Integration',
     'Surface Landmarks, Cross-Sectional Slices, Variations & Surgical Layer Dissection',
     'Palpable surface projections, key axial vertebral-level slices (C6, T4/5, T8/10/12, L1 transpyloric, L4 iliac crest), normal anatomical variants, and surgical fascial layers.',
-    'Synthesizes all 12 System Lessons (28 topics), 3D Clipping Planes, Surgical Dissection Atlas (app/data/surgical-anatomy.ts), and 14 HuBMAP Female Meshes',
+    'Synthesizes all 12 System Lessons (28 topics), 3D Clipping Planes, Surgical Dissection Atlas (app/data/surgical-anatomy.ts), and 79 Adult Female Overlay Parts',
     ['ap_ch1_terminology', 'ap_ch1_imaging', 'anat_soc_uk'],
     {
       colA: 'Classic Surface & Axial Slice Levels',

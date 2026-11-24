@@ -5,6 +5,7 @@ import PracticalLabWorkspace from '../components/PracticalLabWorkspace';
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
+  initialSystemId?: CanonicalSystemId | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
 }
@@ -12,6 +13,7 @@ interface Props {
 export default function PracticalLabPage({
   atlas,
   atlasError,
+  initialSystemId,
   onInspectConcept,
   onOpenLearnSystem,
 }: Props) {
@@ -19,6 +21,7 @@ export default function PracticalLabPage({
     <PracticalLabWorkspace
       atlas={atlas}
       atlasError={atlasError}
+      initialSystemId={initialSystemId}
       onInspectConcept={onInspectConcept}
       onOpenLearnSystem={onOpenLearnSystem}
     />

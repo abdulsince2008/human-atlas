@@ -341,7 +341,7 @@ export default function SyllabusNavigatorPage({
         <p className="a360-kicker">Worldwide Syllabus Navigator</p>
         <h1>Find Your Curriculum or Match a Custom Syllabus</h1>
         <p className="a360-lead">
-          Browse {CURRICULUM_FRAMEWORKS.length} official curriculum alignment references worldwide or paste/upload your own school, university, MBBS, nursing, or graduate syllabus to inspect real Anatomy 360 topic coverage locally.
+          Browse {CURRICULUM_FRAMEWORKS.length} public national, regulatory, and university curriculum alignment references worldwide or paste/upload your own school, university, MBBS, nursing, or graduate syllabus to inspect real Anatomy 360 topic coverage locally.
         </p>
       </header>
 
@@ -359,7 +359,7 @@ export default function SyllabusNavigatorPage({
           }`}
         >
           <Globe2 size={14} />
-          <span>Official Curriculum References ({CURRICULUM_FRAMEWORKS.length})</span>
+          <span>Curriculum Alignment References ({CURRICULUM_FRAMEWORKS.length})</span>
         </button>
 
         <button
@@ -393,15 +393,15 @@ export default function SyllabusNavigatorPage({
         </button>
       </div>
 
-      {/* MODE A: OFFICIAL 13 CURRICULUM FRAMEWORKS */}
+      {/* MODE A: 13 CURRICULUM ALIGNMENT REFERENCES */}
       {mode === 'official' && (
-        <section className="space-y-6" aria-label="Official curriculum references">
+        <section className="space-y-6" aria-label="Curriculum alignment references">
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="max-w-2xl">
                 <h2 className="text-lg font-bold text-slate-900">Alignment Mapping vs. Endorsement</h2>
                 <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  These {CURRICULUM_FRAMEWORKS.length} references document verified public syllabi and topic mappings created by Anatomy 360 to help learners locate aligned lessons. Listing a curriculum indicates topic mapping only and does not imply institutional accreditation, endorsement, or examination equivalence.
+                  These {CURRICULUM_FRAMEWORKS.length} alignment references document verified public syllabi and topic mappings created by Anatomy 360 to help learners locate aligned lessons. Listing a curriculum indicates topic mapping only and does not imply institutional accreditation, endorsement, or examination equivalence.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -441,7 +441,7 @@ export default function SyllabusNavigatorPage({
             <div className="space-y-2.5 lg:col-span-5">
               {visibleFrameworks.length === 0 ? (
                 <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-xs text-slate-600">
-                  No official frameworks match both filters.
+                  No curriculum references match both filters.
                   <button
                     type="button"
                     onClick={() => { setCountryFilter('all'); setTrackFilter('all'); }}

@@ -375,8 +375,8 @@ export const EDUCATION_TOPICS_PART_1: EducationTopic[] = [
       { term: 'Intercalated Discs', definition: 'Specialized junctional complexes (desmosomes + gap junctions) unique to cardiac muscle.' },
     ],
     keyFacts: [
-      'Anatomy 360 includes 10 structured histology tissue entries with self-checks in the Histology Library.',
-      'Real licensed light-microscopy slide photographs are explicitly marked as Asset Required until verified CC-BY slides are integrated.',
+      'Anatomy 360 includes 10 structured histology tissue entries with 10 verified CC-licensed micrographs and self-checks in the Histology Library.',
+      'Full per-chapter systemic H&E/EM slide sets across C1–C18 remain Asset Required alongside Histology Guide and UMich links.',
     ],
     crossSubjectLinks: [
       { domainId: 'human_anatomy', relation: 'Microscopic tissue layers compose the macroscopic walls of vessels, airways, and GI organs.' },
@@ -390,7 +390,7 @@ export const EDUCATION_TOPICS_PART_1: EducationTopic[] = [
       title: 'Four Primary Human Tissue Classes',
       kind: 'comparison',
       caption: 'Core structural hallmarks distinguishing the four primary tissue classes.',
-      disclaimer: 'Conceptual classification chart — NOT a substitute for real light-microscopy slides.',
+      disclaimer: 'Conceptual classification chart — paired with 10 CC-licensed tissue micrographs in the Histology Library.',
       nodes: [
         { id: 't1', label: 'Epithelial', sublabel: 'Polarized sheets, basement membrane, avascular', tone: 'teal' },
         { id: 't2', label: 'Connective', sublabel: 'Abundant ECM, collagen/elastin, bone/blood', tone: 'amber' },
@@ -407,8 +407,8 @@ export const EDUCATION_TOPICS_PART_1: EducationTopic[] = [
     assetDisclosure: {
       status: 'asset_required',
       summary:
-        'Real licensed H&E microscopy photomicrographs with stain, magnification, and scale-bar metadata are not yet populated in the Histology Library. Do not treat diagrams as real microscopy specimens.',
-      missingAssets: ['Licensed H&E light-microscopy images for epithelium, connective tissue, muscle, nerve, and major organs'],
+        'Ten verified CC-licensed light-microscopy tissue micrographs are bundled in the Histology Library, while full per-chapter systemic slide series across C1–C18 remain Asset Required.',
+      missingAssets: ['Full per-chapter H&E and electron-microscopy image series across C1–C18'],
     },
     selfChecks: [
       {

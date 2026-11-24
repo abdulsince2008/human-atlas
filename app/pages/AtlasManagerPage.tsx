@@ -18,14 +18,14 @@ const RELEASE_CHECKLIST_ITEMS = [
   },
   {
     id: 'rel-2',
-    item: 'Adult Female Reference Overlay Bundle',
-    detail: 'Integrated HuBMAP HRA Visible Human Female (CC BY 4.0) pelvis, uterus, ovaries, uterine tubes, bladder, vagina & mammary glands via Male/Female 3D selector.',
+    item: 'Adult Female Reference Overlay Bundle (79 Parts / 124.4k Triangles)',
+    detail: 'Integrated 71 HuBMAP HRA CC BY 4.0 meshes (55 HRA v1.5 Visible Human Female + 16 HRA v1.1 Mammary Gland) + 8 co-registered pelvic/urethral reconstructions via Male/Female 3D selector. Still missing: broader female vascular/nervous/visceral coverage, anatomical variants, and region-by-region validation.',
     doneInCode: true,
   },
   {
     id: 'rel-3',
-    item: 'Verified Microscopy Histology Slides',
-    detail: 'Import slots prepared; requires licensed microscopy micrographs with magnification scale bars.',
+    item: 'Verified Microscopy & Radiology Reference Media',
+    detail: '10 CC-licensed tissue micrographs bundled in Histology Library and 5 normal Imaging plates in Radiology Visualise tab; full per-chapter C1–C18/N1–N14 clinical slide series remain Asset Required.',
     doneInCode: false,
   },
   {
@@ -86,8 +86,9 @@ export default function AtlasManagerPage() {
         <p className="a360-kicker">Multi-Atlas Scalability & Schema Governance</p>
         <h1>Atlas Registry & Content Pack Manager</h1>
         <p className="a360-lead">
-          Inspect registered 3D anatomical atlases, view exact asset requirements for unavailable models
-          such as Adult Female or Pediatric datasets, and validate external JSON manifests client-side.
+          Inspect registered Adult Male and Adult Female 3D anatomical atlases, view exact asset
+          requirements for planned Pediatric or expanded female vascular/nervous packs, and validate
+          external JSON manifests client-side.
         </p>
       </header>
 

@@ -187,8 +187,8 @@ export const LICENSE_REGISTRY: DatasetLicenseRecord[] = [
     attributionText: 'HuBMAP Human Reference Atlas 3D Reference Organ Library (CC BY 4.0).',
     integrationStatus: 'integrated',
     bundledInPublicBuild: true,
-    notes: 'Adult female pelvis, urinary bladder, uterus, ovaries, and uterine tubes co-registered into public/models/female/ for Male/Female 3D viewer switching.',
-    dateChecked: '2026-11-22',
+    notes: '71 direct HuBMAP HRA CC BY 4.0 meshes (55 HRA v1.5 Visible Human Female DOI: 10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland) combined with 8 anatomically co-registered reconstructions (79 parts / 124.4k triangles) in public/models/female/ for Male/Female 3D viewer switching.',
+    dateChecked: '2026-11-24',
   },
   {
     id: 'nlm-visible-human',

@@ -38,7 +38,7 @@ const CORE_LINKS: { id: AppRoute; label: string }[] = [
 ];
 
 const STUDY_MENU: { id: AppRoute; label: string; desc: string }[] = [
-  { id: 'syllabus', label: 'Worldwide Syllabus Navigator', desc: '13 official frameworks & custom syllabus matcher' },
+  { id: 'syllabus', label: 'Worldwide Syllabus Navigator', desc: '13 curriculum references & custom syllabus matcher' },
   { id: 'educator', label: 'Teacher & Professor Workspace', desc: 'All 16 domains & syllabi, outlines & worksheets' },
   { id: 'dashboard', label: 'Study Dashboard', desc: 'Progress analytics, profile & JSON backup' },
   { id: 'revision', label: 'Flashcards & Revision', desc: 'SM-2 spaced repetition & weak queue' },
@@ -48,7 +48,7 @@ const STUDY_MENU: { id: AppRoute; label: string; desc: string }[] = [
 const LABS_MENU: { id: AppRoute; label: string; desc: string }[] = [
   { id: 'relationships', label: 'Relationship Explorer', desc: 'Visual vascular, nerve & muscle connections' },
   { id: 'physiology', label: 'Physiology Simulations', desc: 'Cardiac, respiratory, renal & elbow mechanics' },
-  { id: 'histology', label: 'Histology Library', desc: 'Tissues, organ microanatomy & slide slots' },
+  { id: 'histology', label: 'Histology Library', desc: '10 bundled tissue micrographs & study guides' },
   { id: 'clinical', label: 'Clinical Correlations', desc: 'Regional anatomy learning scenarios' },
   { id: 'quiz', label: 'Anatomy Quizzes', desc: 'Topic-tagged MCQ active recall' },
   { id: 'atlases', label: 'Atlas & Pack Manager', desc: 'Multi-atlas registry & JSON validator' },

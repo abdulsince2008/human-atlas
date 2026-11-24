@@ -17,8 +17,11 @@ import {
   PHYSIOLOGY_MODULES,
   type PhysiologyModuleSpec,
 } from '../data/physiology-data';
+import { resolvePhysiologyTarget } from '../utils/deep-link-resolver';
 
 interface Props {
+  initialModuleId?: string | null;
+  initialSystemId?: CanonicalSystemId | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
 }
@@ -27,12 +30,26 @@ function getDefaults(mod: PhysiologyModuleSpec): Record<string, number> {
   return Object.fromEntries(mod.parameters.map((p) => [p.id, p.defaultValue]));
 }
 
-export default function PhysiologyPage({ onInspectConcept, onOpenLearnSystem }: Props) {
-  const [selectedId, setSelectedId] = useState<PhysiologyModuleSpec['id']>('cardiac-cycle');
+export default function PhysiologyPage({
+  initialModuleId,
+  initialSystemId,
+  onInspectConcept,
+  onOpenLearnSystem,
+}: Props) {
+  const [selectedId, setSelectedId] = useState<PhysiologyModuleSpec['id']>(() =>
+    resolvePhysiologyTarget(initialModuleId, initialSystemId),
+  );
   const [valuesByMod, setValuesByMod] = useState<Record<string, Record<string, number>>>(() =>
     Object.fromEntries(PHYSIOLOGY_MODULES.map((m) => [m.id, getDefaults(m)])),
   );
   const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    if (initialModuleId || initialSystemId) {
+      setSelectedId(resolvePhysiologyTarget(initialModuleId, initialSystemId));
+      setPlaying(false);
+    }
+  }, [initialModuleId, initialSystemId]);
 
   const activeMod = useMemo(
     () => PHYSIOLOGY_MODULES.find((m) => m.id === selectedId) ?? PHYSIOLOGY_MODULES[0],

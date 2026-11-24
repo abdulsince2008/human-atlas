@@ -50,6 +50,7 @@ const AnatomyScene = lazy(() => import('../scene'));
 interface Props {
   atlas: Atlas | null;
   atlasError?: string;
+  initialSystemId?: CanonicalSystemId | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
 }
@@ -72,6 +73,7 @@ const SHELL_LAYERS: SystemId[] = ['skeletal', 'connective', 'integumentary'];
 export default function PracticalLabWorkspace({
   atlas,
   atlasError,
+  initialSystemId,
   onInspectConcept,
   onOpenLearnSystem,
 }: Props) {
@@ -80,7 +82,16 @@ export default function PracticalLabWorkspace({
   const [storage, setStorage] = useState<PracticalLabStorageState>(() =>
     loadPracticalLabStorage(),
   );
-  const [activeConfig, setActiveConfig] = useState<ExamConfig>(DEFAULT_CONFIG);
+  const [activeConfig, setActiveConfig] = useState<ExamConfig>(() => ({
+    ...DEFAULT_CONFIG,
+    scope: initialSystemId ?? 'all',
+  }));
+  useEffect(() => {
+    if (initialSystemId) {
+      setActiveConfig((prev) => ({ ...prev, scope: initialSystemId }));
+      setStage('setup');
+    }
+  }, [initialSystemId]);
   const [questions, setQuestions] = useState<PracticalQuestion[]>([]);
   const [submissions, setSubmissions] = useState<Record<string, QuestionSubmission>>({});
   const [currentIndex, setCurrentIndex] = useState(0);

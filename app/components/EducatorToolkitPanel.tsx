@@ -35,6 +35,11 @@ import {
   resolveEducatorTopicSelection,
   type UniversalExportKind,
 } from '../utils/educator-export';
+import {
+  buildUniversalEducatorPdf,
+  buildUniversalEducatorPptx,
+  triggerBinaryDownload,
+} from '../utils/teaching-exports';
 
 interface Props {
   activeSystemId?: CanonicalSystemId | null;
@@ -85,6 +90,7 @@ export default function EducatorToolkitPanel({
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<'pdf' | 'pptx' | null>(null);
 
   useEffect(() => {
     if (initialSourceKind) setSourceKind(initialSourceKind);
@@ -210,6 +216,53 @@ export default function EducatorToolkitPanel({
     URL.revokeObjectURL(url);
   };
 
+  const buildExportOptions = () => ({
+    sourceKind,
+    domainId,
+    frameworkId,
+    customSyllabus: activeCustomSyllabus,
+    systemId: activeSystemId ?? 'cardiovascular',
+    tier,
+    exportKind,
+    includeAnswerKey,
+    topicIdsOverride: orderedTopics.map((t) => t.id),
+  });
+
+  const exportSlug =
+    sourceKind === 'domain'
+      ? domainId
+      : sourceKind === 'framework'
+        ? frameworkId
+        : activeCustomSyllabus?.id ?? 'custom';
+
+  const handleDownloadPdf = () => {
+    setExportingFormat('pdf');
+    try {
+      const bytes = buildUniversalEducatorPdf(buildExportOptions());
+      triggerBinaryDownload(
+        `anatomy360-${exportSlug}-${tier}-${exportKind}.pdf`,
+        bytes,
+        'application/pdf',
+      );
+    } finally {
+      setExportingFormat(null);
+    }
+  };
+
+  const handleDownloadPptx = async () => {
+    setExportingFormat('pptx');
+    try {
+      const bytes = await buildUniversalEducatorPptx(buildExportOptions());
+      triggerBinaryDownload(
+        `anatomy360-${exportSlug}-${tier}-${exportKind}.pptx`,
+        bytes,
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      );
+    } finally {
+      setExportingFormat(null);
+    }
+  };
+
   const allOutcomes = useMemo(() => {
     const out: string[] = [];
     const seen = new Set<string>();
@@ -267,7 +320,7 @@ export default function EducatorToolkitPanel({
                 sourceKind === 'framework' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              13 Syllabi
+              13 References
             </button>
             <button
               type="button"
@@ -305,7 +358,7 @@ export default function EducatorToolkitPanel({
 
           {sourceKind === 'framework' && (
             <select
-              aria-label="Select official curriculum framework"
+              aria-label="Select curriculum alignment reference"
               value={frameworkId}
               onChange={(e) => setFrameworkId(e.target.value as CurriculumAuthorityId)}
               className="max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800"
@@ -565,13 +618,35 @@ export default function EducatorToolkitPanel({
 
           <button
             type="button"
-            onClick={handleDownloadMarkdown}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-800 bg-teal-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-900 whitespace-nowrap"
+            disabled={exportingFormat !== null}
+            onClick={handleDownloadPdf}
+            data-testid="educator-download-pdf"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-800 bg-teal-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-900 whitespace-nowrap disabled:opacity-60"
           >
             <Download size={13} />
             <span>
-              Download {exportKind === 'lecture_outline' ? 'Lecture Outline' : 'Worksheet'} (.md)
+              Download {exportKind === 'lecture_outline' ? 'Lecture Outline' : 'Worksheet'} (.pdf)
             </span>
+          </button>
+
+          <button
+            type="button"
+            disabled={exportingFormat !== null}
+            onClick={handleDownloadPptx}
+            data-testid="educator-download-pptx"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap disabled:opacity-60"
+          >
+            <Download size={13} />
+            <span>{exportingFormat === 'pptx' ? 'Building .pptx…' : 'Download Slides (.pptx)'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadMarkdown}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+          >
+            <Download size={13} />
+            <span>Download (.md)</span>
           </button>
         </div>
       </div>

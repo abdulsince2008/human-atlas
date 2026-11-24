@@ -175,8 +175,8 @@ function buildRegistryData(): {
             route: 'histology',
             targetId: h.id,
             systemId: h.canonicalSystem,
-            note: 'Microscopy image slot (asset required)',
-            assetStatus: 'asset_missing',
+            note: h.specimenSlot.imageUrl ? 'Verified CC-licensed micrograph bundled' : 'Microscopy image slot (asset required)',
+            assetStatus: h.specimenSlot.mediaStatus === 'verified_bundled_micrograph' ? 'available' : 'asset_missing',
           });
         }
       }
@@ -249,7 +249,7 @@ function buildRegistryData(): {
       ];
 
       const knownLimitations: string[] = [
-        'Adult male BodyParts3D 4.0 reference anatomy only (CC BY 4.0); female pelvic and paediatric geometries are not modeled.',
+        'Adult Male BodyParts3D 4.0 (2,234 meshes) + Adult Female Overlay (79 parts: 71 HuBMAP HRA CC BY 4.0 + 8 co-registered pelvic/urethral reconstructions); broader female vascular/nervous/visceral coverage, anatomical variants, region-by-region validation, and paediatric geometries remain incomplete/planned.',
         'Content compiled as structured educational reference pending formal human medical-faculty review.',
       ];
       if (lesson.coverageDisclosure) knownLimitations.push(lesson.coverageDisclosure);
@@ -426,7 +426,7 @@ function buildRegistryData(): {
           route: 'histology',
           targetId: h.id,
           systemId: h.canonicalSystem,
-          assetStatus: 'asset_missing',
+          assetStatus: h.specimenSlot.mediaStatus === 'verified_bundled_micrograph' ? 'available' : 'asset_missing',
         });
       }
     }
@@ -494,7 +494,7 @@ function buildRegistryData(): {
       assetStatus: mapAssetDisclosureStatus(et.assetDisclosure.status),
       countsAsFullCoverage: false, // Never claims full certified completeness while awaiting academic faculty review
       provenance: {
-        sourceOrganization: et.sources[0]?.authority ?? 'OpenStax / Official Curriculum References',
+        sourceOrganization: et.sources[0]?.authority ?? 'OpenStax / Curriculum Alignment References',
         authorOrCompiler: et.sources.map((s) => s.title).join(' · '),
         publicationOrRevisionDate: '2026-11-21',
         reviewedBy: null,
@@ -656,7 +656,7 @@ function buildRegistryData(): {
       relatedSystems: dom.relatedSystems,
       provenance: {
         sourceOrganization: 'Anatomy 360 Curriculum Registry',
-        authorOrCompiler: 'Synthesized from official national & university curriculum specifications',
+        authorOrCompiler: 'Mapped against 13 public national, regulatory & university curriculum alignment references (non-endorsed)',
         publicationOrRevisionDate: '2026-11-21',
         reviewedBy: null,
         reviewDate: null,

@@ -9,8 +9,8 @@
 - **Deployment Target:** Static frontend (`dist/`) compatible with **Cloudflare Pages** (`npm run build` -> `dist/`). Zero backend servers, zero paid APIs, zero secrets.
 
 ## 2. 3D Model Loading & Rendering Process
-- **Manifest:** `/models/atlas.json` (~2,234 `Part` records, 3,432 `Concept` records, 15 binary chunk descriptors, 2,288,268 triangles).
-- **Binary Chunks:** `/models/body-0.bin` through `/models/body-14.bin` (and `.bin.gz` variants). `app/model-download.ts` inspects the gzip magic bytes (`0x1f 0x8b`) before using `DecompressionStream('gzip')` so static hosts that already decode `Content-Encoding` are not double-decoded.
+- **Manifests:** `/models/atlas.json` (`2,234` adult male BodyParts3D `Part` records, `3,432` `Concept` records, 15 binary chunk descriptors, `2,288,268` triangles) + `/models/female/female-atlas.json` (`79`-part Female overlay / `124,440` triangles = `71` HuBMAP HRA CC BY 4.0 meshes + `8` aligned procedural reconstructions, replacing 29 male parts for `2,284` active female-mode parts).
+- **Binary Chunks:** `/models/body-0.bin` through `/models/body-14.bin` and `/models/female/female-0.bin` (plus `.bin.gz` variants). `app/model-download.ts` inspects the gzip magic bytes (`0x1f 0x8b`) before using `DecompressionStream('gzip')` so static hosts that already decode `Content-Encoding` are not double-decoded.
 - **GPU Batch Rendering (`app/scene.tsx`):**
   - Geometries per chunk and per `SystemId` are merged into single `THREE.Mesh` draw calls using `mergeGeometries`.
   - Each vertex carries a `partIndex` float attribute.
@@ -27,7 +27,7 @@
 
 ## 4. Data & Localization Architecture
 - Canonical anatomical IDs (`Part.id` e.g. `FJ1252` and `Concept.id` e.g. `FMA7088`) are decoupled from display labels and explanations.
-- `app/anatomy-systems.ts` maps the 12 canonical anatomical systems to the 15 underlying `SystemId` mesh layers and tracks coverage status (`full`, `partial`, `male-only`, `planned`).
+- `app/anatomy-systems.ts` maps the 12 canonical anatomical systems to the 15 underlying `SystemId` mesh layers and tracks coverage status (`full`, `partial`, `male-only`, `planned`), with `reproductive` marked `partial` (`Male & Female 3D (Partial)`) while vascular/nervous/visceral/variant/validation gaps remain open.
 - `app/anatomy-knowledge.ts` holds verified student-friendly educational records (FSc / MDCAT / MBBS / Nursing level), synonyms, and localization-ready `ur` placeholder hooks without fabricating facts for uncurated parts.
 
 ## 5. Build & Validation Commands

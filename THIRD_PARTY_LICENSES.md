@@ -17,17 +17,17 @@ This document records the audited origin, license, commercial-use status, and at
 - **Where Used:** `public/models/atlas.json` and `public/models/body-0.bin` through `public/models/body-14.bin(.gz)`, rendered in `app/scene.tsx`.
 - **Source Publication:** Mitsuhashi et al. (2009), *BodyParts3D: 3D structure database for anatomical concepts*, Nucleic Acids Research, https://doi.org/10.1093/nar/gkn613
 
-### HuBMAP Human Reference Atlas 3D Reference Library (Visible Human Female Organs)
-- **Asset Name:** HuBMAP HRA 3D Reference Organ Library (Female Pelvis, Urinary Bladder, Uterus, Fallopian Tubes, Ovaries)
+### HuBMAP Human Reference Atlas 3D Reference Library & Female Overlay
+- **Asset Name:** HuBMAP HRA 3D Reference Organ Library (Visible Human Female v1.5 `DOI: 10.48539/HBM352.BTSQ.586` + Mammary Gland v1.1) paired with 8 Anatomically Co-Registered Procedural Reconstructions
 - **Copyright Holder:** HuBMAP Consortium / Indiana University & U.S. National Library of Medicine
 - **Source URL:** https://humanatlas.io/3d-reference-library
 - **Official License URL:** https://creativecommons.org/licenses/by/4.0/
 - **License:** Creative Commons Attribution 4.0 International (CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/)
 - **Commercial Use Permitted:** Yes (CC BY 4.0 permits commercial use and adaptation with attribution)
-- **Modification Permitted:** Yes (co-registered into BP3D meter/Y-up coordinate frame, simplified via `meshoptimizer`, paired with anatomically anchored vaginal canal, female urethra, and mammary glands under `public/models/female/`)
+- **Modification Permitted:** Yes (co-registered into BP3D meter/Y-up coordinate frame, simplified via `meshoptimizer`: **71** direct HuBMAP HRA CC BY 4.0 meshes [`55` Visible Human Female + `16` Mammary Gland] paired with **8** anatomically anchored procedural reconstructions [`HF_URETHRA`, `HF_ENDOMETRIUM`, `HF_CLITORIS`, `HF_VESTIBULAR_BULBS`, `HF_BARTHOLIN_GLANDS`, `HF_LABIA_MINORA`, `HF_LABIA_MAJORA`, `HF_MONS_PUBIS`] for **79** total parts / **124,440** triangles under `public/models/female/`)
 - **Required Attribution:**
   > "HuBMAP Human Reference Atlas 3D Reference Organ Library, licensed under CC Attribution 4.0 International (CC BY 4.0)."
-- **Where Used:** `public/models/female/female-atlas.json` and `public/models/female/female-0.bin(.gz)`, loaded dynamically in `app/scene.tsx` when Female mode is selected.
+- **Where Used:** `public/models/female/female-atlas.json` and `public/models/female/female-0.bin(.gz)`, loaded dynamically in `app/scene.tsx` when Female mode is selected (replacing 29 male-specific/pelvic parts for 2,284 active parts).
 
 ---
 
@@ -56,7 +56,12 @@ This document records the audited origin, license, commercial-use status, and at
 | **date-fns** | `4.1.0` | MIT | https://github.com/date-fns/date-fns | Date/time formatting utilities |
 | **tailwindcss** | `4.2.1` | MIT | https://github.com/tailwindlabs/tailwindcss | CSS utility & design token system |
 | **class-variance-authority** / **clsx** / **tailwind-merge** | `0.7.1` / `2.1.1` / `3.6.0` | Apache-2.0 / MIT | NPM registry | Class composition helpers |
+| **pptxgenjs** / **jspdf** | `^4.0.1` / `^4.2.0` | MIT | https://github.com/gitbrent/PptxGenJS · https://github.com/parallax/jsPDF | Client-side PowerPoint (`.pptx`) & PDF (`.pdf`) study/educator exports |
 | **meshoptimizer** (dev/build tool) | `^1.2.0` | MIT | https://github.com/zeux/meshoptimizer | Offline mesh compression during asset build |
+
+### Wikimedia Commons CC-Licensed Educational Media (`public/media/`)
+- **Histology Light Micrographs (`public/media/histology/`):** 10 verified Creative Commons (`CC0` / `CC BY` / `CC BY-SA`) light-microscopy images (trachea epithelium, compact bone osteon, cardiac muscle, cerebellum cortex, lung alveoli, renal glomerulus, liver lobule, muscular artery, lymph node cortex, thick skin epidermis), credited per-image inside `app/data/histology-data.ts`.
+- **De-Identified Normal Radiology Plates (`public/media/radiology/`):** 5 verified Creative Commons (`CC0` / `CC BY` / `CC BY-SA`) normal reference scans (Chest PA X-ray, Brain CT, Brain T2 MRI, Renal Ultrasound, Foot DP X-ray), credited per-image inside `app/data/radiology-data.ts`.
 
 ---
 
@@ -69,7 +74,7 @@ This document records the audited origin, license, commercial-use status, and at
 
 ## 5. Unavailable / Excluded Assets (Honest Scope Disclosure)
 
-- **Female Reference Full-Body Musculoskeletal Rig:** Systemic female cranium/limbs share BodyParts3D base meshes while adult female pelvis, urinary bladder, urethra, uterus, cervix, uterine tubes, ovaries, vagina, and mammary glands (`public/models/female/`) swap in cleanly for Female mode.
+- **Female Reference Remaining Coverage Gaps:** Systemic female cranium/limbs share BodyParts3D base meshes while the 79-part overlay (`public/models/female/`) handles female breast, pelvis, pelvic floor, urogenital, and reproductive organs (`2,284` active parts). Broader female-specific vascular, nervous, and visceral coverage, anatomical variants/individual variation, and deeper region-by-region female validation remain open tasks.
 - **Pediatric Reference 3D Model:** Not bundled in `public/models/`. Listed with explicit asset and FMA concept requirements.
-- **Real Microscopy Histology Slides:** `app/data/histology-data.ts` ships verified microanatomy text and strict `SpecimenAssetSlot` schemas requiring CC BY 4.0 / CC0 micrographs with magnification metadata before attaching image files.
+- **Per-Chapter Clinical Microscopy & Radiology Libraries:** `public/media/histology/` (10 starter micrographs) and `public/media/radiology/` (5 normal starter plates) supplement written modules, while complete per-chapter `C1–C18` and `N1–N14` clinical slide/smear/DICOM series remain `asset_required`.
 - **Z-Anatomy (`Z-Anatomy/Models`):** Excluded pending per-asset license harmonization so Anatomy 360 maintains clean MIT + CC BY 4.0 distribution terms.

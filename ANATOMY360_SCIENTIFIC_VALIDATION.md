@@ -2,7 +2,7 @@
 
 ## 1. Scientific Honesty & Scope Boundaries
 - **Educational Purpose Only:** Anatomy 360 is an educational anatomical reference platform. It is **not** clinically validated, **not** surgical-grade, and **not** intended for diagnosis, surgical planning, or patient care.
-- **No Fabricated Geometry:** All 2,234 3D meshes originate from BodyParts3D 4.0. Structures absent from the dataset (e.g., falx cerebri, arachnoid/pia mater, individual lower cranial nerve cisterns, female reproductive anatomy, deformable soft-tissue muscle rigs) are explicitly disclosed in the UI and documentation rather than synthesized.
+- **Honest Geometry & Co-Registered Female Overlay Disclosures:** The 2,234 baseline adult male meshes originate from BodyParts3D 4.0, while Female mode dynamically overlays 79 co-registered parts (`71` direct HuBMAP HRA CC BY 4.0 meshes + `8` anatomically aligned procedural reconstructions, replacing 29 male-specific/pelvic parts for `2,284` active parts). Remaining missing structures (micro-scale cranial meninges, arachnoid/pia mater, parathyroid/inner ear meshes, pediatric variants, and broader female-specific vascular, nervous, visceral, anatomical-variant, and region-by-region validation coverage) are explicitly disclosed in the UI and docs.
 - **Illustrative Spatial Connectors vs Verified Meshes:** In the 3D Relationship Explorer (`app/pages/RelationshipsPage.tsx`), highlighted organs represent verified BodyParts3D 3D meshes, whereas curved directional arrows are explicitly labeled as *illustrative spatial connectors linking bounding-box centers* (not anatomical vessel or nerve trajectories).
 
 ## 2. Automated Verification Gates

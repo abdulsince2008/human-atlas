@@ -81,11 +81,11 @@ export const GEOMETRY_PROVENANCE: ProvenanceLayerRecord = {
   license: 'CC BY 4.0 (DBCLS Archive; historically CC BY-SA 2.1 Japan)',
   licenseUrl: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html',
   url: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html',
-  scope: '2,234 adult male 3D anatomical surface meshes across 15 mesh system groups.',
+  scope: '2,234 adult male BodyParts3D 4.0 surface meshes across 15 mesh groups, paired with a 79-part Adult Female overlay (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered pelvic/urethral reconstructions; 2,284 active parts in Female mode).',
   limitations:
-    'Adult male reference model only; does not contain female reproductive anatomy, microscopic histology geometry, arachnoid/pia mater sheets, or deformable soft-tissue muscle rigs.',
+    'Base BodyParts3D 4.0 is an adult male model; the Female overlay covers pelvic/reproductive, urinary, and mammary structures but still lacks broader female-specific vascular/nervous/visceral regional coverage, anatomical variants, and region-by-region validation. Microscopic histology geometry and deformable soft-tissue rigs are also absent.',
   reviewStatus: 'source_reviewed',
-  lastAudited: '2026-11-18',
+  lastAudited: '2026-11-24',
 };
 
 export const ONTOLOGY_PROVENANCE: ProvenanceLayerRecord = {

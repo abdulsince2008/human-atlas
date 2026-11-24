@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Microscope, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, BookOpen, ExternalLink, Microscope, X, ZoomIn, ZoomOut } from 'lucide-react';
 import type { CanonicalSystemId } from '../anatomy-systems';
 import {
   HISTOLOGY_CATEGORIES,
@@ -10,15 +10,33 @@ import {
 import StudyResourceList from '../components/StudyResourceList';
 
 interface Props {
+  initialEntryId?: string;
+  initialSystemId?: CanonicalSystemId;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
 }
 
-export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: Props) {
+export default function HistologyPage({
+  initialEntryId,
+  initialSystemId,
+  onInspectConcept,
+  onOpenLearnSystem,
+}: Props) {
   const [catFilter, setCatFilter] = useState<HistologyCategory | 'all'>('all');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [activeSpecimen, setActiveSpecimen] = useState<HistologyEntry | null>(null);
   const [zoom, setZoom] = useState<number>(1);
+
+  useEffect(() => {
+    const matched = initialEntryId
+      ? HISTOLOGY_ENTRIES.find((h) => h.id === initialEntryId)
+      : initialSystemId
+        ? HISTOLOGY_ENTRIES.find((h) => h.canonicalSystem === initialSystemId)
+        : undefined;
+    if (matched) {
+      setCatFilter(matched.category);
+    }
+  }, [initialEntryId, initialSystemId]);
 
   const filtered = useMemo(
     () =>
@@ -41,10 +59,13 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
       </header>
 
       <div className="a360-coverage-box" role="note">
-        <strong>Microscopy Media Disclosure:</strong> No third-party virtual microscopy micrographs
-        are bundled in this static repository. Every entry provides verified microanatomy text,
-        expected staining protocols, magnification specifications, and strict CC BY 4.0 / CC0 specimen
-        attribution slots without displaying synthetic placeholder microscope pictures.
+        <strong>Microscopy Media Disclosure:</strong> All 10 core Histology Library specimen panels
+        now include locally bundled, openly licensed light-microscopy micrographs (CC0 / CC BY /
+        CC BY-SA from Wikimedia Commons, University of Michigan Virtual Microscopy, and Berkshire
+        Community College Bioscience Image Library) with stain, magnification/scale, and source URL
+        attribution. Broader 18-chapter Domain C curriculum packs and Haematology / Microbiology /
+        Pathology slide series remain text-first (<code>asset_required</code>) until full per-chapter
+        slide banks are curated.
       </div>
 
       <StudyResourceList
@@ -84,7 +105,9 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
               <p className="a360-kicker">
                 {HISTOLOGY_CATEGORIES.find((c) => c.id === entry.category)?.label} ·{' '}
                 {entry.kind === 'tissue-class' ? 'Tissue Class' : 'Organ Microanatomy'} ·{' '}
-                Text Curriculum
+                {entry.specimenSlot.mediaStatus === 'verified_bundled_micrograph'
+                  ? 'Bundled CC Micrograph'
+                  : 'Text Curriculum'}
               </p>
               <h2>{entry.title}</h2>
               <p className="a360-card-detail">{entry.summary}</p>
@@ -150,23 +173,57 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
                   <Microscope size={15} />
                   <strong>{entry.specimenSlot.title}</strong>
                 </div>
-                <p className="a360-muted">
-                  Stain: {entry.specimenSlot.stainProtocol} · Expected Magnification:{' '}
+                {entry.specimenSlot.imageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveSpecimen(entry);
+                      setZoom(1);
+                    }}
+                    className="mt-2 block w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-950/95 text-left hover:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600"
+                    aria-label={`Inspect micrograph for ${entry.title}`}
+                  >
+                    <img
+                      src={entry.specimenSlot.imageUrl}
+                      alt={`${entry.specimenSlot.title} (${entry.specimenSlot.stainProtocol})`}
+                      loading="lazy"
+                      className="h-44 w-full object-cover transition-transform duration-200 hover:scale-[1.02]"
+                    />
+                  </button>
+                )}
+                <p className="a360-muted mt-2">
+                  Stain: {entry.specimenSlot.stainProtocol} · Magnification/Scale:{' '}
                   {entry.specimenSlot.expectedMagnification} · Status:{' '}
-                  {entry.specimenSlot.imageUrl ? 'Licensed Micrograph Loaded' : 'Import-Ready Text Slot'}
+                  {entry.specimenSlot.imageUrl ? 'Verified Bundled Micrograph' : 'Import-Ready Text Slot'}
                 </p>
+                {entry.specimenSlot.scaleNote && (
+                  <p className="a360-muted">{entry.specimenSlot.scaleNote}</p>
+                )}
                 <p className="a360-muted">{entry.specimenSlot.attributionRequirement}</p>
-                <button
-                  type="button"
-                  className="a360-btn-secondary mt-2"
-                  data-testid={`open-specimen-${entry.id}`}
-                  onClick={() => {
-                    setActiveSpecimen(entry);
-                    setZoom(1);
-                  }}
-                >
-                  <ZoomIn size={14} /> Open Specimen Viewer
-                </button>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className="a360-btn-secondary"
+                    data-testid={`open-specimen-${entry.id}`}
+                    onClick={() => {
+                      setActiveSpecimen(entry);
+                      setZoom(1);
+                    }}
+                  >
+                    <ZoomIn size={14} /> Open Specimen Viewer
+                  </button>
+                  {entry.specimenSlot.sourceUrl && (
+                    <a
+                      href={entry.specimenSlot.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-teal-800 hover:underline"
+                    >
+                      <span>Commons Source ({entry.specimenSlot.license})</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  )}
+                </div>
               </div>
 
               <div className="a360-card-footer">
@@ -224,7 +281,7 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
               </button>
             </div>
 
-            <div className="my-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 min-h-[240px] flex items-center justify-center p-6">
+            <div className="my-4 overflow-auto rounded-lg border border-slate-200 bg-slate-950 min-h-[260px] max-h-[420px] flex items-center justify-center p-4">
               {activeSpecimen.specimenSlot.imageUrl ? (
                 <img
                   src={activeSpecimen.specimenSlot.imageUrl}
@@ -233,20 +290,35 @@ export default function HistologyPage({ onInspectConcept, onOpenLearnSystem }: P
                   className="max-h-[380px] transition-transform duration-150"
                 />
               ) : (
-                <div className="text-center max-w-md space-y-2">
+                <div className="text-center max-w-md space-y-2 text-slate-200">
                   <Microscope size={32} className="mx-auto text-slate-400" />
-                  <p className="font-medium text-slate-800">
+                  <p className="font-medium text-white">
                     No Bundled Microscopy Image (Import-Ready Slot: {activeSpecimen.specimenSlot.slotId})
                   </p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-slate-300">
                     {activeSpecimen.specimenSlot.attributionRequirement}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    No synthetic or AI-generated micrograph is displayed. Drop a verified CC BY 4.0 / CC0
-                    high-resolution image URL into <code>specimenSlot.imageUrl</code> to enable live
-                    zoomable inspection here.
-                  </p>
                 </div>
+              )}
+            </div>
+
+            <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 space-y-1">
+              <p>
+                <strong>Attribution &amp; Scale:</strong> {activeSpecimen.specimenSlot.attributionRequirement}
+                {activeSpecimen.specimenSlot.scaleNote ? ` — ${activeSpecimen.specimenSlot.scaleNote}` : ''}
+              </p>
+              {activeSpecimen.specimenSlot.sourceUrl && (
+                <p>
+                  <a
+                    href={activeSpecimen.specimenSlot.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold text-teal-800 hover:underline"
+                  >
+                    <span>Verify Original Micrograph on Wikimedia Commons ({activeSpecimen.specimenSlot.license})</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </p>
               )}
             </div>
 

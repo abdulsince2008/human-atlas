@@ -4,8 +4,8 @@ import type { EducationTopic } from '../education-types';
 const HISTO_GAP = {
   status: 'asset_required' as const,
   summary:
-    'Microscopic feature guides, stain expectations, and diagnostic criteria are implemented; genuine licensed light/EM micrographs are NOT yet bundled locally (link external Histology Guide & UMich virtual slides; never substitute fake micrographs).',
-  missingAssets: ['Verified CC-BY / CC0 high-resolution virtual light-microscopy slide micrographs with scale bars'],
+    'Microscopic feature guides, stain expectations, and diagnostic criteria are implemented across all 18 chapters (with 10 verified CC-licensed tissue micrographs bundled in the Histology Library); full per-chapter C1–C18 virtual slide series remain Asset Required.',
+  missingAssets: ['Full per-chapter H&E, special-stain, and EM light-microscopy slide sets across all 18 systemic histology chapters (C1–C18)'],
 };
 
 function makeHistChapter(

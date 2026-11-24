@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -15,8 +15,11 @@ import {
   type ClinicalCategory,
 } from '../data/clinical-data';
 import { getClinicalCaseExplainerLink } from '../presentation/builtin-presentations';
+import { resolveClinicalCaseTarget } from '../utils/deep-link-resolver';
 
 interface Props {
+  initialCaseId?: string | null;
+  initialSystemId?: CanonicalSystemId | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
   onOpenPresentation: (presentationId: string) => void;
@@ -33,13 +36,24 @@ const CATEGORIES: { id: ClinicalCategory | 'all'; label: string }[] = [
 ];
 
 export default function ClinicalPage({
+  initialCaseId,
+  initialSystemId,
   onInspectConcept,
   onOpenLearnSystem,
   onOpenPresentation,
 }: Props) {
+  const initialCase = resolveClinicalCaseTarget(initialCaseId, initialSystemId);
   const [cat, setCat] = useState<ClinicalCategory | 'all'>('all');
-  const [selectedCaseId, setSelectedCaseId] = useState('case-coronary-lad-septum');
+  const [selectedCaseId, setSelectedCaseId] = useState(initialCase.id);
   const [answersByCase, setAnswersByCase] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (initialCaseId || initialSystemId) {
+      const target = resolveClinicalCaseTarget(initialCaseId, initialSystemId);
+      setCat('all');
+      setSelectedCaseId(target.id);
+    }
+  }, [initialCaseId, initialSystemId]);
 
   const visibleCases = useMemo(
     () => (cat === 'all' ? CLINICAL_CASES : CLINICAL_CASES.filter((c) => c.category === cat)),

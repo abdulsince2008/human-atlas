@@ -112,6 +112,20 @@ export default function Home() {
   const [flashcardSystemIntent, setFlashcardSystemIntent] = useState<CanonicalSystemId | 'all'>(
     'all',
   );
+  const [physiologyIntent, setPhysiologyIntent] = useState<{
+    moduleId?: string | null;
+    systemId?: CanonicalSystemId | null;
+  }>({});
+  const [histologyIntent, setHistologyIntent] = useState<{
+    entryId?: string | null;
+    systemId?: CanonicalSystemId | null;
+  }>({});
+  const [clinicalIntent, setClinicalIntent] = useState<{
+    caseId?: string | null;
+    systemId?: CanonicalSystemId | null;
+  }>({});
+  const [practicalLabSystemIntent, setPracticalLabSystemIntent] =
+    useState<CanonicalSystemId | null>(null);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -128,19 +142,23 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => {
+    const syncFromHash = (isHashChange: boolean) => {
       const nextRoute = parseRouteFromHash();
       const params = parseHashParams();
-      setRoute(nextRoute);
+      if (isHashChange) {
+        setRoute(nextRoute);
+      }
 
       if (nextRoute === 'present') {
         const pid = params.get('id');
         if (pid) {
-          setPresentationIntent((prev) => ({ id: pid, seq: (prev?.seq ?? 0) + 1 }));
+          if (isHashChange) {
+            setPresentationIntent((prev) => ({ id: pid, seq: (prev?.seq ?? 0) + 1 }));
+          }
         } else {
           setPresentationIntent(null);
         }
-      } else {
+      } else if (isHashChange) {
         setPresentationIntent(null);
       }
 
@@ -180,7 +198,32 @@ export default function Home() {
           setEducatorIntent({ sourceKind: 'domain', domainId: dom });
         }
       }
+
+      if (nextRoute === 'physiology') {
+        setPhysiologyIntent({
+          moduleId: params.get('module'),
+          systemId: params.get('system') as CanonicalSystemId | null,
+        });
+      }
+      if (nextRoute === 'histology') {
+        setHistologyIntent({
+          entryId: params.get('entry'),
+          systemId: params.get('system') as CanonicalSystemId | null,
+        });
+      }
+      if (nextRoute === 'clinical') {
+        setClinicalIntent({
+          caseId: params.get('case'),
+          systemId: params.get('system') as CanonicalSystemId | null,
+        });
+      }
+      if (nextRoute === 'practical-lab') {
+        setPracticalLabSystemIntent(params.get('system') as CanonicalSystemId | null);
+      }
     };
+
+    syncFromHash(false);
+    const onHash = () => syncFromHash(true);
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -427,6 +470,35 @@ export default function Home() {
         navigate('learn');
         return;
       }
+      if (params.route === 'physiology') {
+        setPhysiologyIntent({
+          moduleId: params.topicId ?? null,
+          systemId: (params.systemId as CanonicalSystemId | undefined) ?? null,
+        });
+        navigate('physiology');
+        return;
+      }
+      if (params.route === 'histology') {
+        setHistologyIntent({
+          entryId: params.topicId ?? null,
+          systemId: (params.systemId as CanonicalSystemId | undefined) ?? null,
+        });
+        navigate('histology');
+        return;
+      }
+      if (params.route === 'clinical') {
+        setClinicalIntent({
+          caseId: params.topicId ?? null,
+          systemId: (params.systemId as CanonicalSystemId | undefined) ?? null,
+        });
+        navigate('clinical');
+        return;
+      }
+      if (params.route === 'practical-lab') {
+        setPracticalLabSystemIntent((params.systemId as CanonicalSystemId | undefined) ?? null);
+        navigate('practical-lab');
+        return;
+      }
       navigate(params.route);
     },
     [inspectConceptIn3D, navigate, openEducatorWorkspace, openPresentation, openSyllabusNavigator],
@@ -558,6 +630,7 @@ export default function Home() {
             <PracticalLabPage
               atlas={atlas}
               atlasError={atlasError}
+              initialSystemId={practicalLabSystemIntent}
               onInspectConcept={inspectConceptIn3D}
               onOpenLearnSystem={openSystemInLearn}
             />
@@ -586,6 +659,8 @@ export default function Home() {
 
           {route === 'physiology' && (
             <PhysiologyPage
+              initialModuleId={physiologyIntent.moduleId}
+              initialSystemId={physiologyIntent.systemId}
               onInspectConcept={inspectConceptIn3D}
               onOpenLearnSystem={openSystemInLearn}
             />
@@ -593,6 +668,8 @@ export default function Home() {
 
           {route === 'histology' && (
             <HistologyPage
+              initialEntryId={histologyIntent.entryId ?? undefined}
+              initialSystemId={histologyIntent.systemId ?? undefined}
               onInspectConcept={inspectConceptIn3D}
               onOpenLearnSystem={openSystemInLearn}
             />
@@ -600,6 +677,8 @@ export default function Home() {
 
           {route === 'clinical' && (
             <ClinicalPage
+              initialCaseId={clinicalIntent.caseId}
+              initialSystemId={clinicalIntent.systemId}
               onInspectConcept={inspectConceptIn3D}
               onOpenLearnSystem={openSystemInLearn}
               onOpenPresentation={openPresentation}

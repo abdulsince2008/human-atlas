@@ -124,6 +124,8 @@ test('expanded clinical (10 cases) and histology (10 entries with self-checks) l
   for (const h of HISTOLOGY_ENTRIES) {
     assert.ok(h.selfCheck, `Histology entry "${h.id}" should include an interactive selfCheck`);
     assert.ok(h.selfCheck!.options.length >= 3, `Histology "${h.id}" selfCheck needs >= 3 options`);
-    assert.equal(h.specimenSlot.mediaStatus, 'text_only_import_ready');
+    assert.equal(h.specimenSlot.mediaStatus, 'verified_bundled_micrograph');
+    assert.ok(h.specimenSlot.imageUrl && h.specimenSlot.imageUrl.startsWith('/media/histology/'));
+    assert.ok(h.specimenSlot.license && h.specimenSlot.attributionRequirement);
   }
 });

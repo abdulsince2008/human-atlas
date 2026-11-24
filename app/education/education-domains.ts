@@ -28,7 +28,7 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
       'sensory',
     ],
     platformLinks: [
-      { label: '3D Anatomy Explorer', route: 'explorer', note: '2,234 selectable BodyParts3D 4.0 meshes' },
+      { label: '3D Anatomy Explorer', route: 'explorer', note: '2,234 male BodyParts3D meshes + 79-part Female overlay' },
       { label: 'System Lessons (12 Chapters)', route: 'learn', note: '28 structured anatomical topics' },
       { label: 'Practical Spotter Lab', route: 'practical-lab', note: '3D structure identification exams' },
       { label: '3D Presentations', route: 'present', note: '5 guided anatomical & clinical walkthroughs' },
@@ -36,10 +36,10 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
     assetDisclosure: {
       status: 'partial',
       summary:
-        'Backed by 2,234 verified BodyParts3D 4.0 adult male reference meshes (CC BY 4.0). Female reproductive anatomy, meninges, fine peripheral nerve plexuses, parathyroid detail, and inner-ear ossicles are currently absent or conceptual.',
+        'Backed by 2,234 BodyParts3D 4.0 adult male reference meshes (CC BY 4.0) plus a 79-part Adult Female overlay (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered pelvic/urethral reconstructions, 124.4k triangles). Remaining gaps: broader female-specific vascular, nervous, and visceral coverage, anatomical variants, region-by-region female validation, cranial meninges, parathyroid glands, and inner-ear ossicles.',
       missingAssets: [
-        'Licensed female pelvic and reproductive 3D surface geometry',
-        'Detailed cranial meninges, parathyroid glands, and fine peripheral nerve meshes',
+        'Broader female-specific vascular, nervous, and visceral regional coverage plus region-by-region validation',
+        'Detailed cranial meninges, parathyroid glands, inner-ear ossicles, and additional anatomical variants',
         'Paediatric and age-variant anatomical reference sets',
       ],
     },
@@ -105,14 +105,14 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
     recommendedFormats: ['microscopy', '2d_diagram', '3d_anatomy'],
     relatedSystems: ['integumentary', 'cardiovascular', 'respiratory', 'digestive', 'urinary', 'nervous', 'skeletal', 'muscular'],
     platformLinks: [
-      { label: 'Histology Library (10 Entries)', route: 'histology', note: 'Tissue descriptions & self-checks (real microscopy images required)' },
+      { label: 'Histology Library (10 Bundled Micrographs)', route: 'histology', note: '10 CC-licensed tissue micrographs + guides & self-checks' },
     ],
     assetDisclosure: {
       status: 'asset_required',
       summary:
-        'Ten structured histology entries and tissue identification guides are implemented, but genuine licensed light-microscopy slide images (H&E, Masson trichrome, PAS) with magnification and scale bars are NOT yet populated. No synthetic images are substituted as real specimens.',
+        'Ten foundational tissue entries in the Histology Library now bundle verified CC-licensed light-microscopy photomicrographs with stain/scale attribution, while the broader 18-chapter systemic histology series (C1–C18) remains Asset Required for full per-chapter slide libraries.',
       missingAssets: [
-        'CC-BY / openly licensed H&E light-microscopy photomicrographs with stain, magnification, and scale bars for all 10+ tissue/organ entries',
+        'Full per-chapter H&E, Masson trichrome, PAS, and electron-microscopy slide coverage across all 18 systemic chapters (C1–C18)',
       ],
     },
     curriculumFrameworks: ['pk_ncp_bio_9_12', 'pk_pmdc_mbbs', 'pk_uhs_mbbs', 'in_cbse_bio_11_12', 'au_wa_human_bio', 'ox_preclinical', 'anat_soc_core'],
@@ -408,14 +408,15 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
     recommendedFormats: ['medical_imaging', '3d_anatomy', '2d_diagram'],
     relatedSystems: ['skeletal', 'respiratory', 'cardiovascular', 'nervous', 'digestive'],
     platformLinks: [
+      { label: 'Bundled Normal Imaging Plates (Visualise Tab)', route: 'learn', note: '5 de-identified CC-licensed Chest/Foot X-ray, Brain CT/MRI, and Renal US plates' },
       { label: '3D Cross-Section Clipping in Explorer', route: 'explorer', note: 'Inspect sagittal, coronal, and axial clipping planes on 3D meshes' },
     ],
     assetDisclosure: {
       status: 'asset_required',
       summary:
-        'Modality physics, radiological orientation conventions, and plane-correlation concepts are implemented, but NO real licensed DICOM/X-ray/CT/MRI/ultrasound image dataset is currently bundled. No fake radiographs are generated.',
+        'Five de-identified CC-licensed normal reference plates (PA Chest X-ray, Axial Brain CT, Axial Brain MRI T2, Kidney Ultrasound, DP Foot X-ray) are bundled alongside 3D Explorer clipping planes, while full multi-slice DICOM and pathology teaching stacks across chapters N1–N14 remain Asset Required.',
       missingAssets: [
-        'Openly licensed / CC-BY de-identified normal X-ray, CT, MRI, and ultrasound teaching image datasets',
+        'Multi-slice DICOM CT/MRI stacks and full clinical pathology imaging series across all 14 radiology chapters (N1–N14)',
       ],
     },
     curriculumFrameworks: ['pk_pmdc_mbbs', 'pk_uhs_mbbs', 'hms_pathways', 'anat_soc_core'],

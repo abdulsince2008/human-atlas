@@ -456,8 +456,9 @@ export default function HomePage({
             <p className="a360-kicker">Section C · Core 3D Anatomical Atlas</p>
             <h2 id="section-human-body">Explore the Human Body (12 Canonical Systems)</h2>
             <p>
-              Inspect verified BodyParts3D geometry in 3D or open hierarchical reference profiles.
-              Coverage labels state partial, male-only, or planned geometry transparently.
+              Inspect verified BodyParts3D and Adult Female overlay geometry in 3D or open
+              hierarchical reference profiles. Coverage labels state full, partial, or planned
+              geometry transparently.
             </p>
           </div>
           <button type="button" className="a360-text-link" onClick={() => onNavigate('systems')}>
@@ -537,9 +538,9 @@ export default function HomePage({
               Teacher &amp; Professor Planning Workspace
             </h3>
             <p className="mt-1 text-sm leading-relaxed text-slate-600">
-              Choose any domain, official curriculum framework, or saved custom syllabus. Inspect
-              chapter outcomes, coverage gaps, reorder teaching steps, and copy or download
-              Markdown Lecture Outlines and printable Student Worksheets.
+              Choose any domain, curriculum alignment reference, or saved custom syllabus. Inspect
+              chapter outcomes, coverage gaps, reorder teaching steps, and export downloadable
+              PowerPoint (.pptx), PDF, and Markdown lecture outlines or student worksheets.
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5 shrink-0">
@@ -668,7 +669,8 @@ export default function HomePage({
             <Compass size={20} />
             <h3>Multi-Atlas &amp; Content Packs</h3>
             <p>
-              Registry specifications for future female/pediatric atlases and JSON manifest tools.
+              Registry specifications for Adult Male, 79-part Adult Female overlay, and future
+              pediatric atlases with JSON validation.
             </p>
             <span className="a360-feature-cta">
               Open atlas manager <ArrowRight size={14} />

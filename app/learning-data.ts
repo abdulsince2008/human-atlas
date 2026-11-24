@@ -655,20 +655,20 @@ export const ANATOMY_LESSONS: AnatomyLesson[] = [
     chapter: 'Chapter 8 · Reproductive System',
     systemId: 'reproductive',
     level: 'FSc / MDCAT',
-    title: { en: 'Gametogenesis & Male Pelvic Reproductive Anatomy' },
+    title: { en: 'Gametogenesis & Male / Female Pelvic Reproductive Anatomy' },
     chapterDescription: {
-      en: 'Examine sperm production, maturation, ductal transport, accessory seminal secretions, and external anatomy using the verified adult male 3D reference, alongside transparent notes on female pelvic anatomy.',
+      en: 'Examine gametogenesis, ductal transport, and pelvic reproductive organs using the verified 3D Explorer Male (BodyParts3D) and Female (79-part HuBMAP + co-registered reconstruction overlay) modes.',
     },
     summary: {
-      en: 'Testes, epididymis, deferent ducts, seminal vesicles, prostate, and penile structures (adult male 3D reference only).',
+      en: 'Male (testes, epididymis, deferent ducts, seminal vesicles, prostate, penis) & Female (ovaries, uterine tubes, uterus, vagina, vulva, mammary glands) pelvic reproductive anatomy.',
     },
     learningObjectives: [
       'Trace the complete pathway of spermatozoa from testis through epididymis, deferent duct, and urethra.',
       'Identify the fluid contributions of the seminal vesicles and prostate gland.',
-      'Recognize the dataset boundary: current 3D meshes cover adult male reproductive anatomy only.',
+      'Compare female ovarian, tubal, uterine, vaginal, and mammary structures using the 3D Explorer Female toggle while noting remaining non-pelvic female vascular/nervous gaps.',
     ],
     coverageDisclosure:
-      'Male Reference Only: BodyParts3D 4.0 provides 12 verified adult male reproductive meshes. Female reproductive organs (ovaries, uterine tubes, uterus) are taught below conceptually and are not present in this 3D mesh pack.',
+      'Male & Female 3D (Partial): Male mode provides 12 adult male BodyParts3D 4.0 reproductive meshes. Female mode activates a 79-part overlay (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered pelvic/urethral reconstructions). Broader female-specific vascular/nervous/visceral coverage, anatomical variants, and region-by-region female validation remain incomplete.',
     topics: [
       {
         id: 'topic-repro-gonads-ducts',
@@ -714,8 +714,8 @@ export const ANATOMY_LESSONS: AnatomyLesson[] = [
         conceptIds: ['FMA19386', 'FMA9600', 'FMA19618', 'FMA19617', 'FMA18247'],
         nonModeledConcepts: [
           {
-            name: 'Female Reproductive Anatomy (Ovaries, Fallopian Tubes & Uterus)',
-            note: 'Educational disclosure: Ovaries produce oocytes and estrogen/progesterone, uterine tubes conduct fertilization, and the muscular uterus supports implantation; female 3D meshes are not included in the current male-only BodyParts3D 4.0 release.',
+            name: 'Female Reproductive Anatomy (Switch Explorer to Female Mode)',
+            note: 'Ovaries produce oocytes and estrogen/progesterone, uterine tubes conduct fertilization, and the muscular uterus supports implantation. Toggle Female mode in the 3D Explorer to inspect all 79 female overlay parts (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions); broader female vascular/nervous/visceral branches remain planned.',
           },
         ],
         preferredView: 'left',

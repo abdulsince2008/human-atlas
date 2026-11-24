@@ -3,13 +3,13 @@ import type { EducationTopic } from '../education-types';
 import type { VERIFIED_SOURCES } from '../verified-sources';
 
 const RAD_DISCLAIMER =
-  'Educational radiology and imaging orientation principles only. NO local DICOM/X-ray/CT/MRI/ultrasound images are bundled; never use for clinical radiograph interpretation or patient diagnosis.';
+  'Educational radiology and imaging orientation principles only (5 de-identified normal CC-licensed reference plates bundled; multi-slice DICOM & pathology series remain Asset Required). Never use for clinical diagnosis.';
 
 const RAD_ASSET_GAP = {
   status: 'asset_required' as const,
   summary:
-    'Physical imaging principles, Hounsfield/MRI signal scales, axial/coronal/sagittal orientation conventions, and 3D Explorer clipping-plane integration are implemented. Genuine de-identified CC-BY/public-domain local X-ray, CT, MRI, and ultrasound image series are NOT bundled (inspect external Radiopaedia & NLM MedPix teaching cases; zero synthetic radiographs generated).',
-  missingAssets: ['De-identified openly licensed Chest X-ray, Brain CT/MRI, Abdominal CT, MSK X-ray, and FAST Ultrasound DICOM/PNG teaching datasets'],
+    'Physical imaging principles, axial/coronal/sagittal orientation conventions, 3D Explorer clipping planes, and 5 de-identified CC-licensed normal reference plates (Chest/Foot X-ray, Brain CT/MRI, Kidney US) are bundled. Full multi-slice DICOM and pathology imaging series across chapters N1–N14 remain Asset Required.',
+  missingAssets: ['Multi-slice DICOM CT/MRI volumes and clinical pathology teaching stacks across all 14 radiology chapters (N1–N14)'],
 };
 
 interface RadMeta {

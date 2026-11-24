@@ -7,7 +7,7 @@ import type { EducationTrackId, ExternalReadingLink } from './education-types';
  * web-search verification on OpenStax, NCBI Bookshelf / StatPearls, Histology
  * Guide, UMich Histology, IUPHAR Pharmacology Education Project, Radiopaedia,
  * MedPix, Human Protein Atlas, Allen Human Brain Atlas, CDC Epidemiology, and
- * official curriculum registries.
+ * published curriculum alignment registries.
  *
  * ZERO fabricated URLs or unverified third-party endpoints.
  */

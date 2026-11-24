@@ -133,8 +133,39 @@ export interface FemaleAtlasManifest extends Atlas {
   parts: (Part & { source?: string })[];
 }
 
+export const FEMALE_ATLAS_PROVENANCE = {
+  totalParts: 79,
+  totalConcepts: 79,
+  triangles: 124_440,
+  chunkCount: 1,
+  hubmapDirectParts: 71,
+  hubmapV15VisibleHuman: 55,
+  hubmapV11Mammary: 16,
+  proceduralReconstructedParts: 8,
+  urethraConduitParts: 1,
+  pelvicAndExternalReconstructions: 7,
+  proceduralPartIds: [
+    'HF_URETHRA',
+    'HF_ENDOMETRIUM',
+    'HF_CLITORIS',
+    'HF_VESTIBULAR_BULBS',
+    'HF_BARTHOLIN_GLANDS',
+    'HF_LABIA_MINORA',
+    'HF_LABIA_MAJORA',
+    'HF_MONS_PUBIS',
+  ] as readonly string[],
+  replacedMaleParts: 29,
+  activeMalePartsTotal: 2234,
+  activeFemalePartsTotal: 2284,
+  knownGaps: [
+    'Broader female-specific vascular, nervous, and visceral regional coverage beyond pelvic, urinary, and mammary structures.',
+    'Additional anatomical variants and individual biological variation across age and physiological states.',
+    'Comprehensive region-by-region female anatomy validation across non-pelvic visceral and neurovascular structures.',
+  ] as readonly string[],
+} as const;
+
 export const FEMALE_ATLAS_ATTRIBUTION =
-  'Adult Female Pelvic & Reproductive Overlay: HuBMAP Human Reference Atlas (NLM Visible Human Female, CC BY 4.0) co-registered with BodyParts3D systemic reference.';
+  'Adult Female Pelvic & Reproductive Overlay (79 parts / 124.4k triangles): 71 HuBMAP Human Reference Atlas meshes (55 HRA v1.5 Visible Human Female DOI: 10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland, CC BY 4.0) + 8 anatomically co-registered pelvic/urethral reconstructions aligned with BodyParts3D systemic anatomy.';
 
 let cachedFemaleAtlasPromise: Promise<FemaleAtlasManifest> | null = null;
 
