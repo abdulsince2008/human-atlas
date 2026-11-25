@@ -1,5 +1,6 @@
 import type { CanonicalSystemId } from '../anatomy-systems';
 import EducatorToolkitPanel from '../components/EducatorToolkitPanel';
+import TeacherClassroomPanel from '../components/TeacherClassroomPanel';
 import type { AppRoute } from '../components/SiteHeader';
 import type { CurriculumAuthorityId, EducationDomainId } from '../education/education-types';
 
@@ -35,6 +36,8 @@ export default function EducatorPage({
           Select any of the 16 biomedical domains, any of the 13 curriculum frameworks, or your own saved institutional syllabus to inspect learning outcomes, coverage limitations, custom teaching sequences, lecture outlines, and printable student worksheets.
         </p>
       </header>
+
+      <TeacherClassroomPanel />
 
       <EducatorToolkitPanel
         initialSourceKind={initialSourceKind}

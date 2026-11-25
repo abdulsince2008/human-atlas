@@ -50,6 +50,7 @@ export interface StudyContextValue {
   deleteCustomSyllabus: (syllabusId: string) => void;
   saveEducatorSequence: (key: string, topicIds: string[]) => void;
   setPreferredSex: (sex: AnatomySex) => void;
+  replaceStateFromCloudMerge: (merged: StudyStateV1) => void;
 }
 
 const StudyContext = createContext<StudyContextValue | null>(null);
@@ -338,6 +339,12 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     [commit],
   );
 
+  const replaceStateFromCloudMerge = useCallback((merged: StudyStateV1) => {
+    writePersistedAnatomySex(merged.preferredSex);
+    setState(merged);
+    void adapterRef.current.save(merged);
+  }, []);
+
   const revisionQueue = useMemo(() => buildRevisionQueue(state), [state]);
 
   const value = useMemo<StudyContextValue>(
@@ -362,6 +369,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       deleteCustomSyllabus,
       saveEducatorSequence,
       setPreferredSex,
+      replaceStateFromCloudMerge,
     }),
     [
       ready,
@@ -383,6 +391,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       deleteCustomSyllabus,
       saveEducatorSequence,
       setPreferredSex,
+      replaceStateFromCloudMerge,
     ],
   );
 

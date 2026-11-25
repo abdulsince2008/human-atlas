@@ -24,6 +24,7 @@ import { QUIZ_QUESTIONS } from '../quiz-data';
 import { ANATOMY_FLASHCARDS, isCardDue } from '../spaced-repetition';
 import type { StudyTrack } from '../study-store';
 import type { AppRoute } from '../components/SiteHeader';
+import StudentCloudPanel from '../components/StudentCloudPanel';
 
 interface Props {
   onNavigate: (route: AppRoute) => void;
@@ -224,6 +225,8 @@ export default function DashboardPage({
           </label>
         </div>
       </section>
+
+      <StudentCloudPanel onNavigate={onNavigate} />
 
       {/* Verified KPI Strip */}
       <section className="a360-metrics-strip" aria-label="Recorded student metrics">

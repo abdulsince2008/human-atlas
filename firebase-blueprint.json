@@ -1,0 +1,670 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Non-PII student or educator profile metadata scoped to the owning Firebase Auth user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "track": {
+          "type": "string",
+          "enum": [
+            "FSc Pre-Medical",
+            "MDCAT",
+            "MBBS / Medical",
+            "Nursing / Allied Health",
+            "General Biology"
+          ]
+        },
+        "preferredSex": {
+          "type": "string",
+          "enum": ["male", "female"]
+        },
+        "dailyFlashcardGoal": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "track",
+        "preferredSex",
+        "dailyFlashcardGoal",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserPrivateAccount": {
+      "title": "UserPrivateAccount",
+      "description": "Isolated PII record containing verified email strictly accessible only by the owning user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    },
+    "CloudStudyProgress": {
+      "title": "CloudStudyProgress",
+      "description": "Cross-device study progress synchronization record owned by a single student.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "schemaVersion": {
+          "type": "integer"
+        },
+        "preferredSex": {
+          "type": "string",
+          "enum": ["male", "female"]
+        },
+        "completedTopicIds": {
+          "type": "array"
+        },
+        "quizAnsweredIds": {
+          "type": "array"
+        },
+        "quizCorrectIds": {
+          "type": "array"
+        },
+        "practicalAttempts": {
+          "type": "array"
+        },
+        "weakConcepts": {
+          "type": "object"
+        },
+        "flashcardReviews": {
+          "type": "object"
+        },
+        "bookmarks": {
+          "type": "object"
+        },
+        "recentSearches": {
+          "type": "array"
+        },
+        "practicalAvgAccuracy": {
+          "type": "integer"
+        },
+        "flashcardsReviewedCount": {
+          "type": "integer"
+        },
+        "bookmarksCount": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "uid",
+        "schemaVersion",
+        "preferredSex",
+        "completedTopicIds",
+        "quizAnsweredIds",
+        "quizCorrectIds",
+        "practicalAttempts",
+        "weakConcepts",
+        "flashcardReviews",
+        "bookmarks",
+        "recentSearches",
+        "practicalAvgAccuracy",
+        "flashcardsReviewedCount",
+        "bookmarksCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Classroom": {
+      "title": "Classroom",
+      "description": "Teacher-managed class workspace with unique join code and track alignment.",
+      "type": "object",
+      "properties": {
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "track": {
+          "type": "string",
+          "enum": [
+            "FSc Pre-Medical",
+            "MDCAT",
+            "MBBS / Medical",
+            "Nursing / Allied Health",
+            "General Biology"
+          ]
+        },
+        "joinCode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 16,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "archived"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "classroomId",
+        "teacherUid",
+        "teacherName",
+        "title",
+        "track",
+        "joinCode",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ClassroomJoinLookup": {
+      "title": "ClassroomJoinLookup",
+      "description": "Exact-key join code pointer mapping a join code to a classroom without permitting collection listing.",
+      "type": "object",
+      "properties": {
+        "joinCode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 16,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "track": {
+          "type": "string",
+          "enum": [
+            "FSc Pre-Medical",
+            "MDCAT",
+            "MBBS / Medical",
+            "Nursing / Allied Health",
+            "General Biology"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "archived"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "joinCode",
+        "classroomId",
+        "teacherUid",
+        "teacherName",
+        "title",
+        "track",
+        "status",
+        "createdAt"
+      ]
+    },
+    "StudentEnrollment": {
+      "title": "StudentEnrollment",
+      "description": "Student-scoped enrollment index enabling secure O(1) listing of joined classrooms.",
+      "type": "object",
+      "properties": {
+        "studentUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "joinCode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 16,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "classroomTitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "track": {
+          "type": "string",
+          "enum": [
+            "FSc Pre-Medical",
+            "MDCAT",
+            "MBBS / Medical",
+            "Nursing / Allied Health",
+            "General Biology"
+          ]
+        },
+        "joinedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "studentUid",
+        "classroomId",
+        "joinCode",
+        "classroomTitle",
+        "teacherUid",
+        "teacherName",
+        "track",
+        "joinedAt"
+      ]
+    },
+    "ClassroomMember": {
+      "title": "ClassroomMember",
+      "description": "Enrolled student membership and non-PII learning summary metrics visible to the class teacher.",
+      "type": "object",
+      "properties": {
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "studentUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "studentName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "track": {
+          "type": "string",
+          "enum": [
+            "FSc Pre-Medical",
+            "MDCAT",
+            "MBBS / Medical",
+            "Nursing / Allied Health",
+            "General Biology"
+          ]
+        },
+        "completedTopicsCount": {
+          "type": "integer"
+        },
+        "quizAccuracyPct": {
+          "type": "integer"
+        },
+        "practicalAvgAccuracy": {
+          "type": "integer"
+        },
+        "practicalAttemptsCount": {
+          "type": "integer"
+        },
+        "flashcardsReviewedCount": {
+          "type": "integer"
+        },
+        "weakConceptNames": {
+          "type": "array"
+        },
+        "joinedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "classroomId",
+        "teacherUid",
+        "studentUid",
+        "studentName",
+        "track",
+        "completedTopicsCount",
+        "quizAccuracyPct",
+        "practicalAvgAccuracy",
+        "practicalAttemptsCount",
+        "flashcardsReviewedCount",
+        "weakConceptNames",
+        "joinedAt",
+        "updatedAt"
+      ]
+    },
+    "ClassroomAssignment": {
+      "title": "ClassroomAssignment",
+      "description": "Structured chapter, quiz, practical lab, or flashcard task assigned by a classroom teacher.",
+      "type": "object",
+      "properties": {
+        "assignmentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["chapter", "quiz", "practical_lab", "flashcards"]
+        },
+        "targetDomainId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "targetTopicId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "dueLabel": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 60
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "closed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "assignmentId",
+        "classroomId",
+        "teacherUid",
+        "title",
+        "description",
+        "kind",
+        "targetDomainId",
+        "targetTopicId",
+        "dueLabel",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ClassroomAssignmentManifest": {
+      "title": "ClassroomAssignmentManifest",
+      "description": "Bounded single-document manifest of active classroom assignments readable by enrolled members without list queries.",
+      "type": "object",
+      "properties": {
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "items": {
+          "type": "array"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["classroomId", "teacherUid", "items", "updatedAt"]
+    },
+    "AssignmentSubmission": {
+      "title": "AssignmentSubmission",
+      "description": "Student completion submission and optional educator feedback for a classroom assignment.",
+      "type": "object",
+      "properties": {
+        "submissionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 192,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "classroomId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "assignmentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "teacherUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "studentUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "studentName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "status": {
+          "type": "string",
+          "enum": ["submitted", "reviewed"]
+        },
+        "scorePct": {
+          "type": "integer"
+        },
+        "completedTopicsCount": {
+          "type": "integer"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "teacherFeedback": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "submissionId",
+        "classroomId",
+        "assignmentId",
+        "teacherUid",
+        "studentUid",
+        "studentName",
+        "status",
+        "scorePct",
+        "completedTopicsCount",
+        "notes",
+        "teacherFeedback",
+        "submittedAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Non-PII profile settings for an authenticated user."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateAccount" },
+      "description": "Isolated PII email record readable and writable strictly by the owning user."
+    },
+    "/users/{userId}/studyProgress/{progressId}": {
+      "schema": { "$ref": "#/entities/CloudStudyProgress" },
+      "description": "Synchronized student study history, weak concepts, quiz scores, and bookmarks."
+    },
+    "/users/{userId}/enrollments/{classroomId}": {
+      "schema": { "$ref": "#/entities/StudentEnrollment" },
+      "description": "Index of classrooms a student has joined."
+    },
+    "/classrooms/{classroomId}": {
+      "schema": { "$ref": "#/entities/Classroom" },
+      "description": "Teacher-created classroom records."
+    },
+    "/classroomCodes/{joinCode}": {
+      "schema": { "$ref": "#/entities/ClassroomJoinLookup" },
+      "description": "Single-document lookup records resolving classroom join codes without exposing collection listing."
+    },
+    "/classrooms/{classroomId}/members/{memberUid}": {
+      "schema": { "$ref": "#/entities/ClassroomMember" },
+      "description": "Enrolled student membership and non-PII class progress summaries."
+    },
+    "/classrooms/{classroomId}/assignments/{assignmentId}": {
+      "schema": { "$ref": "#/entities/ClassroomAssignment" },
+      "description": "Teacher-published assignments inside a classroom."
+    },
+    "/classrooms/{classroomId}/manifest/{manifestId}": {
+      "schema": { "$ref": "#/entities/ClassroomAssignmentManifest" },
+      "description": "Bounded manifest of assignments for single-document reads by enrolled classroom members."
+    },
+    "/classrooms/{classroomId}/submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/AssignmentSubmission" },
+      "description": "Student assignment submissions and educator review feedback."
+    }
+  }
+}

@@ -2,6 +2,8 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import type { Atlas, SystemId } from './anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from './anatomy-systems';
 import SiteHeader, { type AppRoute } from './components/SiteHeader';
+import { FirebaseProvider } from './components/FirebaseContext';
+import FirebaseErrorBoundary from './components/FirebaseErrorBoundary';
 import { StudyProvider } from './components/StudyContext';
 import type { CurriculumAuthorityId, EducationDomainId } from './education/education-types';
 import type { LearningCategoryId } from './learning-data';
@@ -505,233 +507,237 @@ export default function Home() {
   );
 
   return (
-    <StudyProvider>
-      <div className={`a360-shell ${route === 'explorer' ? 'is-explorer' : ''}`}>
-        <SiteHeader
-          route={route}
-          onNavigate={navigate}
-          onOpenSearch={() => openSearchWithQuery('')}
-        />
-
-        <main className="a360-main">
-          {route === 'home' && (
-            <HomePage
-              atlas={atlas}
-              onExplore={() => navigate('explorer')}
+    <FirebaseErrorBoundary>
+      <StudyProvider>
+        <FirebaseProvider>
+          <div className={`a360-shell ${route === 'explorer' ? 'is-explorer' : ''}`}>
+            <SiteHeader
+              route={route}
               onNavigate={navigate}
-              onInspectConcept={inspectConceptIn3D}
-              onExploreSystem={exploreSystemIn3D}
-              onOpenSearchWithQuery={openSearchWithQuery}
-              onOpenDomain={(domainId) => openDomainInLearn(domainId)}
-              onOpenSyllabusFramework={(fwId) => openSyllabusNavigator(fwId)}
-              onOpenEducatorDomain={(domainId) =>
-                openEducatorWorkspace({ sourceKind: 'domain', domainId })
-              }
+              onOpenSearch={() => openSearchWithQuery('')}
             />
-          )}
 
-          {route === 'syllabus' && (
-            <SyllabusNavigatorPage
-              initialFrameworkId={syllabusFrameworkIntent}
-              onNavigate={navigate}
-              onOpenTopic={openUniversalTopic}
-              onOpenEducatorForFramework={(fwId) =>
-                openEducatorWorkspace({ sourceKind: 'framework', frameworkId: fwId })
-              }
-              onOpenEducatorForCustomSyllabus={(customId) =>
-                openEducatorWorkspace({ sourceKind: 'custom_syllabus', customSyllabusId: customId })
-              }
-            />
-          )}
+            <main className="a360-main">
+              {route === 'home' && (
+                <HomePage
+                  atlas={atlas}
+                  onExplore={() => navigate('explorer')}
+                  onNavigate={navigate}
+                  onInspectConcept={inspectConceptIn3D}
+                  onExploreSystem={exploreSystemIn3D}
+                  onOpenSearchWithQuery={openSearchWithQuery}
+                  onOpenDomain={(domainId) => openDomainInLearn(domainId)}
+                  onOpenSyllabusFramework={(fwId) => openSyllabusNavigator(fwId)}
+                  onOpenEducatorDomain={(domainId) =>
+                    openEducatorWorkspace({ sourceKind: 'domain', domainId })
+                  }
+                />
+              )}
 
-          {route === 'educator' && (
-            <EducatorPage
-              initialSourceKind={educatorIntent.sourceKind}
-              initialDomainId={educatorIntent.domainId}
-              initialFrameworkId={educatorIntent.frameworkId}
-              initialCustomSyllabusId={educatorIntent.customSyllabusId}
-              onNavigate={navigate}
-              onOpenTopic={openUniversalTopic}
-            />
-          )}
+              {route === 'syllabus' && (
+                <SyllabusNavigatorPage
+                  initialFrameworkId={syllabusFrameworkIntent}
+                  onNavigate={navigate}
+                  onOpenTopic={openUniversalTopic}
+                  onOpenEducatorForFramework={(fwId) =>
+                    openEducatorWorkspace({ sourceKind: 'framework', frameworkId: fwId })
+                  }
+                  onOpenEducatorForCustomSyllabus={(customId) =>
+                    openEducatorWorkspace({ sourceKind: 'custom_syllabus', customSyllabusId: customId })
+                  }
+                />
+              )}
 
-          {route === 'systems' && (
-            <SystemsPage
-              atlas={atlas}
-              selectedSystem={selectedSystem}
-              initialConceptId={referenceConceptId}
-              onSelectSystem={setSelectedSystem}
-              onExploreSystem={exploreSystemIn3D}
-              onInspectPart={inspectPartIn3D}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenRelationships={openRelationships}
-              onOpenLearnSystem={openSystemInLearn}
-              onOpenFlashcards={openFlashcards}
-              onOpenPracticalLab={() => navigate('practical-lab')}
-            />
-          )}
+              {route === 'educator' && (
+                <EducatorPage
+                  initialSourceKind={educatorIntent.sourceKind}
+                  initialDomainId={educatorIntent.domainId}
+                  initialFrameworkId={educatorIntent.frameworkId}
+                  initialCustomSyllabusId={educatorIntent.customSyllabusId}
+                  onNavigate={navigate}
+                  onOpenTopic={openUniversalTopic}
+                />
+              )}
 
-          {route === 'relationships' && (
-            <RelationshipsPage
-              atlas={atlas}
-              initialConceptId={relationshipConceptId}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-              onOpenReference={openReference}
-            />
-          )}
+              {route === 'systems' && (
+                <SystemsPage
+                  atlas={atlas}
+                  selectedSystem={selectedSystem}
+                  initialConceptId={referenceConceptId}
+                  onSelectSystem={setSelectedSystem}
+                  onExploreSystem={exploreSystemIn3D}
+                  onInspectPart={inspectPartIn3D}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenRelationships={openRelationships}
+                  onOpenLearnSystem={openSystemInLearn}
+                  onOpenFlashcards={openFlashcards}
+                  onOpenPracticalLab={() => navigate('practical-lab')}
+                />
+              )}
 
-          {route === 'learn' && (
-            <LearnPage
-              atlas={atlas}
-              atlasError={atlasError}
-              initialCategory={learnCategoryIntent}
-              initialDomainId={learnDomainIntent}
-              initialSystemId={learnSystemIntent}
-              initialTopicId={learnTopicIntent}
-              initialFrameworkId={learnFrameworkIntent}
-              onInspectConcept={inspectConceptIn3D}
-              onNavigate={navigate}
-              onOpenPresentation={openPresentation}
-              onOpenEducatorWorkspace={(domainId) =>
-                openEducatorWorkspace({
-                  sourceKind: 'domain',
-                  domainId: domainId ?? 'human_anatomy',
-                })
-              }
-            />
-          )}
+              {route === 'relationships' && (
+                <RelationshipsPage
+                  atlas={atlas}
+                  initialConceptId={relationshipConceptId}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                  onOpenReference={openReference}
+                />
+              )}
 
-          {route === 'search' && (
-            <SearchPage
-              atlas={atlas}
-              initialQuery={searchQueryIntent}
-              onInspectConcept={inspectConceptIn3D}
-              onInspectPart={inspectPartIn3D}
-              onOpenRelationships={openRelationships}
-              onOpenLearnSystem={openSystemInLearn}
-              onOpenFlashcards={openFlashcards}
-              onOpenPracticalLab={() => navigate('practical-lab')}
-              onOpenTopic={openUniversalTopic}
-              onOpenSyllabus={openSyllabusNavigator}
-              onOpenEducator={(domainId) =>
-                openEducatorWorkspace({
-                  sourceKind: 'domain',
-                  domainId: domainId ?? 'human_anatomy',
-                })
-              }
-              onOpenPresentation={openPresentation}
-            />
-          )}
+              {route === 'learn' && (
+                <LearnPage
+                  atlas={atlas}
+                  atlasError={atlasError}
+                  initialCategory={learnCategoryIntent}
+                  initialDomainId={learnDomainIntent}
+                  initialSystemId={learnSystemIntent}
+                  initialTopicId={learnTopicIntent}
+                  initialFrameworkId={learnFrameworkIntent}
+                  onInspectConcept={inspectConceptIn3D}
+                  onNavigate={navigate}
+                  onOpenPresentation={openPresentation}
+                  onOpenEducatorWorkspace={(domainId) =>
+                    openEducatorWorkspace({
+                      sourceKind: 'domain',
+                      domainId: domainId ?? 'human_anatomy',
+                    })
+                  }
+                />
+              )}
 
-          {route === 'quiz' && <QuizPage onInspectConcept={inspectConceptIn3D} />}
+              {route === 'search' && (
+                <SearchPage
+                  atlas={atlas}
+                  initialQuery={searchQueryIntent}
+                  onInspectConcept={inspectConceptIn3D}
+                  onInspectPart={inspectPartIn3D}
+                  onOpenRelationships={openRelationships}
+                  onOpenLearnSystem={openSystemInLearn}
+                  onOpenFlashcards={openFlashcards}
+                  onOpenPracticalLab={() => navigate('practical-lab')}
+                  onOpenTopic={openUniversalTopic}
+                  onOpenSyllabus={openSyllabusNavigator}
+                  onOpenEducator={(domainId) =>
+                    openEducatorWorkspace({
+                      sourceKind: 'domain',
+                      domainId: domainId ?? 'human_anatomy',
+                    })
+                  }
+                  onOpenPresentation={openPresentation}
+                />
+              )}
 
-          {route === 'practical-lab' && (
-            <PracticalLabPage
-              atlas={atlas}
-              atlasError={atlasError}
-              initialSystemId={practicalLabSystemIntent}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-            />
-          )}
+              {route === 'quiz' && <QuizPage onInspectConcept={inspectConceptIn3D} />}
 
-          {route === 'dashboard' && (
-            <DashboardPage
-              onNavigate={navigate}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-            />
-          )}
+              {route === 'practical-lab' && (
+                <PracticalLabPage
+                  atlas={atlas}
+                  atlasError={atlasError}
+                  initialSystemId={practicalLabSystemIntent}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                />
+              )}
 
-          {(route === 'revision' || route === 'bookmarks') && (
-            <RevisionPage
-              key={route}
-              atlas={atlas}
-              initialTab={route === 'bookmarks' ? 'bookmarks' : 'flashcards'}
-              initialSystem={flashcardSystemIntent}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-              onOpenPracticalLab={() => navigate('practical-lab')}
-              onOpenReference={openReference}
-            />
-          )}
+              {route === 'dashboard' && (
+                <DashboardPage
+                  onNavigate={navigate}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                />
+              )}
 
-          {route === 'physiology' && (
-            <PhysiologyPage
-              initialModuleId={physiologyIntent.moduleId}
-              initialSystemId={physiologyIntent.systemId}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-            />
-          )}
+              {(route === 'revision' || route === 'bookmarks') && (
+                <RevisionPage
+                  key={route}
+                  atlas={atlas}
+                  initialTab={route === 'bookmarks' ? 'bookmarks' : 'flashcards'}
+                  initialSystem={flashcardSystemIntent}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                  onOpenPracticalLab={() => navigate('practical-lab')}
+                  onOpenReference={openReference}
+                />
+              )}
 
-          {route === 'histology' && (
-            <HistologyPage
-              initialEntryId={histologyIntent.entryId ?? undefined}
-              initialSystemId={histologyIntent.systemId ?? undefined}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-            />
-          )}
+              {route === 'physiology' && (
+                <PhysiologyPage
+                  initialModuleId={physiologyIntent.moduleId}
+                  initialSystemId={physiologyIntent.systemId}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                />
+              )}
 
-          {route === 'clinical' && (
-            <ClinicalPage
-              initialCaseId={clinicalIntent.caseId}
-              initialSystemId={clinicalIntent.systemId}
-              onInspectConcept={inspectConceptIn3D}
-              onOpenLearnSystem={openSystemInLearn}
-              onOpenPresentation={openPresentation}
-            />
-          )}
+              {route === 'histology' && (
+                <HistologyPage
+                  initialEntryId={histologyIntent.entryId ?? undefined}
+                  initialSystemId={histologyIntent.systemId ?? undefined}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                />
+              )}
 
-          {route === 'atlases' && <AtlasManagerPage />}
+              {route === 'clinical' && (
+                <ClinicalPage
+                  initialCaseId={clinicalIntent.caseId}
+                  initialSystemId={clinicalIntent.systemId}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenLearnSystem={openSystemInLearn}
+                  onOpenPresentation={openPresentation}
+                />
+              )}
 
-          {route === 'about' && <AboutPage onExplore={() => navigate('explorer')} />}
+              {route === 'atlases' && <AtlasManagerPage />}
 
-          {route === 'present' && (
-            <Suspense
-              fallback={
-                <div className="a360-explorer-fallback" role="status">
-                  <strong>Loading Guided 3D Presentation Studio…</strong>
-                  <span>Initializing shared 3D anatomy viewport</span>
-                </div>
-              }
-            >
-              <PresentationStudioPage
-                atlas={atlas}
-                atlasError={atlasError}
-                initialPresentationIntent={presentationIntent}
-                onInspectConcept={inspectConceptIn3D}
-                onOpenClinical={() => navigate('clinical')}
-              />
-            </Suspense>
-          )}
+              {route === 'about' && <AboutPage onExplore={() => navigate('explorer')} />}
 
-          {route === 'explorer' && (
-            <Suspense
-              fallback={
-                <div className="a360-explorer-fallback" role="status">
-                  <strong>Loading 3D Anatomy Engine…</strong>
-                  <span>Initializing WebGL viewport</span>
-                </div>
-              }
-            >
-              <ExplorerView
-                atlas={atlas}
-                atlasError={atlasError}
-                initialFocusConceptId={focusConceptId}
-                initialFocusPartId={focusPartId}
-                initialVisibleSystems={visibleMeshSystems}
-                onClearExternalIntent={clearExternalIntent}
-                onOpenFullSearch={() => navigate('search')}
-                onOpenRelationships={openRelationships}
-                onOpenActivity={openActivityFromExplorer}
-              />
-            </Suspense>
-          )}
-        </main>
-      </div>
-    </StudyProvider>
+              {route === 'present' && (
+                <Suspense
+                  fallback={
+                    <div className="a360-explorer-fallback" role="status">
+                      <strong>Loading Guided 3D Presentation Studio…</strong>
+                      <span>Initializing shared 3D anatomy viewport</span>
+                    </div>
+                  }
+                >
+                  <PresentationStudioPage
+                    atlas={atlas}
+                    atlasError={atlasError}
+                    initialPresentationIntent={presentationIntent}
+                    onInspectConcept={inspectConceptIn3D}
+                    onOpenClinical={() => navigate('clinical')}
+                  />
+                </Suspense>
+              )}
+
+              {route === 'explorer' && (
+                <Suspense
+                  fallback={
+                    <div className="a360-explorer-fallback" role="status">
+                      <strong>Loading 3D Anatomy Engine…</strong>
+                      <span>Initializing WebGL viewport</span>
+                    </div>
+                  }
+                >
+                  <ExplorerView
+                    atlas={atlas}
+                    atlasError={atlasError}
+                    initialFocusConceptId={focusConceptId}
+                    initialFocusPartId={focusPartId}
+                    initialVisibleSystems={visibleMeshSystems}
+                    onClearExternalIntent={clearExternalIntent}
+                    onOpenFullSearch={() => navigate('search')}
+                    onOpenRelationships={openRelationships}
+                    onOpenActivity={openActivityFromExplorer}
+                  />
+                </Suspense>
+              )}
+            </main>
+          </div>
+        </FirebaseProvider>
+      </StudyProvider>
+    </FirebaseErrorBoundary>
   );
 }
