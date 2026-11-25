@@ -20,8 +20,9 @@
     "validate:licenses": "node scripts/validate-platform-registries.mjs --mode=licenses",
     "validate:anatomy": "node scripts/validate-platform-registries.mjs --mode=anatomy",
     "validate:lod": "node scripts/validate-platform-registries.mjs --mode=lod",
+    "audit:coverage": "node scripts/audit-anatomy-coverage.mjs",
     "test": "node scripts/test-platform.mjs",
-    "validate:all": "npm run check && npm run lint && npm run validate:atlas && npm run validate:interactions && npm run validate:content && npm run validate:assets && npm run validate:materials && npm run validate:licenses && npm run validate:anatomy && npm run validate:lod && npm test"
+    "validate:all": "npm run check && npm run lint && npm run validate:atlas && npm run validate:interactions && npm run validate:content && npm run validate:assets && npm run validate:materials && npm run validate:licenses && npm run validate:anatomy && npm run validate:lod && npm run audit:coverage && npm test"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

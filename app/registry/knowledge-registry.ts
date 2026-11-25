@@ -249,7 +249,7 @@ function buildRegistryData(): {
       ];
 
       const knownLimitations: string[] = [
-        'Adult Male BodyParts3D 4.0 (2,234 meshes) + Adult Female Overlay (79 parts: 71 HuBMAP HRA CC BY 4.0 + 8 co-registered pelvic/urethral reconstructions); broader female vascular/nervous/visceral coverage, anatomical variants, region-by-region validation, and paediatric geometries remain incomplete/planned.',
+        'Adult Male active default combines 2,301 meshes (2,234 BodyParts3D 4.0 + 47 shared enhancements + 20 male enhancements). Adult Female active default renders 2,328 meshes (2,189 reused male-base + 47 shared + 92 Female Overlay v3.0: 84 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions, replacing 45 male parts), plus an optional 8-mesh Pregnancy/Placenta layer (OFF by default). Thyroid/parathyroid glands, middle/inner ear ossicles & cochlea, thoracic duct/lymph-node chains, female pelvic-floor muscles, and non-pelvic female-specific geometry remain open gaps.',
         'Content compiled as structured educational reference pending formal human medical-faculty review.',
       ];
       if (lesson.coverageDisclosure) knownLimitations.push(lesson.coverageDisclosure);

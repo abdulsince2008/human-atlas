@@ -1,15 +1,4 @@
-import type { Atlas, Concept, Part } from './anatomy';
-import {
-  FEMALE_REPLACED_MALE_PART_IDS,
-  FEMALE_REPLACED_MALE_PART_SET,
-  LAYER_BUNDLE_PROVENANCE,
-  getActiveConceptsForBundle,
-  getActivePartsForBundle,
-  loadFemaleAtlasManifest,
-  type ActiveLayerBundle,
-  type AnatomySex,
-  type FemaleAtlasManifest,
-} from './atlas-layers';
+import { LAYER_BUNDLE_PROVENANCE } from './atlas-layers';
 
 export {
   FEMALE_ONLY_CONCEPT_IDS,
@@ -20,6 +9,10 @@ export {
   OPTIONAL_PREGNANCY_CONCEPT_IDS,
   OPTIONAL_PREGNANCY_CONCEPT_SET,
   PREFERRED_SEX_STORAGE_KEY,
+  getActiveConceptsForBundle,
+  getActiveConceptsForSex,
+  getActivePartsForBundle,
+  getActivePartsForSex,
   getPartLayerClassification,
   getSystemDescriptionForSex,
   isFemaleSpecificTarget,
@@ -69,40 +62,11 @@ export const FEMALE_ATLAS_PROVENANCE = {
   optionalPregnancyParts: LAYER_BUNDLE_PROVENANCE.optionalPregnancyParts,
   knownGaps: [
     'Non-pelvic skeleton, skeletal muscles, cranial/peripheral nerves, and thorax/abdomen remain reused from the BodyParts3D 4.0 adult male donor rather than female-specific segmented geometry.',
-    'Thyroid gland, parathyroid glands, inner ear ossicles/cochlea, and female pelvic-floor musculature (levator ani / pelvic fascia) remain missing as separate 3D meshes.',
-    'Full-term placenta/umbilical cord is shipped as an explicit Optional Advanced Layer (OFF by default); early-pregnancy/fetal, embryology, menstrual-cycle, and histology 3D models are not yet bundled.',
+    'Thyroid gland, parathyroid glands, middle/inner ear ossicles & cochlea, thoracic duct & regional lymph-node chains, and female pelvic-floor muscles remain missing or male-framed as separate 3D meshes.',
+    'HuBMAP HRA v1.1 full-term placenta/umbilical cord (8 meshes, CC BY 4.0) is shipped as an explicit Optional Advanced Layer (OFF by default); early-pregnancy/embryology and micro-anatomy 3D models remain out of default scope.',
   ] as readonly string[],
 } as const;
 
 export const FEMALE_ATLAS_ATTRIBUTION =
   'Adult Female Pelvic, Vascular & Reproductive Overlay (92 parts / 133.8k triangles): 84 HuBMAP Human Reference Atlas meshes (55 HRA v1.5 Visible Human Female DOI: 10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland + 13 HRA v1.3 Female Pelvic Blood Vasculature, CC BY 4.0) + 8 anatomically co-registered pelvic/urethral reconstructions.';
 
-export function getActivePartsForSex(
-  baseAtlas: Atlas,
-  femaleOverlay: FemaleAtlasManifest | null,
-  sex: AnatomySex,
-  extraBundle?: Pick<ActiveLayerBundle, 'shared' | 'male' | 'optionalPregnancy' | 'includePregnancy'>,
-): Part[] {
-  return getActivePartsForBundle(baseAtlas, sex, {
-    female: femaleOverlay,
-    shared: extraBundle?.shared,
-    male: extraBundle?.male,
-    optionalPregnancy: extraBundle?.optionalPregnancy,
-    includePregnancy: extraBundle?.includePregnancy,
-  });
-}
-
-export function getActiveConceptsForSex(
-  baseAtlas: Atlas,
-  femaleOverlay: FemaleAtlasManifest | null,
-  sex: AnatomySex,
-  extraBundle?: Pick<ActiveLayerBundle, 'shared' | 'male' | 'optionalPregnancy' | 'includePregnancy'>,
-): Concept[] {
-  return getActiveConceptsForBundle(baseAtlas, sex, {
-    female: femaleOverlay,
-    shared: extraBundle?.shared,
-    male: extraBundle?.male,
-    optionalPregnancy: extraBundle?.optionalPregnancy,
-    includePregnancy: extraBundle?.includePregnancy,
-  });
-}

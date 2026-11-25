@@ -28,7 +28,7 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
       'sensory',
     ],
     platformLinks: [
-      { label: '3D Anatomy Explorer', route: 'explorer', note: '2,234 male BodyParts3D meshes + 79-part Female overlay' },
+      { label: '3D Anatomy Explorer', route: 'explorer', note: '2,301 Male / 2,328 Female default meshes (2,401 total bundled across 5 layers)' },
       { label: 'System Lessons (12 Chapters)', route: 'learn', note: '28 structured anatomical topics' },
       { label: 'Practical Spotter Lab', route: 'practical-lab', note: '3D structure identification exams' },
       { label: '3D Presentations', route: 'present', note: '5 guided anatomical & clinical walkthroughs' },
@@ -36,7 +36,7 @@ export const EDUCATION_DOMAINS: EducationDomainSpec[] = [
     assetDisclosure: {
       status: 'partial',
       summary:
-        'Backed by 2,234 BodyParts3D 4.0 adult male reference meshes (CC BY 4.0) plus a 79-part Adult Female overlay (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered pelvic/urethral reconstructions, 124.4k triangles). Remaining gaps: broader female-specific vascular, nervous, and visceral coverage, anatomical variants, region-by-region female validation, cranial meninges, parathyroid glands, and inner-ear ossicles.',
+        'Backed by 2,401 distinct 3D meshes across 5 layers: 2,234 BodyParts3D 4.0 meshes + 47 Shared Enhancements + 20 Male Enhancements (2,301 Male active), plus a 92-part Female Overlay v3.0 (84 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions, 133.8k triangles; 2,328 Female default, 2,336 with optional Pregnancy ON). Remaining gaps: thyroid/parathyroid glands, middle/inner ear ossicles & cochlea, thoracic duct & lymph-node chains, and non-pelvic female-specific geometry.',
       missingAssets: [
         'Broader female-specific vascular, nervous, and visceral regional coverage plus region-by-region validation',
         'Detailed cranial meninges, parathyroid glands, inner-ear ossicles, and additional anatomical variants',

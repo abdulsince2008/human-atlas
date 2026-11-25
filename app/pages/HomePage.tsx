@@ -155,7 +155,7 @@ export default function HomePage({
             Built for Grades 9–12, FSc/MDCAT, CBSE, A-Level, MBBS/MD, allied health, and graduate
             educators. Search across {metrics.subjectsCount} biomedical domains,{' '}
             {metrics.topicsCount} registry topics, {metrics.curriculumFrameworksCount} worldwide
-            curricula, and {metrics.atlasMeshesCount.toLocaleString()} selectable 3D anatomical meshes.
+            curricula, and {metrics.atlasMeshesCount.toLocaleString()} base 3D meshes (2,301 Male / 2,328 Female default across 2,401 bundled assets).
           </p>
 
           {/* Global Hero Search */}
@@ -669,8 +669,7 @@ export default function HomePage({
             <Compass size={20} />
             <h3>Multi-Atlas &amp; Content Packs</h3>
             <p>
-              Registry specifications for Adult Male, 79-part Adult Female overlay, and future
-              pediatric atlases with JSON validation.
+              Registry specifications for 2,301 Male / 2,328 Female default meshes (92-part Female Overlay v3.0 + HuBMAP Shared/Male &amp; Optional Pregnancy layers).
             </p>
             <span className="a360-feature-cta">
               Open atlas manager <ArrowRight size={14} />

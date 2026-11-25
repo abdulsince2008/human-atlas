@@ -82,7 +82,7 @@ export const PLATFORM_RESOURCE_MAPPINGS: ExistingPlatformMapping[] = [
   {
     domainId: 'human_anatomy',
     moduleName: '3D BodyParts3D Atlas & Explorer',
-    countSummary: '2,234 selectable male meshes · 79 co-registered female parts (71 HuBMAP + 8 reconstructions) · 3,432+ FMA concepts · 12 canonical systems',
+    countSummary: '2,301 Male active · 2,328 Female default (92-part overlay + 47 shared) · 8 optional pregnancy · 12 canonical systems',
     route: 'explorer',
     note: 'Adult Male/Female reference geometry with explode, isolate, X-ray, clipping, and surgical layers.',
   },

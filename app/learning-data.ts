@@ -657,7 +657,7 @@ export const ANATOMY_LESSONS: AnatomyLesson[] = [
     level: 'FSc / MDCAT',
     title: { en: 'Gametogenesis & Male / Female Pelvic Reproductive Anatomy' },
     chapterDescription: {
-      en: 'Examine gametogenesis, ductal transport, and pelvic reproductive organs using the verified 3D Explorer Male (BodyParts3D) and Female (79-part HuBMAP + co-registered reconstruction overlay) modes.',
+      en: 'Examine gametogenesis, ductal transport, and pelvic reproductive organs using Male (BodyParts3D + 20 HM_* enhancements) and Female (92-part HuBMAP v3.0 + co-registered reconstruction overlay) 3D Explorer modes.',
     },
     summary: {
       en: 'Male (testes, epididymis, deferent ducts, seminal vesicles, prostate, penis) & Female (ovaries, uterine tubes, uterus, vagina, vulva, mammary glands) pelvic reproductive anatomy.',
@@ -668,7 +668,7 @@ export const ANATOMY_LESSONS: AnatomyLesson[] = [
       'Compare female ovarian, tubal, uterine, vaginal, and mammary structures using the 3D Explorer Female toggle while noting remaining non-pelvic female vascular/nervous gaps.',
     ],
     coverageDisclosure:
-      'Male & Female 3D (Partial): Male mode provides 12 adult male BodyParts3D 4.0 reproductive meshes. Female mode activates a 79-part overlay (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered pelvic/urethral reconstructions). Broader female-specific vascular/nervous/visceral coverage, anatomical variants, and region-by-region female validation remain incomplete.',
+      'Male & Female 3D (Partial): Male mode renders 25 reproductive meshes (12 BodyParts3D 4.0 + 13 HM_* enhancements). Female mode renders 58 female-specific reproductive parts within the 92-part Female Overlay v3.0 (84 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions), plus an optional 8-mesh Pregnancy/Placenta layer (OFF by default). Ovarian/clitoral branches, female pelvic-floor muscles, and non-pelvic female geometry remain open gaps.',
     topics: [
       {
         id: 'topic-repro-gonads-ducts',
@@ -715,7 +715,7 @@ export const ANATOMY_LESSONS: AnatomyLesson[] = [
         nonModeledConcepts: [
           {
             name: 'Female Reproductive Anatomy (Switch Explorer to Female Mode)',
-            note: 'Ovaries produce oocytes and estrogen/progesterone, uterine tubes conduct fertilization, and the muscular uterus supports implantation. Toggle Female mode in the 3D Explorer to inspect all 79 female overlay parts (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions); broader female vascular/nervous/visceral branches remain planned.',
+            note: 'Ovaries produce oocytes and estrogen/progesterone, uterine tubes conduct fertilization, and the muscular uterus supports implantation. Toggle Female mode in the 3D Explorer to inspect all 92 female overlay v3.0 parts (84 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions, plus optional Pregnancy/Placenta layer); ovarian vessels and non-pelvic female-specific geometry remain planned.',
           },
         ],
         preferredView: 'left',

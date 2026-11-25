@@ -9,8 +9,11 @@ import {
   getActivePartsForSex,
   getSystemDescriptionForSex,
   loadFemaleAtlasManifest,
+  loadMaleEnhancementsManifest,
+  loadSharedEnhancementsManifest,
   type FemaleAtlasManifest,
-} from '../female-atlas';
+  type OverlayManifest,
+} from '../atlas-layers';
 import {
   getStructureRecordV2,
   KNOWLEDGE_GRAPH_V2,
@@ -46,6 +49,8 @@ export default function SystemsPage({
 }: Props) {
   const { state: studyState, setPreferredSex } = useStudy();
   const preferredSex = studyState.preferredSex;
+  const [sharedOverlay, setSharedOverlay] = useState<OverlayManifest | null>(null);
+  const [maleOverlay, setMaleOverlay] = useState<OverlayManifest | null>(null);
   const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
   const [filter, setFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<StructureCategory | 'all'>('all');
@@ -54,6 +59,16 @@ export default function SystemsPage({
   );
 
   useEffect(() => {
+    if (!sharedOverlay) {
+      void loadSharedEnhancementsManifest()
+        .then(setSharedOverlay)
+        .catch(() => {});
+    }
+    if (preferredSex === 'male' && !maleOverlay) {
+      void loadMaleEnhancementsManifest()
+        .then(setMaleOverlay)
+        .catch(() => {});
+    }
     if (preferredSex === 'female' && !femaleAtlas) {
       void loadFemaleAtlasManifest()
         .then(setFemaleAtlas)
@@ -61,18 +76,24 @@ export default function SystemsPage({
           // Fallback to base atlas if overlay cannot load
         });
     }
-  }, [preferredSex, femaleAtlas]);
+  }, [preferredSex, sharedOverlay, maleOverlay, femaleAtlas]);
 
   const effectiveAtlas = useMemo<Atlas | null>(() => {
     if (!atlas) return null;
-    if (preferredSex !== 'female' || !femaleAtlas) return atlas;
+    if (preferredSex === 'female' && !femaleAtlas) return atlas;
     return {
       ...atlas,
-      sex: 'female',
-      parts: getActivePartsForSex(atlas, femaleAtlas, 'female'),
-      concepts: getActiveConceptsForSex(atlas, femaleAtlas, 'female'),
+      sex: preferredSex,
+      parts: getActivePartsForSex(atlas, femaleAtlas, preferredSex, {
+        shared: sharedOverlay,
+        male: maleOverlay,
+      }),
+      concepts: getActiveConceptsForSex(atlas, femaleAtlas, preferredSex, {
+        shared: sharedOverlay,
+        male: maleOverlay,
+      }),
     };
-  }, [atlas, femaleAtlas, preferredSex]);
+  }, [atlas, sharedOverlay, maleOverlay, femaleAtlas, preferredSex]);
 
   const active = useMemo(
     () => CANONICAL_SYSTEMS.find((s) => s.id === selectedSystem) ?? CANONICAL_SYSTEMS[0],
@@ -215,7 +236,7 @@ export default function SystemsPage({
           <div className="a360-coverage-box">
             <strong>3D Coverage &amp; Dataset Note:</strong>{' '}
             {active.id === 'reproductive' && preferredSex === 'female'
-              ? 'Adult Female mode indexes co-registered HuBMAP Female pelvic, reproductive, bladder, and mammary structures (79 meshes) while keeping shared systemic anatomy intact.'
+              ? 'Adult Female mode indexes co-registered HuBMAP Female pelvic, reproductive, vascular, urinary, and mammary structures (92 overlay meshes: 84 HuBMAP + 8 reconstructions) while preserving 47 shared enhancements and 2,189 inherited base meshes (2,328 active parts).'
               : active.coverageNote}
           </div>
 

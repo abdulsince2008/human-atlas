@@ -81,11 +81,11 @@ export const GEOMETRY_PROVENANCE: ProvenanceLayerRecord = {
   license: 'CC BY 4.0 (DBCLS Archive; historically CC BY-SA 2.1 Japan)',
   licenseUrl: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html',
   url: 'https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html',
-  scope: '2,234 adult male BodyParts3D 4.0 surface meshes across 15 mesh groups, paired with a 79-part Adult Female overlay (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered pelvic/urethral reconstructions; 2,284 active parts in Female mode).',
+  scope: '2,234 adult male BodyParts3D 4.0 base meshes + 159 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered female reconstructions (2,401 distinct bundled meshes total): 2,301 active Male parts (+47 shared, +20 male) and 2,328 active Female parts (-45 male parts replaced by 92 female v3.0 parts + 47 shared; +8 optional full-term placenta OFF by default).',
   limitations:
-    'Base BodyParts3D 4.0 is an adult male model; the Female overlay covers pelvic/reproductive, urinary, and mammary structures but still lacks broader female-specific vascular/nervous/visceral regional coverage, anatomical variants, and region-by-region validation. Microscopic histology geometry and deformable soft-tissue rigs are also absent.',
+    'Base BodyParts3D 4.0 is an adult male donor; Female mode still inherits 2,189 unadapted BP3D torso/cranium/limb meshes (94.0%) and 8 co-registered vulvar/urethral/endometrial approximations. Critical gaps across both sexes include the thyroid gland, parathyroid glands, middle/inner ear ossicles & cochlea, thoracic duct & systemic lymph nodes, cranial meninges, female pelvic floor muscles, ovarian/vaginal/clitoral vessels, and male bulbourethral glands & pampiniform plexus.',
   reviewStatus: 'source_reviewed',
-  lastAudited: '2026-11-24',
+  lastAudited: '2026-11-25',
 };
 
 export const ONTOLOGY_PROVENANCE: ProvenanceLayerRecord = {

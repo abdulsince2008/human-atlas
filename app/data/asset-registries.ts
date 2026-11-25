@@ -187,8 +187,8 @@ export const LICENSE_REGISTRY: DatasetLicenseRecord[] = [
     attributionText: 'HuBMAP Human Reference Atlas 3D Reference Organ Library (CC BY 4.0).',
     integrationStatus: 'integrated',
     bundledInPublicBuild: true,
-    notes: '71 direct HuBMAP HRA CC BY 4.0 meshes (55 HRA v1.5 Visible Human Female DOI: 10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland) combined with 8 anatomically co-registered reconstructions (79 parts / 124.4k triangles) in public/models/female/ for Male/Female 3D viewer switching.',
-    dateChecked: '2026-11-24',
+    notes: '159 direct HuBMAP HRA CC BY 4.0 meshes integrated across 4 layers: 47 Shared Enhancements (Spinal Cord v1.1, Liver v1.2, Palatine Tonsil v1.1, Kidney v1.2), 20 Male Enhancements (Pelvis v1.3, Bladder v1.2, Prostate v1.2, Male Vasculature v1.3), 84 Female Overlay v3.0 meshes (55 HRA v1.5 Visible Human Female DOI: 10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland + 13 HRA v1.3 Female Pelvic Vasculature, paired with 8 co-registered procedural reconstructions = 92 female parts), and 8 Optional Full-Term Placenta v1.1 meshes (OFF by default).',
+    dateChecked: '2026-11-25',
   },
   {
     id: 'nlm-visible-human',

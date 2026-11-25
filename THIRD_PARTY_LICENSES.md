@@ -17,17 +17,21 @@ This document records the audited origin, license, commercial-use status, and at
 - **Where Used:** `public/models/atlas.json` and `public/models/body-0.bin` through `public/models/body-14.bin(.gz)`, rendered in `app/scene.tsx`.
 - **Source Publication:** Mitsuhashi et al. (2009), *BodyParts3D: 3D structure database for anatomical concepts*, Nucleic Acids Research, https://doi.org/10.1093/nar/gkn613
 
-### HuBMAP Human Reference Atlas 3D Reference Library & Female Overlay
-- **Asset Name:** HuBMAP HRA 3D Reference Organ Library (Visible Human Female v1.5 `DOI: 10.48539/HBM352.BTSQ.586` + Mammary Gland v1.1) paired with 8 Anatomically Co-Registered Procedural Reconstructions
+### HuBMAP Human Reference Atlas 3D Reference Library (Shared, Male, Female v3.0 & Optional Layers)
+- **Asset Name:** HuBMAP HRA 3D Reference Organ Library (`159` direct CC BY 4.0 meshes) paired with `8` Anatomically Co-Registered Procedural Reconstructions:
+  - **Shared Enhancements (`public/models/shared/`):** `47` meshes (`33,766` triangles) — Spinal Cord v1.1 (C1–S5), Liver v1.2 (porta hepatis + 6 ligaments), Palatine Tonsil v1.1 (bilateral), Kidney v1.2 (cortex/medulla/columns/hilum)
+  - **Male Enhancements (`public/models/male/`):** `20` meshes (`16,969` triangles) — Male Pelvis v1.3 (coccyx), Bladder v1.2 (trigone/neck), Prostate v1.2 (13 zonal/ductal sub-parts), Male Vasculature v1.3 (4 rectal veins)
+  - **Adult Female Overlay v3.0 (`public/models/female/`):** `84` direct HuBMAP meshes (`55` HRA v1.5 Visible Human Female `DOI: 10.48539/HBM352.BTSQ.586` + `16` HRA v1.1 Mammary Gland + `13` HRA v1.3 Female Pelvic Blood Vasculature) paired with `8` co-registered reconstructions (`HF_URETHRA`, `HF_ENDOMETRIUM`, `HF_CLITORIS`, `HF_VESTIBULAR_BULBS`, `HF_BARTHOLIN_GLANDS`, `HF_LABIA_MINORA`, `HF_LABIA_MAJORA`, `HF_MONS_PUBIS`) for `92` total female parts (`133,837` triangles) replacing `45` male-specific/pelvic parts
+  - **Optional Full-Term Placenta Layer (`public/models/optional/`):** `8` meshes (`13,267` triangles) — HRA v1.1 Full-Term Placenta, Amnion & Umbilical Vessels (OFF by default)
 - **Copyright Holder:** HuBMAP Consortium / Indiana University & U.S. National Library of Medicine
 - **Source URL:** https://humanatlas.io/3d-reference-library
 - **Official License URL:** https://creativecommons.org/licenses/by/4.0/
 - **License:** Creative Commons Attribution 4.0 International (CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/)
 - **Commercial Use Permitted:** Yes (CC BY 4.0 permits commercial use and adaptation with attribution)
-- **Modification Permitted:** Yes (co-registered into BP3D meter/Y-up coordinate frame, simplified via `meshoptimizer`: **71** direct HuBMAP HRA CC BY 4.0 meshes [`55` Visible Human Female + `16` Mammary Gland] paired with **8** anatomically anchored procedural reconstructions [`HF_URETHRA`, `HF_ENDOMETRIUM`, `HF_CLITORIS`, `HF_VESTIBULAR_BULBS`, `HF_BARTHOLIN_GLANDS`, `HF_LABIA_MINORA`, `HF_LABIA_MAJORA`, `HF_MONS_PUBIS`] for **79** total parts / **124,440** triangles under `public/models/female/`)
+- **Modification Permitted:** Yes (co-registered into BP3D meter/Y-up coordinate frame, simplified via `meshoptimizer`)
 - **Required Attribution:**
   > "HuBMAP Human Reference Atlas 3D Reference Organ Library, licensed under CC Attribution 4.0 International (CC BY 4.0)."
-- **Where Used:** `public/models/female/female-atlas.json` and `public/models/female/female-0.bin(.gz)`, loaded dynamically in `app/scene.tsx` when Female mode is selected (replacing 29 male-specific/pelvic parts for 2,284 active parts).
+- **Where Used:** `public/models/shared/shared-enhancements.json`, `public/models/male/male-enhancements.json`, `public/models/female/female-atlas.json`, and `public/models/optional/pregnancy-placenta.json`, loaded dynamically in `app/scene.tsx` (`2,301` active Male parts / `2,328` active Female parts / `2,401` total distinct assets).
 
 ---
 
@@ -74,7 +78,7 @@ This document records the audited origin, license, commercial-use status, and at
 
 ## 5. Unavailable / Excluded Assets (Honest Scope Disclosure)
 
-- **Female Reference Remaining Coverage Gaps:** Systemic female cranium/limbs share BodyParts3D base meshes while the 79-part overlay (`public/models/female/`) handles female breast, pelvis, pelvic floor, urogenital, and reproductive organs (`2,284` active parts). Broader female-specific vascular, nervous, and visceral coverage, anatomical variants/individual variation, and deeper region-by-region female validation remain open tasks.
+- **Female & Shared Coverage Disclosures:** Systemic female cranium/thorax/limbs (`2,189` base parts, `94.0%`) remain reused from BodyParts3D adult male meshes while the `92`-part Female v3.0 overlay handles female bony pelvis, urinary bladder/urethra, female pelvic vessels, reproductive viscera, external vulva, and mammary glands (`2,328` active Female parts). Remaining open gaps across Male (`79` gap meshes) and Female (`113` gap meshes) include the thyroid & parathyroid glands, middle/inner ear ossicles & cochlea, thoracic duct & regional lymph node chains, cranial meninges beyond tentorium, female pelvic floor musculature, ovarian/vaginal/clitoral arterial vessels, and male bulbourethral glands & pampiniform plexus (detailed in `ANATOMY360_COMPLETE_ANATOMY_COVERAGE_AUDIT.md`).
 - **Pediatric Reference 3D Model:** Not bundled in `public/models/`. Listed with explicit asset and FMA concept requirements.
 - **Per-Chapter Clinical Microscopy & Radiology Libraries:** `public/media/histology/` (10 starter micrographs) and `public/media/radiology/` (5 normal starter plates) supplement written modules, while complete per-chapter `C1–C18` and `N1–N14` clinical slide/smear/DICOM series remain `asset_required`.
 - **Z-Anatomy (`Z-Anatomy/Models`):** Excluded pending per-asset license harmonization so Anatomy 360 maintains clean MIT + CC BY 4.0 distribution terms.

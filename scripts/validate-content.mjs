@@ -39,13 +39,20 @@ registerHooks({
 });
 
 const atlas = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'public/models/atlas.json'), 'utf8'));
-const femaleAtlasPath = path.join(ROOT_DIR, 'public/models/female/female-atlas.json');
-const femaleAtlas = fs.existsSync(femaleAtlasPath)
-  ? JSON.parse(fs.readFileSync(femaleAtlasPath, 'utf8'))
-  : { concepts: [] };
+const extraManifestPaths = [
+  path.join(ROOT_DIR, 'public/models/shared/shared-enhancements.json'),
+  path.join(ROOT_DIR, 'public/models/male/male-enhancements.json'),
+  path.join(ROOT_DIR, 'public/models/female/female-atlas.json'),
+  path.join(ROOT_DIR, 'public/models/optional/pregnancy-placenta.json'),
+];
+const extraManifestConcepts = extraManifestPaths.flatMap((manifestPath) => {
+  if (!fs.existsSync(manifestPath)) return [];
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  return Array.isArray(manifest.concepts) ? manifest.concepts.map((c) => c.id) : [];
+});
 const conceptIdsInAtlas = new Set([
   ...atlas.concepts.map((c) => c.id),
-  ...femaleAtlas.concepts.map((c) => c.id),
+  ...extraManifestConcepts,
 ]);
 
 const { CANONICAL_SYSTEMS } = await import('../app/anatomy-systems.ts');

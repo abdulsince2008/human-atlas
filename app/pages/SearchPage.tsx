@@ -18,8 +18,11 @@ import {
   getActiveConceptsForSex,
   getActivePartsForSex,
   loadFemaleAtlasManifest,
+  loadMaleEnhancementsManifest,
+  loadSharedEnhancementsManifest,
   type FemaleAtlasManifest,
-} from '../female-atlas';
+  type OverlayManifest,
+} from '../atlas-layers';
 import { EDUCATION_TRACKS } from '../education/education-curricula';
 import type {
   CurriculumAuthorityId,
@@ -95,9 +98,21 @@ export default function SearchPage({
   const [focusedHit, setFocusedHit] = useState<UnifiedSearchResultItem | null>(null);
 
   const { state, addRecentSearch, isBookmarked, toggleBookmark } = useStudy();
+  const [sharedOverlay, setSharedOverlay] = useState<OverlayManifest | null>(null);
+  const [maleOverlay, setMaleOverlay] = useState<OverlayManifest | null>(null);
   const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
 
   useEffect(() => {
+    if (!sharedOverlay) {
+      void loadSharedEnhancementsManifest()
+        .then(setSharedOverlay)
+        .catch(() => {});
+    }
+    if (state.preferredSex === 'male' && !maleOverlay) {
+      void loadMaleEnhancementsManifest()
+        .then(setMaleOverlay)
+        .catch(() => {});
+    }
     if (state.preferredSex === 'female' && !femaleAtlas) {
       void loadFemaleAtlasManifest()
         .then(setFemaleAtlas)
@@ -105,18 +120,24 @@ export default function SearchPage({
           // Graceful fallback to base atlas
         });
     }
-  }, [state.preferredSex, femaleAtlas]);
+  }, [state.preferredSex, sharedOverlay, maleOverlay, femaleAtlas]);
 
   const effectiveAtlas = useMemo<Atlas | null>(() => {
     if (!atlas) return null;
-    if (state.preferredSex !== 'female' || !femaleAtlas) return atlas;
+    if (state.preferredSex === 'female' && !femaleAtlas) return atlas;
     return {
       ...atlas,
-      sex: 'female',
-      parts: getActivePartsForSex(atlas, femaleAtlas, 'female'),
-      concepts: getActiveConceptsForSex(atlas, femaleAtlas, 'female'),
+      sex: state.preferredSex,
+      parts: getActivePartsForSex(atlas, femaleAtlas, state.preferredSex, {
+        shared: sharedOverlay,
+        male: maleOverlay,
+      }),
+      concepts: getActiveConceptsForSex(atlas, femaleAtlas, state.preferredSex, {
+        shared: sharedOverlay,
+        male: maleOverlay,
+      }),
     };
-  }, [atlas, femaleAtlas, state.preferredSex]);
+  }, [atlas, sharedOverlay, maleOverlay, femaleAtlas, state.preferredSex]);
 
   useEffect(() => {
     if (typeof initialQuery === 'string' && initialQuery !== query) {
@@ -212,8 +233,9 @@ export default function SearchPage({
         <h1>Search Across All Subjects, Topics, 3D Anatomy &amp; Syllabi</h1>
         <p className="a360-lead">
           One unified discovery index across all 16 biomedical domains, chapters, learning
-          outcomes, 3,432 FMA concepts, 2,234 3D meshes, physiology labs, histology entries,
-          clinical cases, guided 3D walkthroughs, MCQs, and 13 worldwide curricula.
+          outcomes, 3,432+ FMA concepts, 2,401 multi-layer 3D meshes (2,301 Male · 2,328 Female + 8
+          optional), physiology labs, histology entries, clinical cases, guided 3D walkthroughs,
+          MCQs, and 13 worldwide curricula.
         </p>
       </header>
 

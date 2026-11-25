@@ -57,7 +57,7 @@ test('shared anatomy remains intact while gender-specific organs index accuratel
     concepts: femaleConcepts,
   };
 
-  assert.equal(femaleParts.length, 2284);
+  assert.equal(femaleParts.length, 2281);
   assert.ok(femaleConcepts.some((c) => c.id === 'FMA7088'), 'Shared Heart must remain in Female atlas');
   assert.ok(femaleConcepts.some((c) => c.id === 'FMA17558'), 'Uterus must be indexed in Female atlas');
   assert.ok(!femaleConcepts.some((c) => c.id === 'FMA9600'), 'Prostate must not be indexed in Female atlas');

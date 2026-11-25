@@ -5,7 +5,7 @@ import type { VERIFIED_SOURCES } from '../verified-sources';
 const ANAT_DISCLOSURE = {
   status: 'partial' as const,
   summary:
-    'Integrated with Anatomy 360’s 2,234 adult male BodyParts3D 4.0 meshes (3,432 FMA concepts), 79 Adult Female overlay parts (71 HuBMAP HRA CC BY 4.0 meshes + 8 co-registered reconstructions, 124.4k triangles), 12 System Lessons (28 topics), and Surgical Layer Dissections. Remaining gaps include broader female-specific vascular/nervous/visceral coverage, anatomical variants, region-by-region validation, cranial meninges, parathyroid glands, and inner-ear cochlea.',
+    'Integrated with Anatomy 360’s 2,401-mesh 5-layer atlas: 2,301 Male active meshes (2,234 BodyParts3D 4.0 + 47 Shared Enhancements + 20 Male Enhancements) and 2,328 Female active default meshes (2,189 reused male-base + 47 Shared + 92 Female Overlay v3.0 [84 HuBMAP HRA CC BY 4.0 + 8 co-registered reconstructions], 133.8k triangles; +8 optional pregnancy parts), 12 System Lessons, and Surgical Layer Dissections. Remaining gaps include thyroid/parathyroid glands, middle/inner ear ossicles & cochlea, thoracic duct & regional lymph nodes, and non-pelvic female-specific geometry.',
   missingAssets: [
     'Micro-scale 3D surface geometry for cranial meninges, parathyroid glands, inner-ear ossicles, and fine peripheral nerve plexuses',
   ],
@@ -329,7 +329,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     'Pelvis and Perineum',
     'Pelvic Floor (Levator Ani), Fascia, Pudendal/Splanchnic Nerves, Bladder, Rectum & Reproductive Organs',
     'Bony pelvic inlet/outlet, levator ani (puborectalis sling), internal iliac branches, ureteral-uterine "water under the bridge", rectum/anal pectinate line, perineal pouches, and male/female HuBMAP organs.',
-    'Links to 3D Urinary Bladder FMA15900, Ureter FMA9704, Prostate FMA9600, Testis FMA7210, Pelvic Muscle FMA19086 + 79 Adult Female Overlay Parts (71 HuBMAP + 8 Reconstructions; toggle Female Mode)',
+    'Links to 3D Urinary Bladder FMA15900, Ureter FMA9704, Prostate FMA9600, Testis FMA7210, Pelvic Muscle FMA19086 + 92 Adult Female Overlay v3.0 Parts (84 HuBMAP + 8 Reconstructions; toggle Female Mode)',
     ['ap_ch25_urinary', 'ap_ch27_repro'],
     {
       colA: 'Above Anal Pectinate (Dentate) Line',
@@ -342,7 +342,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     [
       'The pelvic diaphragm (levator ani: puborectalis, pubococcygeus, iliococcygeus + coccygeus) supports pelvic viscera; puborectalis loops slinglike around the anorectal junction maintaining the 90° faecal continence angle.',
       'During hysterectomy or uterine-artery ligation, recall "water under the bridge": the retroperitoneal URETER runs immediately POSTERIOR-INFERIOR to the uterine artery ~1.5 cm lateral to the cervix.',
-      'Anatomy 360 ships 79 co-registered Adult Female overlay parts (71 HuBMAP HRA CC BY 4.0 meshes + 8 anatomically aligned pelvic/urethral reconstructions for uterus, ovaries, fallopian tubes, vagina, external vulvar anatomy, bladder, pelvis & mammary glands) accessible via the Female toggle.',
+      'Anatomy 360 ships 92 co-registered Adult Female overlay v3.0 parts (84 HuBMAP HRA CC BY 4.0 meshes [pelvis/viscera + mammary + pelvic vasculature] + 8 anatomically aligned reconstructions for uterus, ovaries, fallopian tubes, vagina, external vulvar anatomy, bladder, pelvis & mammary glands) plus an optional 8-part Pregnancy/Placenta layer accessible via the Female toggle.',
     ],
     'A "straddle" perineal fall rupturing the bulbous urethra beneath intact Buck/Colles fascia extravasates urine up the anterior abdominal wall between Scarpa fascia and external oblique aponeurosis, NEVER down into the thighs (held back by fascia lata attachment).',
     ['FMA16585', 'FMA19086', 'FMA15900', 'FMA9704', 'FMA9600', 'FMA7210'],

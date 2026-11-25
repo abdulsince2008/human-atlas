@@ -1,11 +1,13 @@
 # ANATOMY 360 — Multi-Source Asset & Rendering Architecture
 
-## 1. Current Production Atlas Baseline (Verified Metrics)
-- **Active Geometry Dataset:** BodyParts3D / Anatomography 4.0 (DBCLS, Japan — CC BY 4.0 current archive; historically CC BY-SA 2.1 Japan)
-- **Mesh Parts:** `2,234` individually selectable anatomical surface meshes
-- **FMA Concepts:** `3,432` canonical Foundational Model of Anatomy concept entries
-- **Binary Chunks:** `15` gzip-streamed binary geometry chunks (`public/models/body-*.bin`)
-- **Triangle Budget:** `2,288,268` optimized triangles (simplified from `6,681,030` source triangles via `meshoptimizer` at `0.002` max relative error; min `52` tris, median `520` tris, max `44,744` tris)
+## 1. Current Multi-Layer Production Atlas Baseline (Verified Metrics)
+- **Base Adult Male Geometry:** BodyParts3D / Anatomography 4.0 (DBCLS, Japan — CC BY 4.0): `2,234` meshes across `15` chunks (`body-0..14.bin.gz`, `2,288,268` tris, `3,432` FMA manifest concepts / `1,659` unique directly meshed concepts). Also ships `atlas.lod3.json` (`1,684,412` tris) for lighter hardware tiers.
+- **Multi-Layer Expansion Overlays (`public/models/shared`, `male`, `female`, `optional`):**
+  - `shared-enhancements.json`: `+47` verified shared meshes (`33,766` tris — C1–S5 spinal cord, liver ligaments, palatine tonsils, kidney subdivisions)
+  - `male-enhancements.json`: `+20` male-specific meshes (`16,969` tris — coccyx, bladder trigone/neck, 13 prostate sub-parts, 4 rectal veins) -> **`2,301` Male Active Parts**
+  - `female-atlas.json` (`female-overlay-3.0`): `+92` female parts (`133,837` tris — `84` direct HuBMAP HRA CC BY 4.0 meshes + `8` co-registered reconstructions, replacing `45` male parts) -> **`2,328` Female Active Parts**
+  - `optional/pregnancy-placenta.json`: `+8` optional full-term placenta/umbilical meshes (`13,267` tris, OFF by default)
+- **Total Distinct Bundled Assets:** `2,401` meshes (`2,486,107` triangles). Audit & regenerate CSV inventory via `npm run audit:coverage`.
 
 ## 2. Multi-Layer Visualization Architecture
 `app/tissue-materials.ts` and `app/visualization-colors.ts` separate realistic anatomical appearance from optional educational overlays:

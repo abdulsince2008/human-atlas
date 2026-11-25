@@ -386,3 +386,34 @@ export function getActiveConceptsForBundle(
 
   return Array.from(merged.values());
 }
+
+export function getActivePartsForSex(
+  baseAtlas: Atlas,
+  femaleOverlay: FemaleAtlasManifest | null,
+  sex: AnatomySex,
+  extraBundle?: Pick<ActiveLayerBundle, 'shared' | 'male' | 'optionalPregnancy' | 'includePregnancy'>,
+): Part[] {
+  return getActivePartsForBundle(baseAtlas, sex, {
+    female: femaleOverlay,
+    shared: extraBundle?.shared,
+    male: extraBundle?.male,
+    optionalPregnancy: extraBundle?.optionalPregnancy,
+    includePregnancy: extraBundle?.includePregnancy,
+  });
+}
+
+export function getActiveConceptsForSex(
+  baseAtlas: Atlas,
+  femaleOverlay: FemaleAtlasManifest | null,
+  sex: AnatomySex,
+  extraBundle?: Pick<ActiveLayerBundle, 'shared' | 'male' | 'optionalPregnancy' | 'includePregnancy'>,
+): Concept[] {
+  return getActiveConceptsForBundle(baseAtlas, sex, {
+    female: femaleOverlay,
+    shared: extraBundle?.shared,
+    male: extraBundle?.male,
+    optionalPregnancy: extraBundle?.optionalPregnancy,
+    includePregnancy: extraBundle?.includePregnancy,
+  });
+}
+

@@ -19,22 +19,29 @@ export default function AboutPage({ onExplore }: Props) {
       <section className="a360-prose-block">
         <h2>Dataset Scope &amp; Truthful Inventory Policy</h2>
         <p>
-          Adult Male 3D mode uses <strong>BodyParts3D 4.0</strong> (DBCLS, CC BY 4.0), providing{' '}
-          <strong>2,234 individually selectable meshes</strong> organized into{' '}
-          <strong>3,432 named FMA concepts</strong> across <strong>2,288,268 triangles</strong>.
-          Toggling <strong>Female mode</strong> merges a <strong>79-part Adult Female overlay</strong>{' '}
-          (<strong>79 concepts</strong>, <strong>124,440 triangles</strong> across 1 binary chunk):{' '}
-          <strong>71 direct HuBMAP Human Reference Atlas meshes</strong> (55 HRA v1.5 Visible Human
-          Female, <code>DOI: 10.48539/HBM352.BTSQ.586</code> + 16 HRA v1.1 Mammary Gland, CC BY 4.0)
-          plus <strong>8 anatomically co-registered procedural reconstructions</strong> (urethral
-          conduit + 7 pelvic/external structures), replacing 29 male-specific/pelvic parts (
-          <strong>2,284 active parts</strong> in Female mode).
+          Adult Male 3D mode combines <strong>BodyParts3D 4.0</strong> (DBCLS, CC BY 4.0 —{' '}
+          <strong>2,234 base meshes</strong> / <strong>3,432 FMA entries</strong>) with{' '}
+          <strong>47 Shared HuBMAP Enhancements</strong> (spinal cord C1–S5 segments, hepatic
+          ligaments, palatine tonsils, intrarenal cortex/medulla/hilum) and{' '}
+          <strong>20 Male HuBMAP Enhancements</strong> (prostate zones/ducts, bladder trigone/neck,
+          coccyx, rectal veins), yielding <strong>2,301 active Male parts</strong>. Toggling{' '}
+          <strong>Female mode</strong> replaces 45 male-specific/pelvic parts with a{' '}
+          <strong>92-part Adult Female v3.0 overlay</strong> (<strong>84 direct HuBMAP HRA
+          meshes</strong>: 55 HRA v1.5 Visible Human Female{' '}
+          <code>DOI: 10.48539/HBM352.BTSQ.586</code> + 16 HRA v1.1 Mammary Gland + 13 HRA v1.3
+          Female Pelvic Vasculature, plus <strong>8 co-registered procedural reconstructions</strong>)
+          for <strong>2,328 active Female parts</strong> (plus an{' '}
+          <strong>8-part Optional Pregnancy &amp; Full-Term Placenta layer</strong> toggled OFF by
+          default; <strong>2,401 distinct bundled meshes</strong> overall).
         </p>
         <p>
           Anatomy 360 never fabricates clinical data or hides remaining limitations: Female 3D mode
-          still lacks broader female-specific vascular, nervous, and visceral coverage, anatomical
-          variants across age/physiological states, and region-by-region validation. Likewise,
-          thyroid parenchyma, microscopic nephrons, and inner-ear ossicles remain unmodeled in 3D.
+          still reuses <strong>2,189</strong> adult male BP3D donor meshes (<strong>94.0%</strong>)
+          outside the pelvis and breasts, and the 8 vulvar/urethral/endometrial reconstructions are
+          explicitly marked as co-registered approximations. Across both sexes, the thyroid gland,
+          parathyroid glands, middle/inner ear ossicles &amp; cochlea, cranial meninges beyond the
+          tentorium, thoracic duct &amp; systemic lymph node chains, female pelvic floor muscles,
+          ovarian/clitoral arterial branches, and male bulbourethral glands remain unmodeled in 3D.
         </p>
         <p>
           <strong>Curriculum &amp; Media Transparency:</strong> Across 16 biomedical domains (267
@@ -102,9 +109,12 @@ export default function AboutPage({ onExplore }: Props) {
           <div className="a360-license-item">
             <h3>HuBMAP Human Reference Atlas 3D Library (CC BY 4.0)</h3>
             <p>
-              71 direct adult female meshes (55 HRA v1.5 Visible Human Female DOI:
-              10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland, CC BY 4.0) paired with 8
-              co-registered pelvic/urethral reconstructions.
+              159 direct adult reference meshes across 4 overlay packs: 47 Shared (Spinal Cord
+              v1.1, Liver v1.2, Palatine Tonsil v1.1, Kidney v1.2), 20 Male (Pelvis v1.3, Bladder
+              v1.2, Prostate v1.2, Vasculature v1.3), 84 Female v3.0 (55 HRA v1.5 Visible Human
+              Female DOI: 10.48539/HBM352.BTSQ.586 + 16 HRA v1.1 Mammary Gland + 13 HRA v1.3 Female
+              Pelvic Vasculature), and 8 Optional Full-Term Placenta v1.1 (OFF by default), paired
+              with 8 co-registered female reconstructions.
             </p>
             <div className="a360-ext-links">
               <a href="https://humanatlas.io/3d-reference-library" target="_blank" rel="noreferrer">
@@ -149,8 +159,8 @@ export default function AboutPage({ onExplore }: Props) {
                     <td>CC BY 4.0</td>
                   </tr>
                   <tr>
-                    <td>HuBMAP HRA + Female Overlay</td>
-                    <td>71 HuBMAP female meshes + 8 aligned reconstructions</td>
+                    <td>HuBMAP HRA + Multi-Layer Overlays</td>
+                    <td>159 HuBMAP meshes (Shared 47 + Male 20 + Female 84 + Placenta 8) + 8 aligned female reconstructions</td>
                     <td>CC BY 4.0</td>
                   </tr>
                   <tr>
@@ -213,8 +223,10 @@ export default function AboutPage({ onExplore }: Props) {
           browser via <strong>IndexedDB</strong> (with <code>localStorage</code> fallback) and can
           optionally sync to cloud classrooms when signed in. Export a <code>.json</code> backup
           anytime from the <strong>Study Dashboard</strong> to move local data between devices. The
-          3D binary chunks (<code>/models/body-0..14.bin.gz</code> and{' '}
-          <code>/models/female/female-0.bin.gz</code>) load on demand over HTTP.
+          3D binary chunks (<code>/models/body-0..14.bin.gz</code>,{' '}
+          <code>/models/shared/shared-0.bin.gz</code>, <code>/models/male/male-0.bin.gz</code>,{' '}
+          <code>/models/female/female-0.bin.gz</code>, and{' '}
+          <code>/models/optional/pregnancy-0.bin.gz</code>) load on demand over HTTP.
         </p>
       </section>
 
