@@ -1,0 +1,283 @@
+{
+  "version": "optional-pregnancy-placenta-1.0",
+  "sex": "female",
+  "optionalLayer": "pregnancy_placenta",
+  "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+  "chunks": [
+    {
+      "url": "/models/optional/pregnancy-0.bin",
+      "bytes": 279932,
+      "gzip": "/models/optional/pregnancy-0.bin.gz",
+      "gzipBytes": 172264
+    }
+  ],
+  "parts": [
+    {
+      "id": "HO_PLACENTA_BASAL_PLATE",
+      "name": "Placenta basal plate (maternal decidua basalis interface)",
+      "conceptId": "FMA83051",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 0,
+      "normals": 8700,
+      "indices": 13052,
+      "vertexCount": 725,
+      "indexCount": 4200,
+      "bounds": [
+        [
+          -0.1011083647608757,
+          0.9770647883415222,
+          0.12203353643417358
+        ],
+        [
+          0.08003730326890945,
+          1.1709500551223755,
+          0.20869626104831696
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_PLACENTA_CHORIONIC_PLATE",
+      "name": "Placenta chorionic plate (fetal surface)",
+      "conceptId": "FMA83052",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 29852,
+      "normals": 38732,
+      "indices": 43172,
+      "vertexCount": 740,
+      "indexCount": 4197,
+      "bounds": [
+        [
+          -0.10090415924787521,
+          0.9769821166992188,
+          0.13595546782016754
+        ],
+        [
+          0.07894791662693024,
+          1.166000247001648,
+          0.20964741706848145
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_PLACENTA_VESSELS",
+      "name": "Placental chorionic & villous vasculature",
+      "conceptId": "FMA83053",
+      "system": "arterial",
+      "chunk": 0,
+      "positions": 59960,
+      "normals": 75656,
+      "indices": 83504,
+      "vertexCount": 1308,
+      "indexCount": 7800,
+      "bounds": [
+        [
+          -0.09116410464048386,
+          1.0075393915176392,
+          0.15079569816589355
+        ],
+        [
+          0.059958163648843765,
+          1.142015814781189,
+          0.204982727766037
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_PLACENTA_AMNION",
+      "name": "Amniotic membrane (amnion)",
+      "conceptId": "FMA63932",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 114704,
+      "normals": 121928,
+      "indices": 125540,
+      "vertexCount": 602,
+      "indexCount": 3600,
+      "bounds": [
+        [
+          -0.11979936063289642,
+          0.9530970454216003,
+          0.12823010981082916
+        ],
+        [
+          0.11089704930782318,
+          1.1767182350158691,
+          0.21913637220859528
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_UMBILICAL_CORD",
+      "name": "Umbilical cord (Wharton jelly sheath)",
+      "conceptId": "FMA63933",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 139940,
+      "normals": 159932,
+      "indices": 169928,
+      "vertexCount": 1666,
+      "indexCount": 10044,
+      "bounds": [
+        [
+          -0.012493475340306759,
+          0.9946028590202332,
+          0.17646868526935577
+        ],
+        [
+          0.008774668909609318,
+          1.0469274520874023,
+          0.23148763179779053
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_UMBILICAL_ARTERY_1",
+      "name": "First umbilical artery",
+      "conceptId": "FMA18820",
+      "system": "arterial",
+      "chunk": 0,
+      "positions": 210104,
+      "normals": 217160,
+      "indices": 220688,
+      "vertexCount": 588,
+      "indexCount": 3516,
+      "bounds": [
+        [
+          -0.011007740162312984,
+          0.9964421391487122,
+          0.1789279282093048
+        ],
+        [
+          0.007597085554152727,
+          1.0483956336975098,
+          0.22780661284923553
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_UMBILICAL_ARTERY_2",
+      "name": "Second umbilical artery",
+      "conceptId": "FMA18821",
+      "system": "arterial",
+      "chunk": 0,
+      "positions": 234752,
+      "normals": 242264,
+      "indices": 246020,
+      "vertexCount": 626,
+      "indexCount": 3744,
+      "bounds": [
+        [
+          -0.01147437933832407,
+          1.0015027523040771,
+          0.17824994027614594
+        ],
+        [
+          0.006547796074301004,
+          1.056251049041748,
+          0.22400307655334473
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HO_UMBILICAL_VEIN",
+      "name": "Umbilical vein",
+      "conceptId": "FMA18909_UMB",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 260996,
+      "normals": 266420,
+      "indices": 269132,
+      "vertexCount": 452,
+      "indexCount": 2700,
+      "bounds": [
+        [
+          -0.0085911825299263,
+          0.994706392288208,
+          0.17641372978687286
+        ],
+        [
+          0.005460042040795088,
+          1.0505917072296143,
+          0.2300809770822525
+        ]
+      ],
+      "source": "HuBMAP HRA v1.1 Visible Human Female Full-Term Placenta (CC BY 4.0, 3d-vh-f-placenta-full-term)",
+      "license": "CC BY 4.0"
+    }
+  ],
+  "concepts": [
+    {
+      "id": "FMA83051",
+      "name": "Placenta basal plate (maternal decidua basalis interface)",
+      "elements": [
+        "HO_PLACENTA_BASAL_PLATE"
+      ]
+    },
+    {
+      "id": "FMA83052",
+      "name": "Placenta chorionic plate (fetal surface)",
+      "elements": [
+        "HO_PLACENTA_CHORIONIC_PLATE"
+      ]
+    },
+    {
+      "id": "FMA83053",
+      "name": "Placental chorionic & villous vasculature",
+      "elements": [
+        "HO_PLACENTA_VESSELS"
+      ]
+    },
+    {
+      "id": "FMA63932",
+      "name": "Amniotic membrane (amnion)",
+      "elements": [
+        "HO_PLACENTA_AMNION"
+      ]
+    },
+    {
+      "id": "FMA63933",
+      "name": "Umbilical cord (Wharton jelly sheath)",
+      "elements": [
+        "HO_UMBILICAL_CORD"
+      ]
+    },
+    {
+      "id": "FMA18820",
+      "name": "First umbilical artery",
+      "elements": [
+        "HO_UMBILICAL_ARTERY_1"
+      ]
+    },
+    {
+      "id": "FMA18821",
+      "name": "Second umbilical artery",
+      "elements": [
+        "HO_UMBILICAL_ARTERY_2"
+      ]
+    },
+    {
+      "id": "FMA18909_UMB",
+      "name": "Umbilical vein",
+      "elements": [
+        "HO_UMBILICAL_VEIN"
+      ]
+    }
+  ],
+  "triangles": 13267
+}

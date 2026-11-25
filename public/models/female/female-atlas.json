@@ -1,13 +1,13 @@
 {
-  "version": "female-overlay-2.0",
+  "version": "female-overlay-3.0",
   "sex": "female",
-  "source": "HuBMAP HRA v1.5 Visible Human Female (CC BY 4.0, DOI: 10.48539/HBM352.BTSQ.586) + co-registered female urethral conduit",
+  "source": "HuBMAP HRA Visible Human Female 3D Reference Library (CC BY 4.0: United Pelvis/Viscera v1.5 DOI:10.48539/HBM352.BTSQ.586, Mammary v1.1, Blood Vasculature v1.3) + 8 co-registered reconstructions",
   "chunks": [
     {
       "url": "/models/female/female-0.bin",
-      "bytes": 2655808,
+      "bytes": 2857252,
       "gzip": "/models/female/female-0.bin.gz",
-      "gzipBytes": 1609903
+      "gzipBytes": 1731619
     }
   ],
   "parts": [
@@ -1985,6 +1985,344 @@
         ]
       ],
       "source": "Anatomically co-registered female reproductive reconstruction aligned to HuBMAP pelvis & Innerbody anatomical guide"
+    },
+    {
+      "id": "HF_COMMON_ILIAC_VEIN_LEFT",
+      "name": "Female left common iliac vein",
+      "conceptId": "FMA21388",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2655808,
+      "normals": 2661352,
+      "indices": 2664124,
+      "vertexCount": 462,
+      "indexCount": 2550,
+      "bounds": [
+        [
+          -0.005876383278518915,
+          0.9613723754882812,
+          -0.026304718106985092
+        ],
+        [
+          0.05418069660663605,
+          1.0452219247817993,
+          -0.006537153385579586
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_COMMON_ILIAC_VEIN_RIGHT",
+      "name": "Female right common iliac vein",
+      "conceptId": "FMA21387",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2674324,
+      "normals": 2678932,
+      "indices": 2681236,
+      "vertexCount": 384,
+      "indexCount": 2097,
+      "bounds": [
+        [
+          -0.04684212803840637,
+          0.9605333805084229,
+          -0.02793368138372898
+        ],
+        [
+          -0.009733354672789574,
+          1.0431907176971436,
+          -0.008837074972689152
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_INTERNAL_ILIAC_VEIN_LEFT",
+      "name": "Female left internal iliac vein",
+      "conceptId": "FMA18888",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2689624,
+      "normals": 2692648,
+      "indices": 2694160,
+      "vertexCount": 252,
+      "indexCount": 1350,
+      "bounds": [
+        [
+          0.04819129407405853,
+          0.931469738483429,
+          -0.030518747866153717
+        ],
+        [
+          0.06233951821923256,
+          0.9644991755485535,
+          -0.017622357234358788
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_INTERNAL_ILIAC_VEIN_RIGHT",
+      "name": "Female right internal iliac vein",
+      "conceptId": "FMA18887",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2699560,
+      "normals": 2703184,
+      "indices": 2704996,
+      "vertexCount": 302,
+      "indexCount": 1650,
+      "bounds": [
+        [
+          -0.05072280764579773,
+          0.9287322163581848,
+          -0.040177393704652786
+        ],
+        [
+          -0.03959936648607254,
+          0.9732508063316345,
+          -0.019068030640482903
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_INTERNAL_PUDENDAL_VEIN_LEFT",
+      "name": "Female left internal pudendal vein",
+      "conceptId": "FMA18919",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2711596,
+      "normals": 2716000,
+      "indices": 2718204,
+      "vertexCount": 367,
+      "indexCount": 2100,
+      "bounds": [
+        [
+          0.05546974018216133,
+          0.8673802614212036,
+          -0.05291447788476944
+        ],
+        [
+          0.06664944440126419,
+          0.9347602128982544,
+          -0.02704499661922455
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_INTERNAL_PUDENDAL_VEIN_RIGHT",
+      "name": "Female right internal pudendal vein",
+      "conceptId": "FMA18918",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2726604,
+      "normals": 2731344,
+      "indices": 2733716,
+      "vertexCount": 395,
+      "indexCount": 2250,
+      "bounds": [
+        [
+          -0.06101014465093613,
+          0.863806426525116,
+          -0.05509118363261223
+        ],
+        [
+          -0.046312082558870316,
+          0.9370676875114441,
+          -0.03640567883849144
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_MIDDLE_RECTAL_VEIN_LEFT",
+      "name": "Female left middle rectal vein",
+      "conceptId": "FMA18911_MRV",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2742716,
+      "normals": 2746736,
+      "indices": 2748748,
+      "vertexCount": 335,
+      "indexCount": 1950,
+      "bounds": [
+        [
+          0.018945975229144096,
+          0.9250627160072327,
+          -0.05225064232945442
+        ],
+        [
+          0.05606465041637421,
+          0.9439904689788818,
+          -0.025782620534300804
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_MIDDLE_RECTAL_VEIN_RIGHT",
+      "name": "Female right middle rectal vein",
+      "conceptId": "FMA18910_MRV",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2756548,
+      "normals": 2760568,
+      "indices": 2762580,
+      "vertexCount": 335,
+      "indexCount": 1950,
+      "bounds": [
+        [
+          -0.04420647770166397,
+          0.920762300491333,
+          -0.056953057646751404
+        ],
+        [
+          -0.01443501841276884,
+          0.9361007809638977,
+          -0.03242336958646774
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_INFERIOR_RECTAL_VEIN_LEFT",
+      "name": "Female left inferior rectal vein",
+      "conceptId": "FMA18923",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2770380,
+      "normals": 2774976,
+      "indices": 2777276,
+      "vertexCount": 383,
+      "indexCount": 2247,
+      "bounds": [
+        [
+          0.01269167847931385,
+          0.8634830117225647,
+          -0.07135140150785446
+        ],
+        [
+          0.05857735872268677,
+          0.880120038986206,
+          -0.03803014010190964
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_INFERIOR_RECTAL_VEIN_RIGHT",
+      "name": "Female right inferior rectal vein",
+      "conceptId": "FMA18922",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2786264,
+      "normals": 2790896,
+      "indices": 2793212,
+      "vertexCount": 386,
+      "indexCount": 2250,
+      "bounds": [
+        [
+          -0.052505169063806534,
+          0.860593855381012,
+          -0.07175715267658234
+        ],
+        [
+          -0.004821236710995436,
+          0.8798929452896118,
+          -0.04061615839600563
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_MEDIAN_SACRAL_VEIN",
+      "name": "Female median sacral vein",
+      "conceptId": "FMA77168",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2802212,
+      "normals": 2807108,
+      "indices": 2809556,
+      "vertexCount": 408,
+      "indexCount": 2397,
+      "bounds": [
+        [
+          -0.005876383278518915,
+          0.9161500334739685,
+          -0.08338546752929688
+        ],
+        [
+          0.005118906032294035,
+          1.0281466245651245,
+          -0.010381877422332764
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_SUPERIOR_RECTAL_VEIN",
+      "name": "Female superior rectal vein",
+      "conceptId": "FMA15393",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 2819144,
+      "normals": 2824916,
+      "indices": 2827804,
+      "vertexCount": 481,
+      "indexCount": 2850,
+      "bounds": [
+        [
+          -0.007343585137277842,
+          0.9509803652763367,
+          -0.07469788938760757
+        ],
+        [
+          0.01795724779367447,
+          0.9792293906211853,
+          -0.02520306222140789
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HF_SUPERIOR_RECTAL_ARTERY",
+      "name": "Female superior rectal artery",
+      "conceptId": "FMA14832",
+      "system": "arterial",
+      "chunk": 0,
+      "positions": 2839204,
+      "normals": 2844436,
+      "indices": 2847052,
+      "vertexCount": 436,
+      "indexCount": 2550,
+      "bounds": [
+        [
+          -0.009393968619406223,
+          0.953095555305481,
+          -0.07152543216943741
+        ],
+        [
+          0.0186677984893322,
+          0.9871750473976135,
+          -0.020121481269598007
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Female Blood Vasculature (CC BY 4.0, 3d-vh-f-blood-vasculature)",
+      "license": "CC BY 4.0"
     }
   ],
   "concepts": [
@@ -2603,7 +2941,98 @@
         "HF_AREOLAR_TUBERCLES_LEFT",
         "HF_AREOLAR_TUBERCLES_RIGHT"
       ]
+    },
+    {
+      "id": "FMA21388",
+      "name": "Female left common iliac vein",
+      "elements": [
+        "HF_COMMON_ILIAC_VEIN_LEFT"
+      ]
+    },
+    {
+      "id": "FMA21387",
+      "name": "Female right common iliac vein",
+      "elements": [
+        "HF_COMMON_ILIAC_VEIN_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18888",
+      "name": "Female left internal iliac vein",
+      "elements": [
+        "HF_INTERNAL_ILIAC_VEIN_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18887",
+      "name": "Female right internal iliac vein",
+      "elements": [
+        "HF_INTERNAL_ILIAC_VEIN_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18919",
+      "name": "Female left internal pudendal vein",
+      "elements": [
+        "HF_INTERNAL_PUDENDAL_VEIN_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18918",
+      "name": "Female right internal pudendal vein",
+      "elements": [
+        "HF_INTERNAL_PUDENDAL_VEIN_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18911_MRV",
+      "name": "Female left middle rectal vein",
+      "elements": [
+        "HF_MIDDLE_RECTAL_VEIN_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18910_MRV",
+      "name": "Female right middle rectal vein",
+      "elements": [
+        "HF_MIDDLE_RECTAL_VEIN_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA18923",
+      "name": "Female left inferior rectal vein",
+      "elements": [
+        "HF_INFERIOR_RECTAL_VEIN_LEFT"
+      ]
+    },
+    {
+      "id": "FMA18922",
+      "name": "Female right inferior rectal vein",
+      "elements": [
+        "HF_INFERIOR_RECTAL_VEIN_RIGHT"
+      ]
+    },
+    {
+      "id": "FMA77168",
+      "name": "Female median sacral vein",
+      "elements": [
+        "HF_MEDIAN_SACRAL_VEIN"
+      ]
+    },
+    {
+      "id": "FMA15393",
+      "name": "Female superior rectal vein",
+      "elements": [
+        "HF_SUPERIOR_RECTAL_VEIN"
+      ]
+    },
+    {
+      "id": "FMA14832",
+      "name": "Female superior rectal artery",
+      "elements": [
+        "HF_SUPERIOR_RECTAL_ARTERY"
+      ]
     }
   ],
-  "triangles": 124440
+  "triangles": 133837
 }

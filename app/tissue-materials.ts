@@ -432,12 +432,12 @@ export function classifyPartTissue(part: Pick<Part, 'id' | 'name' | 'system' | '
   if (/areola|nipple|montgomery/.test(n)) return 'areolar_skin';
   if (/mammary gland lobes|alveolar lobules/.test(n)) return 'endocrine_gland';
   if (/endometrium/.test(n)) return 'cardiac_muscle';
-  if (/mesosalpinx|mesovarium|peritoneal pouch|vesicouterine|uterovesical|broad ligament/.test(n)) {
+  if (/mesosalpinx|mesovarium|peritoneal pouch|vesicouterine|uterovesical|broad ligament|amniotic|amnion/.test(n)) {
     return 'fascia_membrane';
   }
-  if (/ligament|retinaculum|capsule|meniscus|labrum/.test(n)) return 'ligament';
+  if (/ligament|ligamentum|retinaculum|capsule|meniscus|labrum/.test(n)) return 'ligament';
   if (/cartilage|intervertebral disk|intervertebral disc|epiglottis|tracheal ring/.test(n)) return 'cartilage';
-  if (/fascia|tentorium|dura|pericardium|pleura|peritoneum|mesentery|omentum|sheath|septum of/.test(n)) {
+  if (/fascia|tentorium|dura|pericardium|pleura|peritoneum|mesentery|omentum|sheath|septum of|porta hepatis|renal hilum/.test(n)) {
     return 'fascia_membrane';
   }
   if (/adipose|fat pad|fat body/.test(n)) return 'adipose';
@@ -446,7 +446,7 @@ export function classifyPartTissue(part: Pick<Part, 'id' | 'name' | 'system' | '
   if (part.system === 'nervous') {
     if (/ventricle|cerebral aqueduct|choroid plexus/.test(n)) return 'ventricle_csf';
     if (/\bcerebellum\b/.test(n)) return 'brain_cerebellum';
-    if (/midbrain|\bpons\b|medulla oblongata|colliculus|peduncle of midbrain|interpeduncular|thalamus|hypothalamus|caudate|putamen|globus pallidus|geniculate/.test(n)) {
+    if (/midbrain|\bpons\b|medulla oblongata|colliculus|peduncle of midbrain|interpeduncular|thalamus|hypothalamus|caudate|putamen|globus pallidus|geniculate|spinal cord/.test(n)) {
       return 'brain_brainstem';
     }
     if (/white matter|corpus callosum|internal capsule|fornix|commissure|stria |optic tract|optic chiasm/.test(n)) {
@@ -460,8 +460,8 @@ export function classifyPartTissue(part: Pick<Part, 'id' | 'name' | 'system' | '
 
   // Organ-specific realistic tones
   if (/\bliver\b|hepatic lobe/.test(n)) return 'liver_parenchyma';
-  if (/\bspleen\b/.test(n)) return 'spleen_parenchyma';
-  if (/\bkidney\b|renal cortex|renal medulla|renal pyramid/.test(n)) return 'kidney_parenchyma';
+  if (/\bspleen\b|renal medulla|medullary pyramid/.test(n)) return 'spleen_parenchyma';
+  if (/\bkidney\b|renal cortex|renal column/.test(n)) return 'kidney_parenchyma';
   if (/\blung\b|lobe of .*lung/.test(n)) return 'lung_parenchyma';
 
   switch (part.system) {

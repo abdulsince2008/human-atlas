@@ -104,6 +104,9 @@ const FEMALE_HINT_TERMS = new Set([
 
 const MALE_HINT_TERMS = new Set([
   'prostate',
+  'prostatic utricle',
+  'ejaculatory duct',
+  'seminal colliculus',
   'testis',
   'testes',
   'testicle',
@@ -116,6 +119,7 @@ const MALE_HINT_TERMS = new Set([
   'corpus cavernosum',
   'corpus spongiosum',
   'male pelvis',
+  'male coccyx',
 ]);
 
 export function inferRequiredSexFromQuery(text: string): AnatomySex | null {

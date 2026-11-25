@@ -1,0 +1,679 @@
+{
+  "version": "male-enhancements-1.0",
+  "sex": "male",
+  "layer": "male_specific",
+  "source": "HuBMAP HRA Visible Human Male 3D Reference Library (CC BY 4.0: Pelvis v1.3, Urinary Bladder v1.2, Prostate v1.2, Blood Vasculature v1.3)",
+  "chunks": [
+    {
+      "url": "/models/male/male-0.bin",
+      "bytes": 357804,
+      "gzip": "/models/male/male-0.bin.gz",
+      "gzipBytes": 215273
+    }
+  ],
+  "parts": [
+    {
+      "id": "HM_COCCYX",
+      "name": "Male coccyx (tailbone)",
+      "conceptId": "FMA20225_COCCYX",
+      "system": "skeletal",
+      "chunk": 0,
+      "positions": 0,
+      "normals": 4380,
+      "indices": 6572,
+      "vertexCount": 365,
+      "indexCount": 2178,
+      "bounds": [
+        [
+          -0.012097930535674095,
+          0.8461121320724487,
+          -0.11576127260923386
+        ],
+        [
+          0.005061493255198002,
+          0.8656859397888184,
+          -0.09256608039140701
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Male Pelvis (CC BY 4.0, 3d-vh-m-pelvis)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_BLADDER_TRIGONE",
+      "name": "Trigone of male urinary bladder",
+      "conceptId": "FMA15926",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 15284,
+      "normals": 18392,
+      "indices": 19948,
+      "vertexCount": 259,
+      "indexCount": 1329,
+      "bounds": [
+        [
+          -0.02276831865310669,
+          0.8726299405097961,
+          -0.04246833920478821
+        ],
+        [
+          0.024036336690187454,
+          0.9025024175643921,
+          -0.02904270961880684
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Urinary Bladder (CC BY 4.0, 3d-vh-m-urinary-bladder)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_BLADDER_NECK",
+      "name": "Neck of male urinary bladder",
+      "conceptId": "FMA15924",
+      "system": "urinary",
+      "chunk": 0,
+      "positions": 25264,
+      "normals": 26632,
+      "indices": 27316,
+      "vertexCount": 114,
+      "indexCount": 336,
+      "bounds": [
+        [
+          -0.0028000823222100735,
+          0.8676342964172363,
+          -0.03674066811800003
+        ],
+        [
+          0.010635276325047016,
+          0.8756632208824158,
+          -0.022746318951249123
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Urinary Bladder (CC BY 4.0, 3d-vh-m-urinary-bladder)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_EJACULATORY_DUCT",
+      "name": "Ejaculatory ducts",
+      "conceptId": "FMA19290",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 28660,
+      "normals": 33916,
+      "indices": 36544,
+      "vertexCount": 438,
+      "indexCount": 2628,
+      "bounds": [
+        [
+          -0.0023240286391228437,
+          0.8557100892066956,
+          -0.028393907472491264
+        ],
+        [
+          0.0012505844933912158,
+          0.8665614128112793,
+          -0.015928218141198158
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATIC_UTRICLE",
+      "name": "Prostatic utricle",
+      "conceptId": "FMA19645",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 47056,
+      "normals": 50392,
+      "indices": 52060,
+      "vertexCount": 278,
+      "indexCount": 1650,
+      "bounds": [
+        [
+          -0.0011942320270463824,
+          0.8564848303794861,
+          -0.020339077338576317
+        ],
+        [
+          -0.0002473878557793796,
+          0.8597008585929871,
+          -0.014954191632568836
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_SEMINAL_COLLICULUS",
+      "name": "Seminal colliculus (verumontanum)",
+      "conceptId": "FMA19644",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 58660,
+      "normals": 60664,
+      "indices": 61668,
+      "vertexCount": 167,
+      "indexCount": 678,
+      "bounds": [
+        [
+          -0.003031768137589097,
+          0.8544086217880249,
+          -0.01808629371225834
+        ],
+        [
+          0.0015747653087601066,
+          0.8585622310638428,
+          -0.014975426718592644
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_DUCT_L",
+      "name": "Left prostatic ducts",
+      "conceptId": "FMA19299",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 64380,
+      "normals": 76800,
+      "indices": 83012,
+      "vertexCount": 1035,
+      "indexCount": 6510,
+      "bounds": [
+        [
+          0.0010033942526206374,
+          0.8527060747146606,
+          -0.018119312822818756
+        ],
+        [
+          0.0064550829119980335,
+          0.8588054776191711,
+          -0.015738483518362045
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_DUCT_R",
+      "name": "Right prostatic ducts",
+      "conceptId": "FMA19298",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 109052,
+      "normals": 123164,
+      "indices": 130220,
+      "vertexCount": 1176,
+      "indexCount": 7458,
+      "bounds": [
+        [
+          -0.007590049412101507,
+          0.852810263633728,
+          -0.0185993704944849
+        ],
+        [
+          -0.002314466517418623,
+          0.8585346937179565,
+          -0.01672518625855446
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_PERIPHERAL_L",
+      "name": "Left peripheral zone of prostate",
+      "conceptId": "FMA74139",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 160052,
+      "normals": 167912,
+      "indices": 171844,
+      "vertexCount": 655,
+      "indexCount": 3918,
+      "bounds": [
+        [
+          -0.0008071112097240984,
+          0.8508815765380859,
+          -0.03421518951654434
+        ],
+        [
+          0.015067843720316887,
+          0.8697807788848877,
+          -0.007526293396949768
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_PERIPHERAL_R",
+      "name": "Right peripheral zone of prostate",
+      "conceptId": "FMA74138",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 187516,
+      "normals": 195544,
+      "indices": 199560,
+      "vertexCount": 669,
+      "indexCount": 4002,
+      "bounds": [
+        [
+          -0.01645484007894993,
+          0.85080486536026,
+          -0.034210026264190674
+        ],
+        [
+          0.00019046002125833184,
+          0.8697625398635864,
+          -0.007464361842721701
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_CENTRAL_L",
+      "name": "Left central zone of prostate",
+      "conceptId": "FMA74141",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 215568,
+      "normals": 221292,
+      "indices": 224156,
+      "vertexCount": 477,
+      "indexCount": 2850,
+      "bounds": [
+        [
+          -0.0004417792661115527,
+          0.8593531250953674,
+          -0.03323155269026756
+        ],
+        [
+          0.012575993314385414,
+          0.8699395060539246,
+          -0.014264234341681004
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_CENTRAL_R",
+      "name": "Right central zone of prostate",
+      "conceptId": "FMA74140",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 235556,
+      "normals": 241628,
+      "indices": 244664,
+      "vertexCount": 506,
+      "indexCount": 3024,
+      "bounds": [
+        [
+          -0.01398523524403572,
+          0.8593526482582092,
+          -0.03312527760863304
+        ],
+        [
+          -0.00010804050543811172,
+          0.8699280619621277,
+          -0.014199935831129551
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_TRANSITION_L",
+      "name": "Left transition zone of prostate",
+      "conceptId": "FMA74143",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 256760,
+      "normals": 260480,
+      "indices": 262340,
+      "vertexCount": 310,
+      "indexCount": 1848,
+      "bounds": [
+        [
+          -0.0004865952651016414,
+          0.8571413159370422,
+          -0.022846590727567673
+        ],
+        [
+          0.01018503587692976,
+          0.8653192520141602,
+          -0.011479764245450497
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_TRANSITION_R",
+      "name": "Right transition zone of prostate",
+      "conceptId": "FMA74142",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 269732,
+      "normals": 273680,
+      "indices": 275656,
+      "vertexCount": 329,
+      "indexCount": 1962,
+      "bounds": [
+        [
+          -0.0116017060354352,
+          0.8570916652679443,
+          -0.022788742557168007
+        ],
+        [
+          -0.000031424038752447814,
+          0.8654088377952576,
+          -0.011375125497579575
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_AFMS_L",
+      "name": "Left anterior fibromuscular stroma of prostate",
+      "conceptId": "FMA74145",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 283504,
+      "normals": 288532,
+      "indices": 291048,
+      "vertexCount": 419,
+      "indexCount": 2502,
+      "bounds": [
+        [
+          -0.0010206446750089526,
+          0.8514149785041809,
+          -0.015815524384379387
+        ],
+        [
+          0.009650150313973427,
+          0.8648261427879333,
+          -0.004963252227753401
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_PROSTATE_AFMS_R",
+      "name": "Right anterior fibromuscular stroma of prostate",
+      "conceptId": "FMA74144",
+      "system": "reproductive",
+      "chunk": 0,
+      "positions": 301056,
+      "normals": 306024,
+      "indices": 308508,
+      "vertexCount": 414,
+      "indexCount": 2472,
+      "bounds": [
+        [
+          -0.011047443374991417,
+          0.8513784408569336,
+          -0.016023853793740273
+        ],
+        [
+          0.00010799098527058959,
+          0.8646939396858215,
+          -0.00481743598356843
+        ]
+      ],
+      "source": "HuBMAP HRA v1.2 Visible Human Male Prostate (CC BY 4.0, 3d-vh-m-prostate)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_MIDDLE_RECTAL_VEIN_L",
+      "name": "Left middle rectal vein",
+      "conceptId": "FMA18911_MRV",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 318396,
+      "normals": 321144,
+      "indices": 322520,
+      "vertexCount": 229,
+      "indexCount": 1320,
+      "bounds": [
+        [
+          0.0026159510016441345,
+          0.8529287576675415,
+          -0.07482308149337769
+        ],
+        [
+          0.03596135228872299,
+          0.8853128552436829,
+          -0.05271419882774353
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Male Blood Vasculature (CC BY 4.0, 3d-vh-m-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_MIDDLE_RECTAL_VEIN_R",
+      "name": "Right middle rectal vein",
+      "conceptId": "FMA18910_MRV",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 327800,
+      "normals": 329744,
+      "indices": 330716,
+      "vertexCount": 162,
+      "indexCount": 942,
+      "bounds": [
+        [
+          -0.04639195278286934,
+          0.8530468940734863,
+          -0.06796944886445999
+        ],
+        [
+          -0.012672469019889832,
+          0.8758052587509155,
+          -0.05312051251530647
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Male Blood Vasculature (CC BY 4.0, 3d-vh-m-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_INFERIOR_RECTAL_VEIN_L",
+      "name": "Left inferior rectal vein",
+      "conceptId": "FMA18923",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 334484,
+      "normals": 337856,
+      "indices": 339544,
+      "vertexCount": 281,
+      "indexCount": 1650,
+      "bounds": [
+        [
+          -0.0014451750321313739,
+          0.7918171286582947,
+          -0.09410067647695541
+        ],
+        [
+          0.04679722711443901,
+          0.8636025786399841,
+          -0.055621303617954254
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Male Blood Vasculature (CC BY 4.0, 3d-vh-m-blood-vasculature)",
+      "license": "CC BY 4.0"
+    },
+    {
+      "id": "HM_INFERIOR_RECTAL_VEIN_R",
+      "name": "Right inferior rectal vein",
+      "conceptId": "FMA18922",
+      "system": "venous",
+      "chunk": 0,
+      "positions": 346144,
+      "normals": 349516,
+      "indices": 351204,
+      "vertexCount": 281,
+      "indexCount": 1650,
+      "bounds": [
+        [
+          -0.05264004319906235,
+          0.7924696803092957,
+          -0.09412343800067902
+        ],
+        [
+          -0.009907699190080166,
+          0.8575903177261353,
+          -0.051454316824674606
+        ]
+      ],
+      "source": "HuBMAP HRA v1.3 Visible Human Male Blood Vasculature (CC BY 4.0, 3d-vh-m-blood-vasculature)",
+      "license": "CC BY 4.0"
+    }
+  ],
+  "concepts": [
+    {
+      "id": "FMA20225_COCCYX",
+      "name": "Male coccyx (tailbone)",
+      "elements": [
+        "HM_COCCYX"
+      ]
+    },
+    {
+      "id": "FMA15926",
+      "name": "Trigone of male urinary bladder",
+      "elements": [
+        "HM_BLADDER_TRIGONE"
+      ]
+    },
+    {
+      "id": "FMA15924",
+      "name": "Neck of male urinary bladder",
+      "elements": [
+        "HM_BLADDER_NECK"
+      ]
+    },
+    {
+      "id": "FMA19290",
+      "name": "Ejaculatory ducts",
+      "elements": [
+        "HM_EJACULATORY_DUCT"
+      ]
+    },
+    {
+      "id": "FMA19645",
+      "name": "Prostatic utricle",
+      "elements": [
+        "HM_PROSTATIC_UTRICLE"
+      ]
+    },
+    {
+      "id": "FMA19644",
+      "name": "Seminal colliculus (verumontanum)",
+      "elements": [
+        "HM_SEMINAL_COLLICULUS"
+      ]
+    },
+    {
+      "id": "FMA19299",
+      "name": "Left prostatic ducts",
+      "elements": [
+        "HM_PROSTATE_DUCT_L"
+      ]
+    },
+    {
+      "id": "FMA19298",
+      "name": "Right prostatic ducts",
+      "elements": [
+        "HM_PROSTATE_DUCT_R"
+      ]
+    },
+    {
+      "id": "FMA74139",
+      "name": "Left peripheral zone of prostate",
+      "elements": [
+        "HM_PROSTATE_PERIPHERAL_L"
+      ]
+    },
+    {
+      "id": "FMA74138",
+      "name": "Right peripheral zone of prostate",
+      "elements": [
+        "HM_PROSTATE_PERIPHERAL_R"
+      ]
+    },
+    {
+      "id": "FMA74141",
+      "name": "Left central zone of prostate",
+      "elements": [
+        "HM_PROSTATE_CENTRAL_L"
+      ]
+    },
+    {
+      "id": "FMA74140",
+      "name": "Right central zone of prostate",
+      "elements": [
+        "HM_PROSTATE_CENTRAL_R"
+      ]
+    },
+    {
+      "id": "FMA74143",
+      "name": "Left transition zone of prostate",
+      "elements": [
+        "HM_PROSTATE_TRANSITION_L"
+      ]
+    },
+    {
+      "id": "FMA74142",
+      "name": "Right transition zone of prostate",
+      "elements": [
+        "HM_PROSTATE_TRANSITION_R"
+      ]
+    },
+    {
+      "id": "FMA74145",
+      "name": "Left anterior fibromuscular stroma of prostate",
+      "elements": [
+        "HM_PROSTATE_AFMS_L"
+      ]
+    },
+    {
+      "id": "FMA74144",
+      "name": "Right anterior fibromuscular stroma of prostate",
+      "elements": [
+        "HM_PROSTATE_AFMS_R"
+      ]
+    },
+    {
+      "id": "FMA18911_MRV",
+      "name": "Left middle rectal vein",
+      "elements": [
+        "HM_MIDDLE_RECTAL_VEIN_L"
+      ]
+    },
+    {
+      "id": "FMA18910_MRV",
+      "name": "Right middle rectal vein",
+      "elements": [
+        "HM_MIDDLE_RECTAL_VEIN_R"
+      ]
+    },
+    {
+      "id": "FMA18923",
+      "name": "Left inferior rectal vein",
+      "elements": [
+        "HM_INFERIOR_RECTAL_VEIN_L"
+      ]
+    },
+    {
+      "id": "FMA18922",
+      "name": "Right inferior rectal vein",
+      "elements": [
+        "HM_INFERIOR_RECTAL_VEIN_R"
+      ]
+    }
+  ],
+  "triangles": 16969
+}

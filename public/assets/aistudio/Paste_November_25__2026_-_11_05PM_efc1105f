@@ -1,0 +1,781 @@
+# ANATOMY 360 — COMPLETE MALE & FEMALE ANATOMICAL MESH AUDIT, RESEARCH, GAP ANALYSIS & IMPLEMENTATION
+
+You are acting as a senior anatomical ontology researcher, medical 3D atlas architect, biomedical visualization engineer, and scientific asset-provenance auditor.
+
+Your task is to conduct a complete, evidence-based anatomical coverage audit of the ANATOMY 360 repository, establish exactly how many separately selectable anatomical 3D meshes are required for a comprehensive adult male and adult female educational atlas at a consistent gross-anatomy level, identify every missing or incomplete structure in both models, and then implement the missing coverage wherever legitimate, accurately sourced geometry is available.
+
+This is not a request to add a few female reproductive organs. It is a full anatomical coverage project covering both reference bodies and all anatomical systems.
+
+You must research first, inspect the real repository, calculate the actual numbers from the assets, create a complete inventory, and then implement the feasible improvements. Do not guess, invent anatomical counts, fabricate meshes, or claim completeness without evidence.
+
+---
+
+## 1. Understand the actual starting point
+
+Repository:
+
+`abdulsince2008/human-atlas`
+
+Inspect the latest default branch and working tree before changing anything. Do not assume the repository is still identical to an earlier audit.
+
+The following numbers are the previous verified baseline and must be independently recalculated:
+
+| Existing component | Previous baseline |
+|---|---:|
+| Original adult male BodyParts3D mesh parts | 2,234 |
+| Female-specific overlay parts | 79 |
+| Male parts hidden/replaced in female mode | 29 |
+| Female mode inherited/shared base parts | 2,205 |
+| Female active mesh total | 2,284 |
+| Original BodyParts3D FMA concepts | 3,432 |
+
+The female calculation is:
+
+2,234 − 29 + 79 = 2,284 active female meshes.
+
+**Important finding to investigate:** The current female model inherits 2,205 meshes from the original adult male reference model. Do not automatically classify all these as incorrect. However, do not assume they provide a fully female-specific body either.
+
+Determine which inherited structures are genuinely suitable for sharing, which should have sex-specific geometry or proportions, and which are missing entirely.
+
+Inspect at minimum:
+
+- `public/models/atlas.json`
+- `public/models/body-*.bin`
+- `public/models/female/female-atlas.json`
+- `public/models/female/*`
+- `app/female-atlas.ts`
+- `app/female-atlas.test.ts`
+- `app/anatomy.ts`
+- `app/anatomy-knowledge.ts`
+- `app/anatomy-systems.ts`
+- `app/data/asset-registries.ts`
+- `app/data/provenance-registry.ts`
+- `scripts/`
+- All relevant asset, validation, scientific accuracy and licensing documentation.
+
+Read the actual manifests and binary geometry metadata. Do not rely only on README descriptions or tests.
+
+Also identify and reconcile existing documentation contradictions. For example, check whether the following accurately describe the current implementation:
+
+- `ANATOMY360_ASSET_ARCHITECTURE.md`
+- `ANATOMY360_ASSET_PROVENANCE.md`
+- `ANATOMY360_SCIENTIFIC_VALIDATION.md`
+- `THIRD_PARTY_LICENSES.md`
+- `ANATOMY360_ASSET_IMPORT_GUIDE.md`
+
+Some previous descriptions may predate the current female overlay. Update inaccurate documentation only after verifying the assets.
+
+---
+
+## 2. Define the exact meaning of a mesh
+
+You must establish one consistent counting standard before calculating any target.
+
+Do not confuse these different things:
+
+1. **3D mesh:** A separately represented, selectable geometric object with real vertices and faces/triangles.
+2. **Anatomical concept:** A named anatomical entity in FMA, TA2, UBERON or another ontology.
+3. **Scene node:** A user-interface or hierarchy node that may have no independent geometry.
+4. **Compound structure:** One anatomical concept represented by multiple meshes.
+5. **Merged structure:** Multiple anatomical concepts represented by one geometric mesh.
+6. **Reference model:** A particular anatomical representation, such as an adult male or female reference body.
+7. **Shared structure:** Geometry intentionally used in both reference models.
+
+Use this counting policy:
+
+- Count independently selectable, non-empty anatomical meshes.
+- Count left and right structures separately when they are independently represented anatomically and geometrically.
+- Count a midline structure once.
+- Count anatomical subdivisions separately only when they are meaningful, independently identifiable structures at the selected educational level.
+- Do not inflate counts by dividing one structure into arbitrary pieces.
+- Do not count labels, empty nodes, aliases, FMA concepts, or UI groups as meshes.
+- When several concepts map to one mesh, count the geometry once and record all associated concepts.
+- When one concept maps to multiple meshes, count all genuine meshes separately.
+- Count shared geometry once in the shared asset inventory, but report its availability in both male and female active models.
+- Report concept counts and geometry counts separately.
+
+The intended target is a **comprehensive adult gross-anatomy educational atlas** suitable for medical, dental, nursing and biomedical learning.
+
+Do not attempt to model every cell, capillary, microscopic fiber, individual anatomical variation or every possible pathological state as a separate default mesh. Those belong in clearly defined optional microscopic, vascular-detail, variant or pathology layers.
+
+The final target count must be derived from a documented anatomical inventory, not chosen in advance.
+
+---
+
+## 3. Research authoritative anatomical references
+
+Use web research and inspect the actual datasets. Prioritize primary scientific or institutional sources.
+
+### Primary sources
+
+**A. BodyParts3D / Anatomography**
+
+Official download:
+https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html
+
+Official license:
+https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html
+
+Investigate:
+- Complete part ID lists.
+- IS-A and PART-OF hierarchies.
+- Compound anatomical structure definitions.
+- Mesh availability and naming.
+- Which systems and regions are covered.
+- Which structures are absent or merged.
+- Exact current dataset version and licence.
+
+Note that the official source describes BodyParts3D as an adult male reference model. Do not treat its coverage as proof of complete female anatomy.
+
+**B. HuBMAP Human Reference Atlas**
+
+Official 3D reference library:
+https://hubmapconsortium.github.io/ccf/pages/ccf-3d-reference-library.html
+
+Portal:
+https://humanatlas.io/3d-reference-library
+
+Research:
+- Current release and downloadable geometry.
+- Male and female reference objects.
+- Female pelvis and reproductive anatomy.
+- Urinary structures.
+- Mammary structures.
+- Blood vasculature.
+- Other organs and relevant structures.
+- Ontology crosswalks and anatomical relationships.
+- Exact source and licensing information for every asset considered.
+
+The HRA is a major reference source, but do not assume it provides a complete independently modelled female whole-body anatomy. Establish exactly what its female assets cover.
+
+**C. Foundational Model of Anatomy (FMA)**
+
+https://bioportal.bioontology.org/ontologies/FMA/
+
+Use FMA to identify canonical structures, subdivisions, relationships, synonyms and concept IDs.
+
+Do not use the total number of FMA classes as the target number of meshes. Ontology classes are not equivalent to independently modelled geometry.
+
+**D. Terminologia Anatomica 2 (FIPAT)**
+
+https://clinical-anatomy.org/Clinical_Anatomical_Terminology
+
+Use TA2 for internationally recognized anatomical names, subdivisions and terminology.
+
+Check the publication licence before copying any content. Use anatomical terms and appropriate references without reproducing restricted material or creating unauthorized derivative documents.
+
+**E. Z-Anatomy**
+
+https://github.com/Z-Anatomy/Models-of-human-anatomy
+
+https://github.com/Z-Anatomy/Unity-app_Z-Anatomy
+
+Use it as a secondary anatomy-coverage comparison and as a source of possible missing-structure leads.
+
+Its CC BY-SA licensing and included third-party assets must be considered carefully. Do not import its geometry into the core distribution merely because it is downloadable. Audit the exact licence of each asset and any derivative. Keep incompatible assets outside the core package unless a compliant architecture is established.
+
+### Research requirements
+
+For each source, document:
+- Authority and publication/release date.
+- Anatomical scope.
+- Relevant structure inventory.
+- Geometry availability.
+- Ontology and identifier mapping.
+- Licence and commercial-use permissions.
+- Attribution obligations.
+- Limitations and missing structures.
+- Whether it is used as geometry, terminology, validation reference or comparison only.
+
+Provide URLs and citations for substantive research findings.
+
+Do not cite general web articles as proof that a specific mesh exists.
+
+---
+
+## 4. Build the complete anatomical inventory
+
+Create a machine-readable inventory of the structures required for the adult male and adult female reference atlases.
+
+Organize it by region, system, anatomical concept, side, and meaningful subdivision.
+
+At minimum audit all of the following.
+
+### A. Shared anatomy — both models
+
+- Skull and facial bones.
+- Vertebral column and individual vertebrae.
+- Thoracic cage, ribs, sternum and cartilage.
+- Upper and lower limb bones.
+- Individual skeletal muscles.
+- Major muscle subdivisions.
+- Tendons, aponeuroses, fascia and clinically important ligaments.
+- Joints, articular structures and major bursae.
+- Brain, cerebellum, brainstem, spinal cord and meninges.
+- Major cranial and peripheral nerves.
+- Eye and ear structures.
+- Heart chambers, valves, wall layers and major cardiac structures.
+- Pulmonary and systemic arteries and veins.
+- Major vascular branches and venous drainage.
+- Lymphatic vessels, lymph nodes and major lymphoid organs.
+- Respiratory tract, lungs and major subdivisions.
+- Digestive tract and accessory organs.
+- Liver, gallbladder, biliary tree and pancreas.
+- Kidneys, ureters and common urinary structures.
+- Endocrine organs and meaningful subdivisions.
+- Skin, subcutaneous layers and major surface structures.
+- Connective tissue and important fascial compartments.
+
+Audit whether current geometry covers the named structures separately or only as grouped/merged representations.
+
+### B. Female-specific anatomy
+
+The female audit must go significantly deeper than the current reproductive overlay.
+
+**Female reproductive organs**
+- Ovaries, left and right.
+- Ovarian cortex and medulla where justified at this level.
+- Ovarian hilum and clinically meaningful components.
+- Ovarian follicles/corpus luteum as optional educational structures, not automatically permanent default anatomy.
+- Ovarian ligaments.
+- Suspensory ligaments of the ovaries.
+- Uterine tubes on both sides.
+- Infundibulum.
+- Fimbriae and fimbrial structures.
+- Ampulla.
+- Isthmus.
+- Intramural/interstitial portion.
+- Uterus.
+- Fundus.
+- Body.
+- Isthmus.
+- Cervix.
+- Cervical canal.
+- Uterine cavity.
+- Endometrium.
+- Myometrium.
+- Perimetrium.
+- Vagina.
+- Vaginal fornices.
+- Vaginal wall layers where supported by the chosen modelling level.
+- External female genitalia and vulvar structures.
+- Mons pubis.
+- Labia majora and minora.
+- Clitoris: glans, body, crura and erectile tissue.
+- Vestibule.
+- Vestibular bulbs.
+- Greater and lesser vestibular glands.
+- Perineal structures.
+
+**Female supporting structures**
+- Broad ligament and meaningful subdivisions.
+- Mesometrium.
+- Mesosalpinx.
+- Mesovarium.
+- Round ligament of uterus.
+- Cardinal/transverse cervical ligament.
+- Uterosacral ligaments.
+- Pubocervical ligaments.
+- Pelvic peritoneal folds.
+- Pelvic fascia and supporting connective tissues.
+- Perineal body.
+- Pelvic floor anatomy.
+
+**Female pelvic floor and perineum**
+- Levator ani subdivisions.
+- Puborectalis.
+- Pubococcygeus/pubovisceral portion.
+- Iliococcygeus.
+- Coccygeus.
+- External anal sphincter.
+- Internal anal sphincter where separately represented.
+- Superficial and deep transverse perineal muscles.
+- Bulbospongiosus.
+- Ischiocavernosus.
+- External urethral sphincter complex.
+- Important perineal fascia and attachments.
+
+**Female breast and mammary anatomy**
+- Left and right mammary glands.
+- Lobes and lobules at an appropriate gross/educational level.
+- Glandular tissue.
+- Mammary adipose tissue.
+- Suspensory ligaments.
+- Lactiferous ducts and their meaningful branches.
+- Nipple.
+- Areola.
+- Supporting stroma.
+- Relevant vessels and nerves.
+
+**Female-specific or female-adapted skeleton**
+- Female reference pelvis.
+- Ilium, ischium and pubis.
+- Sacrum and coccyx.
+- Pelvic inlet and outlet.
+- Pelvic dimensions and morphology.
+- Sex-related pelvic shape differences supported by anatomical references.
+
+Do not simply reuse an adult male pelvis and label it female.
+
+**Female urinary anatomy**
+- Female urethra.
+- Female urethral length and course.
+- External urethral opening.
+- Female bladder position and relevant morphology.
+- Female urethral sphincter complex.
+- Relevant supporting structures.
+
+**Female blood supply**
+Audit the ovarian, uterine, vaginal, internal iliac, internal pudendal and clitoral arterial/venous branches, including meaningful named subdivisions.
+
+**Female nervous system**
+Audit pelvic autonomic plexuses, ovarian and uterine innervation, pudendal nerve and its important branches, dorsal nerve of clitoris, perineal nerves and other relevant named structures.
+
+**Female lymphatic anatomy**
+Audit the major pelvic, para-aortic, sacral, obturator, iliac and inguinal lymphatic drainage structures relevant to female anatomy.
+
+### C. Male-specific anatomy
+
+Do not neglect the existing male reference model.
+
+Audit:
+- Penis: root, body, glans, corpora cavernosa, corpus spongiosum and bulb/crura.
+- Penis coverings and tunica structures where appropriate.
+- Male urethral subdivisions.
+- Scrotum and its meaningful layers.
+- Testes and their coverings.
+- Epididymis: head, body and tail.
+- Rete testis and efferent ductules where modelled.
+- Ductus deferens.
+- Seminal vesicles.
+- Ejaculatory ducts.
+- Prostate and meaningful subdivisions.
+- Bulbourethral glands.
+- Spermatic cord and contents.
+- Pampiniform plexus.
+- Male pelvic floor/perineal structures.
+- Major male reproductive arterial, venous, neural and lymphatic structures.
+
+Determine whether current male geometry includes these structures individually, combines them, or omits them.
+
+Do not treat the existing male 2,234-mesh count as proof of complete male anatomy.
+
+### D. Optional advanced layers
+
+Report separately instead of mixing them into the default adult reference model:
+
+- Pregnancy and gravid uterus.
+- Placenta and umbilical cord.
+- Fetal anatomy.
+- Embryological development.
+- Menstrual-cycle-dependent anatomy.
+- Histology and cellular microanatomy.
+- Anatomical variants.
+- Paediatric anatomy.
+- Pathological anatomy.
+
+Make it possible for these to become separate optional models or educational layers later.
+
+---
+
+## 5. Determine coverage status for every structure
+
+Every inventory entry must receive one exact status:
+
+- `PRESENT_IN_MALE`
+- `PRESENT_IN_FEMALE`
+- `PRESENT_SHARED`
+- `PRESENT_SEX_SPECIFIC_GEOMETRY`
+- `PRESENT_BUT_MERGED`
+- `PRESENT_BUT_APPROXIMATED`
+- `CONCEPT_ONLY_NO_GEOMETRY`
+- `MISSING_GEOMETRY`
+- `SOURCE_AVAILABLE_NOT_IMPORTED`
+- `LICENSE_BLOCKED`
+- `OUT_OF_SCOPE`
+
+For each entry include:
+
+- Canonical anatomical name.
+- Synonyms.
+- FMA ID.
+- TA2 ID or term where available.
+- UBERON ID where available.
+- Anatomical system.
+- Body region.
+- Left/right/midline.
+- Parent structure.
+- Meaningful subdivisions.
+- Male status.
+- Female status.
+- Existing mesh IDs.
+- Number of actual meshes.
+- Geometry source.
+- Asset licence.
+- Geometry quality.
+- Scientific validation status.
+- Notes explaining any missing coverage.
+
+Do not mark something as present just because a related concept exists in the knowledge database.
+
+Do not mark something as separately modelled if it is only a label or a conceptual node.
+
+---
+
+## 6. Calculate the actual target and the missing gap
+
+Generate exact totals using the canonical inventory and the current manifests.
+
+The final report must contain:
+
+| Metric | Male | Female |
+|---|---:|---:|
+| Existing active meshes | | |
+| Shared active meshes | | |
+| Sex-specific active meshes | | |
+| Missing required mesh structures | | |
+| Present but merged structures | | |
+| Approximate/procedural structures | | |
+| Concept-only structures | | |
+| License-blocked structures | | |
+| Total target meshes | | |
+| Coverage percentage | | |
+
+Also provide a system-by-system table:
+
+| Anatomical system | Male existing | Female existing | Male target | Female target | Male gap | Female gap |
+|---|---:|---:|---:|---:|---:|---:|
+
+Explain precisely how each number was calculated.
+
+The coverage denominator must contain only structures in the agreed gross-anatomy scope.
+
+Calculate coverage both:
+1. By mesh inventory.
+2. By anatomical concept inventory.
+
+These are different metrics. Do not mix them.
+
+For partial or merged structures, do not award full mesh-level completeness merely because the parent concept is selectable.
+
+Provide three totals where appropriate:
+
+- Current actual geometry.
+- Required geometry for the agreed educational target.
+- Optional advanced geometry outside the default target.
+
+If no authoritative universal target exists, explicitly say so and establish a reproducible project-specific target from the documented inventory.
+
+The final answer must give exact project-specific numbers, not an invented universal human-body mesh count.
+
+---
+
+## 7. Build an asset sourcing and licensing plan
+
+For every missing structure, identify the best legitimate geometry source.
+
+Prioritize:
+1. Official open anatomical reference datasets.
+2. HuBMAP Human Reference Atlas.
+3. BodyParts3D where appropriate.
+4. Other institutionally released, licence-compatible anatomy assets.
+5. Original professionally modelled geometry where a suitable source does not exist.
+
+For each candidate asset record:
+- Download URL.
+- Exact asset identifier.
+- Creator/authority.
+- Licence.
+- Commercial-use permission.
+- Attribution.
+- Whether derivatives are allowed.
+- Whether redistribution is allowed.
+- Whether modifications are allowed.
+- Any ShareAlike or NonCommercial restrictions.
+- Whether geometry is complete enough for the intended use.
+
+**Important licensing constraints:**
+
+- BodyParts3D's current official licence is CC BY 4.0. Preserve attribution.
+- HuBMAP/HRA asset licences must be checked against the exact release and downloaded asset metadata.
+- Z-Anatomy uses CC BY-SA 4.0 and incorporates other third-party content with different restrictions. Do not silently mix it into the core package.
+- Terminologia Anatomica publications have separate licensing conditions. Do not copy or modify protected publication content without permission.
+- Do not assume all assets on a website share one licence.
+- Do not use copyrighted commercial anatomy models or scrape geometry from proprietary websites.
+- Do not treat an educational website's illustrations as permission to reuse its 3D geometry.
+
+Create a per-mesh provenance record. No imported mesh may be left without a source and licence entry.
+
+---
+
+## 8. Geometry requirements and scientific quality
+
+Do not create fake anatomical completeness using spheres, tubes, capsules or arbitrary shapes.
+
+Procedural geometry may be used for clearly disclosed educational approximations only when scientifically justified and reviewed. It must never be presented as a verified anatomical mesh.
+
+Every new mesh must satisfy:
+
+- Correct anatomical location.
+- Anatomically plausible shape and orientation.
+- Correct side and laterality.
+- Correct scale.
+- Appropriate anatomical relationships.
+- No accidental overlap or penetration with adjacent structures.
+- Valid triangle/index buffers.
+- Finite vertices and bounds.
+- Consistent normals and winding.
+- Appropriate tissue classification and materials.
+- Stable unique mesh ID.
+- Correct ontology mapping.
+- Correct system assignment.
+- Correct selection and isolation behaviour.
+
+Follow the existing coordinate convention:
+- Y-up.
+- Right-handed.
+- Meters.
+- Standing reference pose facing +Z.
+- Feet near Y = 0.
+- Head near the current reference height.
+
+Respect existing model loading, chunking, optimization and LOD architecture.
+
+Preserve source master geometry. Never overwrite original source files destructively.
+
+For imported structures, retain source IDs and provenance even if ANATOMY 360 assigns its own internal IDs.
+
+---
+
+## 9. Build a scalable architecture for male and female coverage
+
+Do not keep expanding the female model through ad hoc hardcoded arrays.
+
+Design or improve the model architecture to support:
+
+- Shared anatomical meshes.
+- Male-specific meshes.
+- Female-specific meshes.
+- Sex-specific replacement geometry.
+- Sex-specific morphological variants.
+- Optional anatomical variants.
+- Optional pregnancy/embryology layers.
+- Multiple LOD levels.
+- Ontology relationships.
+- Per-mesh source and licence metadata.
+
+The system must distinguish:
+- Shared geometry.
+- Geometry reused between models.
+- Geometry adapted for female morphology.
+- Completely separate sex-specific geometry.
+
+The female model must not silently fall back to the male geometry for a missing female structure while presenting itself as complete.
+
+The male model must remain functional and must not lose valid anatomy during female integration.
+
+Implement an automated coverage audit script that can regenerate counts and coverage tables whenever an atlas changes.
+
+Use the current project's language, frameworks and validation architecture. Avoid introducing unnecessary dependencies.
+
+---
+
+## 10. Implementation plan
+
+Work in the following stages.
+
+### Stage 1 — Baseline audit
+
+Inspect the entire repository and produce exact current mesh/concept counts.
+
+Verify all female overlay parts and male-specific replacements directly from the files.
+
+Identify stale documentation and data discrepancies.
+
+Do not modify geometry yet.
+
+### Stage 2 — Canonical anatomy registry
+
+Create the full project-specific anatomy coverage inventory.
+
+Map current meshes to canonical structures and ontology IDs.
+
+Identify every missing, merged, approximated, or concept-only structure.
+
+Build a machine-readable registry and a readable Markdown report.
+
+### Stage 3 — Female anatomy completion
+
+Prioritize the most important gaps in the female model:
+
+1. Female-specific skeletal anatomy and pelvis.
+2. Female pelvic floor and perineal musculature.
+3. Complete reproductive anatomy and support structures.
+4. Mammary anatomy.
+5. Female urinary anatomy.
+6. Female pelvic vessels.
+7. Female pelvic nerves.
+8. Female lymphatic structures.
+9. Other sex-dependent anatomical morphology.
+
+Reuse shared anatomy only when justified by the references.
+
+Do not create a misleading claim that the female model is complete simply because the reproductive organs are present.
+
+### Stage 4 — Male anatomy completion
+
+Audit and fill missing male-specific anatomy, including reproductive, urinary, pelvic floor, vascular and neural structures.
+
+Preserve the existing male reference geometry unless there is a documented reason to replace or improve it.
+
+### Stage 5 — Shared anatomy improvements
+
+Fill missing shared structures in all systems.
+
+Correct missing or incomplete bones, muscles, joints, nerves, vessels and organs where verified assets exist.
+
+Do not create redundant copies of structures already represented correctly.
+
+### Stage 6 — Integration
+
+Integrate the new assets into the existing atlas loader and manifest architecture.
+
+Update:
+- Mesh manifests.
+- Binary chunks.
+- LOD data.
+- Anatomy concepts.
+- Search and selection.
+- System grouping.
+- Knowledge mappings.
+- Sex switching.
+- Explosion and dissection registries.
+- Tissue materials.
+- Camera and bounds where necessary.
+- Attribution and provenance.
+
+Preserve existing user-facing features.
+
+### Stage 7 — Validation
+
+Run the project's full validation suite.
+
+At minimum test:
+- Male model loads.
+- Female model loads.
+- Switching male to female removes only intended male-specific parts.
+- Switching female to male removes only intended female-specific parts.
+- Shared organs remain intact.
+- Every new mesh is selectable and has a valid concept.
+- No duplicate mesh IDs.
+- No dangling concept-to-mesh references.
+- No missing binary chunk references.
+- No zero-geometry meshes counted as implemented.
+- No severe collisions or misplaced anatomy.
+- LOD generation and model loading work.
+- Existing male anatomy remains intact.
+- Female-specific structures are actually visible and selectable.
+- All source attribution is present.
+- Every imported asset passes the licence validator.
+
+Run browser-level visual checks where the environment supports them.
+
+Automated tests are not a substitute for independent anatomical review.
+
+---
+
+## 11. Mandatory documentation deliverables
+
+Create or update these deliverables in the repository:
+
+1. `ANATOMY360_COMPLETE_ANATOMY_COVERAGE_AUDIT.md`
+   - Full research findings.
+   - Current male/female counts.
+   - Target counts.
+   - Coverage percentages.
+   - System-by-system gap analysis.
+   - Methodology and limitations.
+
+2. `ANATOMY360_MALE_FEMALE_MESH_INVENTORY.csv`
+   - One row per canonical structure/mesh mapping.
+   - Include IDs, side, system, status and provenance.
+
+3. A machine-readable coverage registry in the project's existing data architecture.
+   - Do not create a disconnected, unused JSON document.
+   - The application and automated tests should be able to consume it.
+
+4. `ANATOMY360_MISSING_ANATOMY_IMPLEMENTATION_ROADMAP.md`
+   - Every missing structure.
+   - Recommended source.
+   - Licence status.
+   - Priority.
+   - Estimated geometry complexity.
+   - Dependencies.
+   - Implementation state.
+
+5. Updated asset provenance and third-party licence documentation.
+
+6. Updated automated coverage validation and tests.
+
+Ensure all documentation agrees with the actual manifests and code.
+
+---
+
+## 12. Final completion report
+
+When finished, report:
+
+**A. Exact counts**
+- Original male mesh count.
+- Final male mesh count.
+- Shared mesh count.
+- Male-specific mesh count.
+- Original female overlay count.
+- New female-specific mesh additions.
+- Final female active mesh count.
+- Total distinct geometry assets.
+- Total canonical concepts.
+- Remaining missing structures.
+
+**B. Coverage**
+- Percentage by male/female model.
+- Percentage by anatomical system.
+- Areas where geometry is complete.
+- Areas where geometry is still incomplete.
+- Areas where only concepts or approximations exist.
+
+**C. Implementation**
+- New files.
+- Modified files.
+- New imported assets.
+- New geometry.
+- Tests passed and failed.
+- Any unverified visual or scientific claims.
+
+**D. Remaining work**
+- Exact missing structures.
+- Why they remain missing.
+- What source or expertise is needed.
+- Which ones block a complete educational atlas.
+
+---
+
+## Non-negotiable rules
+
+1. Never invent a universal number of meshes in a human body.
+2. Never confuse anatomical concepts with geometry.
+3. Never claim a structure exists as a 3D mesh unless it has actual geometry.
+4. Never claim the female body is complete merely because a female reproductive overlay exists.
+5. Never assume the male reference model is complete simply because it has 2,234 meshes.
+6. Never duplicate geometry just to increase the mesh count.
+7. Never fabricate complex anatomical structures with primitive shapes to make a coverage percentage look better.
+8. Never silently use male-specific geometry where female-specific morphology is required.
+9. Never silently remove or break the existing male model.
+10. Never import assets without verifying licensing and attribution.
+11. Never call automated checks independent scientific validation.
+12. Never hide incomplete anatomy behind a polished UI.
+13. Keep all counts reproducible through scripts.
+14. Use exact evidence, source URLs and dataset versions.
+15. Do not stop after writing a report: implement all safe, verified and feasible improvements in the repository. For any asset that cannot be responsibly implemented, document the precise blocker and leave it transparently marked as missing.
+
+**Final objective: ANATOMY 360 should have a defensible, measurable and continually verifiable adult male and adult female gross-anatomy mesh inventory, with every shared and sex-specific anatomical structure accounted for, every gap identified, and every implemented structure traceable to a legitimate source or an explicitly reviewed original model.**

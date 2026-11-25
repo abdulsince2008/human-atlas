@@ -101,6 +101,7 @@ export interface SceneRelationshipEdge {
 
 export interface SceneState {
   anatomySex?: 'male' | 'female';
+  showPregnancyLayer?: boolean;
   inspectorOpen?: boolean;
   embedded?: boolean;
   explode: number;

@@ -77,18 +77,24 @@ import {
   type VisualizationMode,
 } from '../tissue-materials';
 import {
+  LAYER_CLASSIFICATION_LABELS,
   getActiveConceptsForSex,
   getActivePartsForSex,
+  getPartLayerClassification,
   getSystemDescriptionForSex,
   isFemaleSpecificTarget,
   isMaleOnlyTarget,
   isPartHiddenForSex,
   loadFemaleAtlasManifest,
+  loadMaleEnhancementsManifest,
+  loadOptionalPregnancyManifest,
+  loadSharedEnhancementsManifest,
   readPersistedAnatomySex,
   writePersistedAnatomySex,
   type AnatomySex,
   type FemaleAtlasManifest,
-} from '../female-atlas';
+  type OverlayManifest,
+} from '../atlas-layers';
 import {
   BRAIN_CAMERA_PRESETS,
   BRAIN_REGION_SPECS,
@@ -207,7 +213,11 @@ export default function ExplorerView({
 
   const [progress, setProgress] = useState(0);
   const [anatomySex, setAnatomySex] = useState<AnatomySex>(() => readPersistedAnatomySex());
+  const [sharedOverlay, setSharedOverlay] = useState<OverlayManifest | null>(null);
+  const [maleOverlay, setMaleOverlay] = useState<OverlayManifest | null>(null);
   const [femaleAtlas, setFemaleAtlas] = useState<FemaleAtlasManifest | null>(null);
+  const [pregnancyOverlay, setPregnancyOverlay] = useState<OverlayManifest | null>(null);
+  const [showPregnancyLayer, setShowPregnancyLayer] = useState(false);
   const [sceneError, setSceneError] = useState('');
   const [panel, setPanel] = useState<'layers' | 'search' | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
@@ -233,14 +243,31 @@ export default function ExplorerView({
   } | null>(null);
 
   const error = atlasError || sceneError;
+  const activePregnancyEnabled = anatomySex === 'female' && showPregnancyLayer;
 
   const activeParts = useMemo(
-    () => (atlas ? getActivePartsForSex(atlas, femaleAtlas, anatomySex) : []),
-    [atlas, femaleAtlas, anatomySex],
+    () =>
+      atlas
+        ? getActivePartsForSex(atlas, femaleAtlas, anatomySex, {
+            shared: sharedOverlay,
+            male: maleOverlay,
+            optionalPregnancy: pregnancyOverlay,
+            includePregnancy: activePregnancyEnabled,
+          })
+        : [],
+    [atlas, femaleAtlas, anatomySex, sharedOverlay, maleOverlay, pregnancyOverlay, activePregnancyEnabled],
   );
   const activeConcepts = useMemo(
-    () => (atlas ? getActiveConceptsForSex(atlas, femaleAtlas, anatomySex) : []),
-    [atlas, femaleAtlas, anatomySex],
+    () =>
+      atlas
+        ? getActiveConceptsForSex(atlas, femaleAtlas, anatomySex, {
+            shared: sharedOverlay,
+            male: maleOverlay,
+            optionalPregnancy: pregnancyOverlay,
+            includePregnancy: activePregnancyEnabled,
+          })
+        : [],
+    [atlas, femaleAtlas, anatomySex, sharedOverlay, maleOverlay, pregnancyOverlay, activePregnancyEnabled],
   );
   const effectiveAtlas = useMemo(
     () => (atlas ? { ...atlas, sex: anatomySex, parts: activeParts, concepts: activeConcepts } : null),
@@ -345,6 +372,7 @@ export default function ExplorerView({
         partColorOverrides,
         qualityPreset,
         anatomySex,
+        showPregnancyLayer: activePregnancyEnabled,
         interactionMode,
         view,
         rotate,
@@ -363,6 +391,7 @@ export default function ExplorerView({
       partColorOverrides,
       qualityPreset,
       anatomySex,
+      showPregnancyLayer: activePregnancyEnabled,
     };
   }, [
     atlas,
@@ -375,9 +404,39 @@ export default function ExplorerView({
     partColorOverrides,
     qualityPreset,
     anatomySex,
+    activePregnancyEnabled,
   ]);
 
   const hiddenSet = useMemo(() => new Set(engine.hiddenPartIds), [engine.hiddenPartIds]);
+
+  const togglePregnancyLayer = useCallback(
+    (enabled: boolean) => {
+      setShowPregnancyLayer(enabled);
+      if (enabled && !pregnancyOverlay) {
+        void loadOptionalPregnancyManifest()
+          .then(setPregnancyOverlay)
+          .catch(() => {
+            // Scene viewer surface reports fetch failure if unavailable
+          });
+      }
+      if (!enabled) {
+        setEngine((st) => {
+          const nextSelected = st.selected.filter((id) => !id.startsWith('HO_'));
+          if (nextSelected.length === st.selected.length) return st;
+          return {
+            ...st,
+            selected: nextSelected,
+            isolate: nextSelected.length > 0 ? st.isolate : false,
+          };
+        });
+        if (engine.selected.some((id) => id.startsWith('HO_'))) {
+          setDetails(false);
+          setChosen(null);
+        }
+      }
+    },
+    [pregnancyOverlay, engine.selected],
+  );
 
   const selectAnatomySex = useCallback(
     (nextSex: AnatomySex) => {
@@ -391,9 +450,16 @@ export default function ExplorerView({
           .catch(() => {
             // Scene viewer surface reports fetch failure if unavailable
           });
+      } else if (nextSex === 'male' && !maleOverlay) {
+        void loadMaleEnhancementsManifest()
+          .then(setMaleOverlay)
+          .catch(() => {
+            // Scene viewer surface reports fetch failure if unavailable
+          });
       }
+      const nextPreg = nextSex === 'female' && showPregnancyLayer;
       setEngine((st) => {
-        const nextSelected = st.selected.filter((id) => !isPartHiddenForSex(id, nextSex));
+        const nextSelected = st.selected.filter((id) => !isPartHiddenForSex(id, nextSex, nextPreg));
         if (nextSelected.length === st.selected.length) return st;
         return {
           ...st,
@@ -401,18 +467,18 @@ export default function ExplorerView({
           isolate: nextSelected.length > 0 ? st.isolate : false,
         };
       });
-      if (engine.selected.some((id) => isPartHiddenForSex(id, nextSex))) {
-        const remaining = engine.selected.filter((id) => !isPartHiddenForSex(id, nextSex));
+      if (engine.selected.some((id) => isPartHiddenForSex(id, nextSex, nextPreg))) {
+        const remaining = engine.selected.filter((id) => !isPartHiddenForSex(id, nextSex, nextPreg));
         if (remaining.length === 0) {
           setDetails(false);
           setChosen(null);
         }
       }
     },
-    [femaleAtlas, engine.selected, setPreferredSex],
+    [femaleAtlas, maleOverlay, showPregnancyLayer, engine.selected, setPreferredSex],
   );
 
-  // Sync persisted Sex from StudyContext on hydration and eagerly load Female overlay manifest when needed
+  // Sync persisted Sex from StudyContext on hydration and eagerly load layer manifests
   useEffect(() => {
     if (studyReady && !userChangedSexRef.current && studyState.preferredSex !== anatomySex) {
       setAnatomySex(studyState.preferredSex);
@@ -420,14 +486,27 @@ export default function ExplorerView({
   }, [studyReady, studyState.preferredSex, anatomySex]);
 
   useEffect(() => {
+    if (!sharedOverlay) {
+      void loadSharedEnhancementsManifest()
+        .then(setSharedOverlay)
+        .catch(() => {});
+    }
+    if (anatomySex === 'male' && !maleOverlay) {
+      void loadMaleEnhancementsManifest()
+        .then(setMaleOverlay)
+        .catch(() => {});
+    }
     if (anatomySex === 'female' && !femaleAtlas) {
       void loadFemaleAtlasManifest()
         .then(setFemaleAtlas)
-        .catch(() => {
-          // Scene viewer surface reports fetch failure if unavailable
-        });
+        .catch(() => {});
     }
-  }, [anatomySex, femaleAtlas]);
+    if (activePregnancyEnabled && !pregnancyOverlay) {
+      void loadOptionalPregnancyManifest()
+        .then(setPregnancyOverlay)
+        .catch(() => {});
+    }
+  }, [anatomySex, sharedOverlay, maleOverlay, femaleAtlas, activePregnancyEnabled, pregnancyOverlay]);
 
   const selectedParts = engine.selected
     .map((id) => parts.get(id))
@@ -535,6 +614,9 @@ export default function ExplorerView({
       if (isFemaleSpecificTarget(initialFocusConceptId, null) && !femaleAtlas) {
         return;
       }
+      if (!sharedOverlay || (anatomySex === 'male' && !maleOverlay)) {
+        return;
+      }
       const c = conceptsById.get(initialFocusConceptId);
       if (c) {
         chooseConcept(c, true);
@@ -552,6 +634,8 @@ export default function ExplorerView({
       if (isFemaleSpecificTarget(null, initialFocusPartId) && !femaleAtlas) {
         return;
       }
+      if (initialFocusPartId.startsWith('HS_') && !sharedOverlay) return;
+      if (initialFocusPartId.startsWith('HM_') && !maleOverlay) return;
       if (parts.has(initialFocusPartId)) {
         choosePart(initialFocusPartId, true);
       }
@@ -570,6 +654,8 @@ export default function ExplorerView({
     }
   }, [
     atlas,
+    sharedOverlay,
+    maleOverlay,
     femaleAtlas,
     anatomySex,
     conceptsById,
@@ -805,22 +891,26 @@ export default function ExplorerView({
               'left ovary',
               'female urinary bladder',
               'left mammary gland',
+              'spinal cord (c1–s5 segments)',
+              'left renal cortex',
+              'porta hepatis (hepatic hilum)',
               'heart',
               'brain',
               'liver',
-              'stomach',
               'femur',
               'skull',
             ]
           : [
               'heart',
               'brain',
+              'spinal cord (c1–s5 segments)',
+              'left renal cortex',
+              'porta hepatis (hepatic hilum)',
+              'left peripheral zone of prostate',
               'frontal bone',
               'mandible',
               'liver',
               'stomach',
-              'spleen',
-              'trachea',
               'femur',
               'skull',
             ];
@@ -970,8 +1060,18 @@ export default function ExplorerView({
           }
           const searchAtlas: Atlas = {
             ...atlas,
-            parts: getActivePartsForSex(atlas, loadedFemale, workingSex),
-            concepts: getActiveConceptsForSex(atlas, loadedFemale, workingSex),
+            parts: getActivePartsForSex(atlas, loadedFemale, workingSex, {
+              shared: sharedOverlay,
+              male: maleOverlay,
+              optionalPregnancy: pregnancyOverlay,
+              includePregnancy: workingSex === 'female' && showPregnancyLayer,
+            }),
+            concepts: getActiveConceptsForSex(atlas, loadedFemale, workingSex, {
+              shared: sharedOverlay,
+              male: maleOverlay,
+              optionalPregnancy: pregnancyOverlay,
+              includePregnancy: workingSex === 'female' && showPregnancyLayer,
+            }),
           };
           const resolved = resolveConceptForAiQuery(action.query, searchAtlas, loadedFemale);
           if (resolved) {
@@ -1426,6 +1526,37 @@ export default function ExplorerView({
                       />
                     </div>
                   ))}
+                </div>
+
+                {anatomySex === 'female' && (
+                  <div
+                    className="px-2 py-2 mt-1 mb-1 rounded-lg border border-slate-200/80 bg-white/55 text-xs"
+                    data-testid="optional-pregnancy-layer-box"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-slate-800">Optional: Pregnancy &amp; Placenta</div>
+                        <div className="text-[11px] text-slate-600">
+                          HuBMAP full-term placenta &amp; umbilical cord (8 meshes, OFF by default)
+                        </div>
+                      </div>
+                      <Switch
+                        data-testid="toggle-pregnancy-layer"
+                        checked={showPregnancyLayer}
+                        onCheckedChange={togglePregnancyLayer}
+                        aria-label="Toggle optional pregnancy and placenta layer"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  className="px-2 py-1.5 mt-1 rounded-lg bg-slate-100/75 text-[11px] text-slate-600 leading-snug"
+                  data-testid="layer-provenance-summary"
+                >
+                  {anatomySex === 'female'
+                    ? `Active Female: ${activeParts.length.toLocaleString()} meshes (92 female-adapted/specific + 47 shared HuBMAP + 2,189 unadapted BP3D donor base${activePregnancyEnabled ? ' + 8 pregnancy' : ''}).`
+                    : `Active Male: ${activeParts.length.toLocaleString()} meshes (2,234 BP3D 4.0 + 47 shared + 20 male HuBMAP enhancements).`}
                 </div>
 
                 <div className="panel-foot">
@@ -2798,8 +2929,10 @@ export default function ExplorerView({
                         : interactionMode === 'pan'
                           ? 'PAN MODE · DRAG TO MOVE'
                           : anatomySex === 'female'
-                            ? 'ADULT FEMALE REFERENCE · BODYPARTS3D + HUBMAP HRA'
-                            : 'ADULT MALE REFERENCE · BODYPARTS3D'}
+                            ? activePregnancyEnabled
+                              ? 'ADULT FEMALE + OPTIONAL PREGNANCY · BODYPARTS3D + HUBMAP HRA'
+                              : 'ADULT FEMALE · BP3D + HUBMAP HRA (MIXED LAYER DISCLOSURE)'
+                            : 'ADULT MALE · BODYPARTS3D 4.0 + HUBMAP HRA'}
             </span>
             <span className="caption-line" />
           </div>
@@ -3107,6 +3240,12 @@ export default function ExplorerView({
               <span>
                 Selected pieces<strong>{engine.selected.length.toLocaleString()}</strong>
               </span>
+              {selected && (
+                <span>
+                  Layer provenance
+                  <strong>{LAYER_CLASSIFICATION_LABELS[getPartLayerClassification(selected.id, anatomySex)]}</strong>
+                </span>
+              )}
             </div>
 
             {selectedGroup && (
