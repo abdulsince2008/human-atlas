@@ -14,6 +14,7 @@ import {
   TERMINOLOGY_ENTRIES,
   type LearningCategoryId,
 } from '../learning-data';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   atlas: Atlas | null;
@@ -28,6 +29,7 @@ interface Props {
   onNavigate: (route: AppRoute) => void;
   onOpenPresentation: (presentationId: string) => void;
   onOpenEducatorWorkspace?: (domainId?: EducationDomainId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 export default function LearnPage({
@@ -43,6 +45,7 @@ export default function LearnPage({
   onNavigate,
   onOpenPresentation,
   onOpenEducatorWorkspace,
+  onOpenStudyContext,
 }: Props) {
   const [category, setCategory] = useState<LearningCategoryId>(
     initialCategory ??
@@ -169,6 +172,7 @@ export default function LearnPage({
           }}
           onOpenPresentation={onOpenPresentation}
           onOpenEducatorWorkspace={(domId) => onOpenEducatorWorkspace?.(domId)}
+          onOpenStudyContext={onOpenStudyContext}
         />
       )}
 
@@ -181,6 +185,7 @@ export default function LearnPage({
           onInspectConcept={onInspectConcept}
           onNavigate={onNavigate}
           onSystemChange={setSystemLessonIntent}
+          onOpenStudyContext={onOpenStudyContext}
         />
       )}
 

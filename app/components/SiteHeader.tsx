@@ -8,6 +8,7 @@ export type AppRoute =
   | 'systems'
   | 'relationships'
   | 'learn'
+  | 'study'
   | 'practical-lab'
   | 'dashboard'
   | 'revision'
@@ -38,6 +39,7 @@ const CORE_LINKS: { id: AppRoute; label: string }[] = [
 ];
 
 const STUDY_MENU: { id: AppRoute; label: string; desc: string }[] = [
+  { id: 'study', label: 'Connected Study Workspace', desc: 'Unified 3D viewport, chapters, readings, videos & recall' },
   { id: 'syllabus', label: 'Worldwide Syllabus Navigator', desc: '13 curriculum references & custom syllabus matcher' },
   { id: 'educator', label: 'Teacher & Professor Workspace', desc: 'All 16 domains & syllabi, outlines & worksheets' },
   { id: 'dashboard', label: 'Study Dashboard', desc: 'Progress analytics, profile & JSON backup' },

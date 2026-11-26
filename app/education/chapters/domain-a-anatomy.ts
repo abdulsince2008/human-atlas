@@ -132,7 +132,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     'General Anatomy',
     'Anatomical Position, Orthogonal Planes, Directional Terms, Cavities & Surface Organization',
     'Standard anatomical reference posture, sagittal/coronal/transverse planes, proximal/distal vs medial/lateral terms, dorsal/ventral cavities, and Terminologia Anatomica.',
-    'Links directly to 3D Explorer Sagittal, Coronal & Axial Clipping Planes across 2,234 adult male + 79 Adult Female overlay parts',
+    'Links directly to 3D Explorer Sagittal, Coronal & Axial Clipping Planes across 2,234 adult male + 92 Adult Female overlay parts',
     ['ap_ch1_terminology', 'anat_soc_uk'],
     {
       colA: 'Sagittal & Coronal Planes',
@@ -553,7 +553,7 @@ const A_SPECS: ChapterAuthorSpec[] = [
     'Anatomical Integration',
     'Surface Landmarks, Cross-Sectional Slices, Variations & Surgical Layer Dissection',
     'Palpable surface projections, key axial vertebral-level slices (C6, T4/5, T8/10/12, L1 transpyloric, L4 iliac crest), normal anatomical variants, and surgical fascial layers.',
-    'Synthesizes all 12 System Lessons (28 topics), 3D Clipping Planes, Surgical Dissection Atlas (app/data/surgical-anatomy.ts), and 79 Adult Female Overlay Parts',
+    'Synthesizes all 12 System Lessons (28 topics), 3D Clipping Planes, Surgical Dissection Atlas (app/data/surgical-anatomy.ts), and 92 Adult Female Overlay Parts',
     ['ap_ch1_terminology', 'ap_ch1_imaging', 'anat_soc_uk'],
     {
       colA: 'Classic Surface & Axial Slice Levels',

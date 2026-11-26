@@ -23,6 +23,7 @@ import { CURRICULUM_FRAMEWORKS, EDUCATION_TRACKS } from '../education/education-
 import type { CurriculumAuthorityId, EducationDomainId } from '../education/education-types';
 import { computeRegistryMetrics, REGISTRY_SUBJECTS } from '../registry/knowledge-registry';
 import type { RegistrySubjectNode } from '../registry/registry-types';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   atlas: Atlas | null;
@@ -34,6 +35,7 @@ interface Props {
   onOpenDomain?: (domainId: EducationDomainId) => void;
   onOpenSyllabusFramework?: (frameworkId: CurriculumAuthorityId) => void;
   onOpenEducatorDomain?: (domainId: EducationDomainId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 const FEATURED_STRUCTURES = [
@@ -69,6 +71,7 @@ export default function HomePage({
   onOpenDomain,
   onOpenSyllabusFramework,
   onOpenEducatorDomain,
+  onOpenStudyContext,
 }: Props) {
   const { state, dismissOnboarding, revisionQueue } = useStudy();
   const [heroSearch, setHeroSearch] = useState('');
@@ -218,6 +221,21 @@ export default function HomePage({
               <GraduationCap size={16} />
               Educator Workspace
             </button>
+            {onOpenStudyContext && (
+              <button
+                type="button"
+                className="a360-btn-secondary"
+                onClick={() =>
+                  onOpenStudyContext({
+                    conceptId: 'FMA7088',
+                    sourceModule: 'home',
+                  })
+                }
+              >
+                <BookOpen size={16} />
+                Connected Study Workspace
+              </button>
+            )}
           </div>
         </div>
 

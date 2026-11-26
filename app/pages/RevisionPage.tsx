@@ -19,6 +19,8 @@ import {
   type FlashcardFocus,
   type ReviewRating,
 } from '../spaced-repetition';
+import { generateAdaptiveRecommendations } from '../adaptive-study';
+import type { StudyContextInput } from '../study-context-engine';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -32,6 +34,7 @@ interface Props {
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
   onOpenPracticalLab: () => void;
   onOpenReference: (conceptId: string) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 export default function RevisionPage({
@@ -42,6 +45,7 @@ export default function RevisionPage({
   onOpenLearnSystem,
   onOpenPracticalLab,
   onOpenReference,
+  onOpenStudyContext,
 }: Props) {
   const {
     state,
@@ -113,6 +117,11 @@ export default function RevisionPage({
   const bookmarksList = useMemo(
     () => Object.values(state.bookmarks).sort((a, b) => b.createdAt - a.createdAt),
     [state.bookmarks],
+  );
+
+  const adaptiveRecommendations = useMemo(
+    () => generateAdaptiveRecommendations(state, atlas, { limit: 4 }),
+    [state, atlas],
   );
 
   return (
@@ -348,6 +357,21 @@ export default function RevisionPage({
                       >
                         Open Reference Entry
                       </button>
+                      {onOpenStudyContext && (
+                        <button
+                          type="button"
+                          className="a360-btn-primary"
+                          onClick={() =>
+                            onOpenStudyContext({
+                              conceptId: activeCard.conceptId,
+                              systemId: activeCard.canonicalSystem,
+                              sourceModule: 'revision',
+                            })
+                          }
+                        >
+                          Study Workspace <ArrowRight size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -401,6 +425,24 @@ export default function RevisionPage({
             )}
           </div>
 
+          {adaptiveRecommendations.length > 0 && onOpenStudyContext && (
+            <div className="a360-coverage-box" style={{ marginBottom: '12px' }}>
+              <strong>Adaptive Next Study Recommendations:</strong>{' '}
+              <div className="a360-card-actions flex-wrap" style={{ marginTop: '8px' }}>
+                {adaptiveRecommendations.map((rec) => (
+                  <button
+                    key={rec.id}
+                    type="button"
+                    className="a360-btn-secondary"
+                    onClick={() => onOpenStudyContext(rec.studyInput)}
+                  >
+                    {rec.targetTitle} ({rec.reasonLabel}) <ArrowRight size={13} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {revisionQueue.length === 0 ? (
             <div className="a360-empty-box">
               <CheckCircle2 size={18} />
@@ -451,6 +493,21 @@ export default function RevisionPage({
                         Open Lesson
                       </button>
                     ) : null}
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        className="a360-btn-secondary"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            conceptId: entry.conceptId,
+                            systemId: entry.canonicalSystem,
+                            sourceModule: 'revision',
+                          })
+                        }
+                      >
+                        Study Workspace
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -505,6 +562,29 @@ export default function RevisionPage({
                         onClick={() => onOpenLearnSystem(bm.canonicalSystem!)}
                       >
                         Open in Learn
+                      </button>
+                    )}
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        className="a360-btn-secondary"
+                        onClick={() =>
+                          onOpenStudyContext(
+                            bm.kind === 'structure'
+                              ? {
+                                  conceptId: bm.targetId,
+                                  systemId: bm.canonicalSystem,
+                                  sourceModule: 'bookmarks',
+                                }
+                              : {
+                                  topicId: bm.targetId,
+                                  systemId: bm.canonicalSystem,
+                                  sourceModule: 'bookmarks',
+                                },
+                          )
+                        }
+                      >
+                        Study Workspace
                       </button>
                     )}
                     <button

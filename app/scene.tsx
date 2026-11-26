@@ -76,8 +76,13 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
   const host = useRef<HTMLDivElement>(null);
   const latest = useRef(state);
   const select = useRef(onSelect);
+  const wakeRef = useRef<() => void>(() => {});
   latest.current = state;
   select.current = onSelect;
+
+  useEffect(() => {
+    wakeRef.current();
+  }, [state]);
 
   useEffect(() => {
     const el = host.current;
@@ -85,6 +90,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
 
     let disposed = false;
     let frame = 0;
+    let swTimerId = 0;
+    let swRenderBusy = false;
+    let swFrameScheduled = false;
+    let wakeRender = () => {};
     let dirty = true;
     let ready = false;
     let lastView = '';
@@ -174,6 +183,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     });
     controls.addEventListener('change', () => {
       dirty = true;
+      wakeRender();
     });
 
     const pmrem = new T.PMREMGenerator(renderer);
@@ -741,6 +751,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       loaded++;
       onProgress(Math.round((loaded / atlas.chunks.length) * 100));
       dirty = true;
+      wakeRender();
     };
 
     // Background loader for verified meshoptimizer LOD 3 overview chunks (never blocks initial render)
@@ -794,6 +805,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           lodManager.registerLod3(lod3Atlas.triangles);
           el.dataset.lod3Ready = 'true';
           dirty = true;
+          wakeRender();
         }
       } catch {
         // LOD 3 is strictly additive; keep LOD 0 active silently if unavailable or aborted
@@ -894,6 +906,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           el.dataset[datasetFlag] = 'true';
           lastState = null;
           dirty = true;
+          wakeRender();
         }
       } catch (err) {
         status.loading = false;
@@ -956,6 +969,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
           dirty = true;
           el.dataset.lodLevel = '0';
           el.dataset.activeTriangles = String(atlas.triangles);
+          wakeRender();
           void ensureSharedLoaded();
           const curSex = latest.current.anatomySex ?? 'male';
           if (curSex === 'female') {
@@ -1143,6 +1157,7 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       } else {
         fit(latest.current.view, amount, true);
       }
+      wakeRender();
     };
     const observer = new ResizeObserver(resize);
     observer.observe(el);
@@ -1433,11 +1448,54 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
 
     const clock = new T.Clock();
     let lastExtent = -1;
-    let lastSwRenderMs = 0;
+    let swWakeQueued = false;
+
+    const afterDraw = (cb: () => void) => {
+      const gl = renderer.getContext() as WebGL2RenderingContext;
+      if (gl && typeof gl.fenceSync === 'function') {
+        const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+        gl.flush();
+        const poll = () => {
+          if (disposed) {
+            if (sync) gl.deleteSync(sync);
+            return;
+          }
+          const syncState = sync ? gl.getSyncParameter(sync, gl.SYNC_STATUS) : gl.SIGNALED;
+          if (syncState === gl.UNSIGNALED) {
+            swTimerId = window.setTimeout(poll, 5);
+          } else {
+            if (sync) gl.deleteSync(sync);
+            swTimerId = window.setTimeout(cb, 80);
+          }
+        };
+        swTimerId = window.setTimeout(poll, 5);
+      } else {
+        swTimerId = window.setTimeout(cb, 80);
+      }
+    };
+
+    wakeRender = () => {
+      if (disposed || !isSoftwareGl) return;
+      if (swRenderBusy) {
+        swWakeQueued = true;
+        return;
+      }
+      if (!swFrameScheduled) {
+        swFrameScheduled = true;
+        frame = requestAnimationFrame(animate);
+      }
+    };
+    wakeRef.current = wakeRender;
 
     const animate = () => {
+      swFrameScheduled = false;
       if (disposed) return;
-      frame = requestAnimationFrame(animate);
+      if (!isSoftwareGl) {
+        frame = requestAnimationFrame(animate);
+      } else if (swRenderBusy) {
+        swWakeQueued = true;
+        return;
+      }
       const dt = Math.min(clock.getDelta(), 0.05);
       const s = latest.current;
       const activeSex = s.anatomySex ?? 'male';
@@ -2164,12 +2222,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
       if (controls.autoRotate) dirty = true;
 
       if (dirty) {
-        const nowMs = performance.now();
-        if (isSoftwareGl && ready && lastExtent >= 0 && nowMs - lastSwRenderMs < 260) {
-          // Keep dirty=true so software WebGL catches up without piling GPU frames
+        if (isSoftwareGl && !ready) {
+          // Wait for base chunks to finish before software WebGL draw
         } else {
           renderer.render(scene, camera);
-          if (isSoftwareGl) lastSwRenderMs = performance.now();
           targets = [];
           if (amount > 0.45) {
             const hasSolid = atlas.parts.some(
@@ -2260,10 +2316,25 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
             }
           }
           dirty = false;
+          if (isSoftwareGl) {
+            swRenderBusy = true;
+            afterDraw(() => {
+              swRenderBusy = false;
+              if (disposed) return;
+              if (swWakeQueued || dirty) {
+                swWakeQueued = false;
+                wakeRender();
+              }
+            });
+          }
         }
       }
     };
-    animate();
+    if (isSoftwareGl) {
+      wakeRender();
+    } else {
+      animate();
+    }
 
     const contextLost = (e: Event) => {
       e.preventDefault();
@@ -2272,14 +2343,17 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
     const contextRestored = () => {
       onError('');
       dirty = true;
+      wakeRender();
     };
     renderer.domElement.addEventListener('webglcontextlost', contextLost);
     renderer.domElement.addEventListener('webglcontextrestored', contextRestored);
 
     return () => {
       disposed = true;
+      wakeRef.current = () => {};
       abort.abort();
       cancelAnimationFrame(frame);
+      clearTimeout(swTimerId);
       observer.disconnect();
       renderer.domElement.removeEventListener('pointerdown', down);
       renderer.domElement.removeEventListener('pointermove', move);

@@ -40,6 +40,8 @@ import { QUIZ_QUESTIONS } from '../quiz-data';
 import type { AppRoute } from './SiteHeader';
 import { useStudy } from './StudyContext';
 import StudyResourceList from './StudyResourceList';
+import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
+import type { StudyContextInput } from '../study-context-engine';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -53,6 +55,7 @@ interface Props {
   onInspectConcept: (conceptId: string) => void;
   onNavigate?: (route: AppRoute) => void;
   onSystemChange?: (systemId: CanonicalSystemId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 type ContextMode = 'body' | 'system' | 'isolate';
@@ -83,8 +86,17 @@ export default function SystemLearnWorkspace({
   onInspectConcept,
   onNavigate,
   onSystemChange,
+  onOpenStudyContext,
 }: Props) {
-  const { isBookmarked, recordQuizResult, setTopicCompleted, toggleBookmark } = useStudy();
+  const {
+    state: studyState,
+    setPreferredSex,
+    isBookmarked,
+    recordQuizResult,
+    setTopicCompleted,
+    toggleBookmark,
+  } = useStudy();
+  const { effectiveAtlas } = useSexAwareAtlas(atlas, studyState.preferredSex);
   const [activeSystemId, setActiveSystemId] = useState<CanonicalSystemId>(
     initialSystemId ?? 'cardiovascular',
   );
@@ -152,14 +164,14 @@ export default function SystemLearnWorkspace({
   const activeTopic: LessonTopic | undefined = activePair?.topic;
 
   const conceptMap = useMemo(() => {
-    if (!atlas) return new Map<string, { id: string; name: string; elements: string[] }>();
-    return new Map(atlas.concepts.map((c) => [c.id, c]));
-  }, [atlas]);
+    if (!effectiveAtlas) return new Map<string, { id: string; name: string; elements: string[] }>();
+    return new Map(effectiveAtlas.concepts.map((c) => [c.id, c]));
+  }, [effectiveAtlas]);
 
   const partMap = useMemo(() => {
-    if (!atlas) return new Map<string, Part>();
-    return new Map(atlas.parts.map((p) => [p.id, p]));
-  }, [atlas]);
+    if (!effectiveAtlas) return new Map<string, Part>();
+    return new Map(effectiveAtlas.parts.map((p) => [p.id, p]));
+  }, [effectiveAtlas]);
 
   // Persist topic completion honestly
   useEffect(() => {
@@ -240,7 +252,7 @@ export default function SystemLearnWorkspace({
 
   // Resolve active 3D selected part IDs
   const selectedPartIds = useMemo(() => {
-    if (!atlas) return [];
+    if (!effectiveAtlas) return [];
     const targetIds: string[] = [];
     const addConcept = (cid: string) => {
       const c = conceptMap.get(cid);
@@ -260,7 +272,7 @@ export default function SystemLearnWorkspace({
       }
     }
     return Array.from(new Set(targetIds));
-  }, [atlas, clicked3D, focusedConceptId, activeTopic, conceptMap]);
+  }, [effectiveAtlas, clicked3D, focusedConceptId, activeTopic, conceptMap]);
 
   // Visible mesh layers for SceneState
   const visibleLayers = useMemo<SystemId[]>(() => {
@@ -275,6 +287,7 @@ export default function SystemLearnWorkspace({
     () => ({
       inspectorOpen: false,
       embedded: true,
+      anatomySex: studyState.preferredSex,
       explode: 0,
       visible: visibleLayers,
       selected: selectedPartIds,
@@ -287,7 +300,17 @@ export default function SystemLearnWorkspace({
       zoomStep,
       focusRequest,
     }),
-    [visibleLayers, selectedPartIds, contextMode, interactionMode, view, resetCount, zoomStep, focusRequest],
+    [
+      studyState.preferredSex,
+      visibleLayers,
+      selectedPartIds,
+      contextMode,
+      interactionMode,
+      view,
+      resetCount,
+      zoomStep,
+      focusRequest,
+    ],
   );
 
   const handle3DSelect = useCallback(
@@ -863,6 +886,25 @@ export default function SystemLearnWorkspace({
                 </button>
               </div>
 
+              <div className="a360-embedded-toolgroup" role="group" aria-label="Anatomical sex selector">
+                <button
+                  type="button"
+                  className={`a360-mini-btn ${studyState.preferredSex === 'male' ? 'active' : ''}`}
+                  aria-pressed={studyState.preferredSex === 'male'}
+                  onClick={() => setPreferredSex('male')}
+                >
+                  Male
+                </button>
+                <button
+                  type="button"
+                  className={`a360-mini-btn ${studyState.preferredSex === 'female' ? 'active' : ''}`}
+                  aria-pressed={studyState.preferredSex === 'female'}
+                  onClick={() => setPreferredSex('female')}
+                >
+                  Female
+                </button>
+              </div>
+
               <div className="a360-embedded-toolgroup" role="group" aria-label="Camera interaction">
                 <button
                   type="button"
@@ -930,7 +972,7 @@ export default function SystemLearnWorkspace({
                   <strong>3D Viewer Unavailable</strong>
                   <span>{atlasError || sceneError}</span>
                 </div>
-              ) : !atlas ? (
+              ) : !atlas || !effectiveAtlas ? (
                 <div className="a360-embedded-fallback" role="status">
                   <strong>Loading Anatomy Atlas…</strong>
                   <span>Preparing 3D structures for {activeSystem.name.en}</span>
@@ -1025,7 +1067,7 @@ export default function SystemLearnWorkspace({
                 )}
 
                 {activeTopic && (
-                  <div className="a360-selected-info-actions">
+                  <div className="a360-selected-info-actions flex flex-wrap gap-2">
                     <button
                       type="button"
                       className="a360-mini-btn"
@@ -1033,6 +1075,23 @@ export default function SystemLearnWorkspace({
                     >
                       Return Highlight to Full Topic Group
                     </button>
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        className="a360-mini-btn active"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            conceptId: activeStructureInfo.knowledge.conceptId,
+                            topicId: activeTopic.id,
+                            systemId: activeSystem.id,
+                            sex: studyState.preferredSex,
+                            sourceModule: 'learn',
+                          })
+                        }
+                      >
+                        Open Connected Study Workspace
+                      </button>
+                    )}
                   </div>
                 )}
               </>
@@ -1043,16 +1102,36 @@ export default function SystemLearnWorkspace({
                     <p className="a360-kicker">Synchronized Topic View</p>
                     <h3>{activeTopic?.title.en ?? activeSystem.name.en}</h3>
                   </div>
-                  {activeTopic?.conceptIds[0] && (
-                    <button
-                      type="button"
-                      className="a360-inspect-link"
-                      onClick={() => onInspectConcept(activeTopic.conceptIds[0])}
-                    >
-                      <span>Full 3D Explorer</span>
-                      <ExternalLink size={12} />
-                    </button>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {onOpenStudyContext && activeTopic && (
+                      <button
+                        type="button"
+                        className="a360-inspect-link active"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            conceptId: activeTopic.conceptIds[0],
+                            topicId: activeTopic.id,
+                            systemId: activeSystem.id,
+                            sex: studyState.preferredSex,
+                            sourceModule: 'learn',
+                          })
+                        }
+                      >
+                        <span>Connected Study Workspace</span>
+                        <ArrowRight size={12} />
+                      </button>
+                    )}
+                    {activeTopic?.conceptIds[0] && (
+                      <button
+                        type="button"
+                        className="a360-inspect-link"
+                        onClick={() => onInspectConcept(activeTopic.conceptIds[0])}
+                      >
+                        <span>Full 3D Explorer</span>
+                        <ExternalLink size={12} />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <p className="a360-muted">
                   All modeled structures for this topic are highlighted in teal in the 3D scene above.

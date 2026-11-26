@@ -48,9 +48,13 @@ import type {
   EducationTrackId,
 } from '../education/education-types';
 import ChapterDeckViewer from './ChapterDeckViewer';
+import Persistent3DPane from './Persistent3DPane';
 import type { AppRoute } from './SiteHeader';
 import { useStudy } from './StudyContext';
+import StudyVideoSection from './StudyVideoSection';
 import { RADIOLOGY_CASES, type RadiologyModality } from '../data/radiology-data';
+import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
+import type { StudyContextInput } from '../study-context-engine';
 import { buildChapterStudyGuidePdf, triggerBinaryDownload } from '../utils/teaching-exports';
 
 interface Props {
@@ -64,6 +68,7 @@ interface Props {
   onOpenSystemLesson: (systemId: CanonicalSystemId) => void;
   onOpenPresentation: (presentationId: string) => void;
   onOpenEducatorWorkspace?: (domainId: EducationDomainId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 type ChapterTabId =
@@ -247,8 +252,10 @@ export default function MedicalCurriculumHub({
   onOpenSystemLesson,
   onOpenPresentation,
   onOpenEducatorWorkspace,
+  onOpenStudyContext,
 }: Props) {
-  const { state, setTopicCompleted, recordQuizResult } = useStudy();
+  const { state, setTopicCompleted, recordQuizResult, setPreferredSex } = useStudy();
+  const { effectiveAtlas } = useSexAwareAtlas(atlas, state.preferredSex);
   const [selectedTrack, setSelectedTrack] = useState<EducationTrackId>(
     initialTrackId ?? 'secondary_premed',
   );
@@ -269,6 +276,7 @@ export default function MedicalCurriculumHub({
   const [selectedDiagramNodeId, setSelectedDiagramNodeId] = useState<string | null>(null);
   const [showFullPlatformMatrix, setShowFullPlatformMatrix] = useState(false);
   const [radiologyFilter, setRadiologyFilter] = useState<RadiologyModality | 'all'>('all');
+  const [showInline3D, setShowInline3D] = useState(false);
 
   useEffect(() => {
     if (initialFrameworkId) {
@@ -720,18 +728,41 @@ export default function MedicalCurriculumHub({
                     <p className="text-xs leading-relaxed text-slate-600">{activeTopic.summary}</p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setTopicCompleted(activeTopic.id, !isTopicDone, activeTopic.title)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
-                      isTopicDone
-                        ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
-                        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>{isTopicDone ? 'Completed' : 'Mark Completed'}</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            topicId: activeTopic.id,
+                            domainId: activeDomain.id,
+                            conceptId: activeTopic.relatedFmaConceptIds[0],
+                            systemId: activeTopic.relatedSystems[0],
+                            sex: state.preferredSex,
+                            sourceModule: 'curriculum',
+                            sourceItemId: activeTopic.id,
+                          })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-800 whitespace-nowrap"
+                      >
+                        <Compass size={14} />
+                        <span>Connected 3D Study Workspace</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setTopicCompleted(activeTopic.id, !isTopicDone, activeTopic.title)}
+                      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
+                        isTopicDone
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>{isTopicDone ? 'Completed' : 'Mark Completed'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* 7-Tab Navigation Bar (Mandate Section 8) */}
@@ -1069,16 +1100,25 @@ export default function MedicalCurriculumHub({
                   </div>
                 )}
 
-                {/* TAB 3: WATCH (Honest Video Availability Disclosure + 5-Scene Narrated Storyboard) */}
+                {/* TAB 3: WATCH (Verified Topic-Specific YouTube Video + Explicit Storyboard Separation) */}
                 {activeTab === 'watch' && (
                   <div className="space-y-4" role="tabpanel" aria-label="Watch video lesson or storyboard script">
+                    <StudyVideoSection
+                      topicTitle={activeTopic.title}
+                      topicId={activeTopic.id}
+                      conceptId={activeTopic.relatedFmaConceptIds[0]}
+                      systemId={activeTopic.relatedSystems[0]}
+                      domainId={activeDomain.id}
+                      academicLevel={selectedTrack}
+                      fallbackStoryboard={null}
+                    />
                     {!activeTopic.videoResource ? (
                       <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-xs text-slate-700">
-                        No video lesson record attached for this chapter.
+                        No synthetic narration storyboard script attached for this chapter.
                       </div>
                     ) : (
                       <>
-                        {/* Explicit Video Verification & Unavailability Disclosure */}
+                        {/* Explicit Storyboard Separation Disclosure */}
                         <div
                           className={`rounded-xl border p-4 text-xs space-y-2 ${
                             activeTopic.videoResource.availabilityStatus === 'verified'
@@ -1369,6 +1409,47 @@ export default function MedicalCurriculumHub({
                     })()}
 
                     {/* Connected 3D Meshes & Organ System Views */}
+                    {activeTopic.relatedFmaConceptIds.length > 0 && effectiveAtlas && (
+                      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-800">
+                              Inline Interactive 3D Preview ({activeTopic.relatedFmaConceptIds.length} mapped structure{activeTopic.relatedFmaConceptIds.length === 1 ? '' : 's'})
+                            </h4>
+                            <p className="text-[11px] text-slate-500">
+                              Preview highlighted BodyParts3D / Female HRA meshes alongside this chapter.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowInline3D((v) => !v)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800 whitespace-nowrap"
+                          >
+                            {showInline3D ? 'Hide 3D Preview' : 'Open Inline 3D Preview'}
+                          </button>
+                        </div>
+
+                        {showInline3D && (() => {
+                          const partIds = activeTopic.relatedFmaConceptIds.flatMap(
+                            (cid) => effectiveAtlas.concepts.find((c) => c.id === cid)?.elements ?? [],
+                          );
+                          return (
+                            <Persistent3DPane
+                              atlas={effectiveAtlas}
+                              matchedPartIds={partIds}
+                              anatomySex={state.preferredSex}
+                              onSexChange={setPreferredSex}
+                              onSelectConcept={(cid) => onInspectConcept(cid)}
+                              in3DModel={partIds.length > 0}
+                              highlightedLabel={activeTopic.title}
+                              compact
+                              hideToolbarViews
+                            />
+                          );
+                        })()}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {activeTopic.relatedFmaConceptIds.length > 0 && (
                         <div className="rounded-xl border border-slate-200 bg-white p-4">

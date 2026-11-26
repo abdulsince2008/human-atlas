@@ -4,12 +4,17 @@ import { getReviewStatusLabel } from '../data/provenance-registry';
 import {
   ACCESS_TYPE_LABELS,
   getStudyResourcesFor,
+  RESOURCE_KIND_LABELS,
   type StudyResourceModule,
 } from '../data/study-resources';
+import type { EducationDomainId, EducationTrackId } from '../education/education-types';
 
 interface Props {
   conceptId?: string;
   canonicalSystem?: CanonicalSystemId;
+  topicId?: string;
+  domainId?: EducationDomainId;
+  academicLevel?: EducationTrackId;
   module?: StudyResourceModule;
   limit?: number;
   heading?: string;
@@ -19,12 +24,23 @@ interface Props {
 export default function StudyResourceList({
   conceptId,
   canonicalSystem,
+  topicId,
+  domainId,
+  academicLevel,
   module,
-  limit = 3,
+  limit = 4,
   heading = 'Curated Open Study Resources',
   compact = false,
 }: Props) {
-  const resources = getStudyResourcesFor({ conceptId, canonicalSystem, module, limit });
+  const resources = getStudyResourcesFor({
+    conceptId,
+    canonicalSystem,
+    topicId,
+    domainId,
+    academicLevel,
+    module,
+    limit,
+  });
   if (resources.length === 0) return null;
 
   return (
@@ -52,7 +68,9 @@ export default function StudyResourceList({
                 <ExternalLink size={13} aria-hidden="true" />
               </span>
               <span className="a360-resource-meta">
-                {res.publisher} · {ACCESS_TYPE_LABELS[res.accessType]} · {res.licenseNote} ·{' '}
+                {res.publisher}
+                {res.resourceKind ? ` · ${RESOURCE_KIND_LABELS[res.resourceKind]}` : ''} ·{' '}
+                {ACCESS_TYPE_LABELS[res.accessType]} · {res.licenseNote} ·{' '}
                 {getReviewStatusLabel(res.reviewStatus)}
               </span>
               {!compact && <span className="a360-resource-summary">{res.summary}</span>}

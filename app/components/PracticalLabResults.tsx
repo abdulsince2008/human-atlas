@@ -18,6 +18,7 @@ import type {
   QuestionSubmission,
 } from '../practical-lab/types';
 import { useStudy } from './StudyContext';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   summary: ExamAttemptSummary;
@@ -28,6 +29,7 @@ interface Props {
   onNewSetup: () => void;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 export default function PracticalLabResults({
@@ -39,6 +41,7 @@ export default function PracticalLabResults({
   onNewSetup,
   onInspectConcept,
   onOpenLearnSystem,
+  onOpenStudyContext,
 }: Props) {
   const { isBookmarked, toggleBookmark } = useStudy();
   const missedQuestions = useMemo(
@@ -317,6 +320,22 @@ export default function PracticalLabResults({
                         ? 'Bookmarked'
                         : 'Save to Bookmarks'}
                     </button>
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        className="a360-mini-btn"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            conceptId: q.targetConceptId,
+                            systemId: q.canonicalSystem,
+                            sourceModule: 'practical_lab',
+                          })
+                        }
+                      >
+                        Study Workspace
+                        <ArrowRight size={12} />
+                      </button>
+                    )}
                   </div>
                 </article>
               );

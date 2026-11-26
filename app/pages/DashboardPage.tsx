@@ -25,11 +25,16 @@ import { ANATOMY_FLASHCARDS, isCardDue } from '../spaced-repetition';
 import type { StudyTrack } from '../study-store';
 import type { AppRoute } from '../components/SiteHeader';
 import StudentCloudPanel from '../components/StudentCloudPanel';
+import type { Atlas } from '../anatomy';
+import { generateAdaptiveRecommendations } from '../adaptive-study';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
+  atlas?: Atlas | null;
   onNavigate: (route: AppRoute) => void;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 const STUDY_TRACKS: StudyTrack[] = [
@@ -41,9 +46,11 @@ const STUDY_TRACKS: StudyTrack[] = [
 ];
 
 export default function DashboardPage({
+  atlas,
   onNavigate,
   onInspectConcept,
   onOpenLearnSystem,
+  onOpenStudyContext,
 }: Props) {
   const {
     backendName,
@@ -87,6 +94,11 @@ export default function DashboardPage({
   const weakAreas = useMemo(
     () => Object.values(state.weakConcepts).sort((a, b) => b.missCount - a.missCount),
     [state.weakConcepts],
+  );
+
+  const adaptiveRecs = useMemo(
+    () => generateAdaptiveRecommendations(state, atlas, { limit: 5 }),
+    [state, atlas],
   );
 
   // Per-system real telemetry (Learn topic completion % + Practical Lab real accuracy %)
@@ -258,6 +270,50 @@ export default function DashboardPage({
           <span>
             Saved Bookmarks ({state.quizProgress.correctIds.length}/{QUIZ_QUESTIONS.length} quiz solved)
           </span>
+        </div>
+      </section>
+
+      {/* Adaptive Next Study Recommendations */}
+      <section className="a360-chart-panel" aria-label="Adaptive next study recommendations" style={{ marginBottom: '18px' }}>
+        <div className="a360-list-header">
+          <div>
+            <h2>Adaptive Next Study Recommendations</h2>
+            <p className="a360-muted">
+              Generated directly from your incorrect quiz items, missed Practical Lab structures, SM-2 due flashcards, and bookmarks.
+            </p>
+          </div>
+          {onOpenStudyContext && adaptiveRecs[0] && (
+            <button
+              type="button"
+              className="a360-btn-primary"
+              onClick={() => onOpenStudyContext(adaptiveRecs[0].studyInput)}
+            >
+              Start Top Recommendation <ArrowRight size={14} />
+            </button>
+          )}
+        </div>
+        <div className="a360-dash-list">
+          {adaptiveRecs.map((rec) => (
+            <div key={rec.id} className="a360-dash-row">
+              <div>
+                <strong>{rec.targetTitle}</strong>
+                <span>
+                  {rec.reasonLabel} · {rec.explanation}
+                </span>
+              </div>
+              <div className="a360-card-actions">
+                {onOpenStudyContext && (
+                  <button
+                    type="button"
+                    className="a360-card-btn"
+                    onClick={() => onOpenStudyContext(rec.studyInput)}
+                  >
+                    Open Study Context <ArrowRight size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

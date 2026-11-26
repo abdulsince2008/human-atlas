@@ -37,6 +37,7 @@ import {
   type UnifiedSearchCategory,
   type UnifiedSearchResultItem,
 } from '../search-engine';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   atlas: Atlas | null;
@@ -59,6 +60,7 @@ interface Props {
   onOpenSyllabus?: (frameworkId?: CurriculumAuthorityId) => void;
   onOpenEducator?: (domainId?: EducationDomainId) => void;
   onOpenPresentation?: (presentationId: string) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 const UNIFIED_CATEGORY_TABS: { id: UnifiedSearchCategory; label: string }[] = [
@@ -66,12 +68,15 @@ const UNIFIED_CATEGORY_TABS: { id: UnifiedSearchCategory; label: string }[] = [
   { id: 'subject', label: 'Subjects' },
   { id: 'topic', label: 'Topics' },
   { id: 'structure', label: '3D Structures' },
+  { id: 'relationship', label: 'Relationships' },
   { id: 'terminology', label: 'Terminology' },
   { id: 'physiology', label: 'Physiology' },
   { id: 'histology', label: 'Histology' },
   { id: 'clinical', label: 'Clinical' },
   { id: 'presentation', label: '3D Walkthroughs' },
   { id: 'quiz', label: 'Quizzes' },
+  { id: 'resource', label: 'External Readings' },
+  { id: 'video', label: 'Videos' },
   { id: 'curriculum', label: 'Syllabi' },
   { id: 'educator', label: 'Educator' },
 ];
@@ -89,6 +94,7 @@ export default function SearchPage({
   onOpenSyllabus,
   onOpenEducator,
   onOpenPresentation,
+  onOpenStudyContext,
 }: Props) {
   const [query, setQuery] = useState(initialQuery ?? '');
   const [categoryFilter, setCategoryFilter] = useState<UnifiedSearchCategory>('all');
@@ -175,8 +181,42 @@ export default function SearchPage({
     [discovery.categoryCounts],
   );
 
+  const buildStudyInputForHit = (hit: UnifiedSearchResultItem): StudyContextInput => ({
+    ...(hit.studyInput ?? {
+      conceptId: hit.conceptId,
+      partId: hit.partId,
+      topicId: hit.topicId,
+      domainId: hit.domainId,
+      systemId: hit.systemId,
+      relationshipId: hit.relationshipId,
+      resourceId: hit.resourceId,
+      videoId: hit.videoId,
+      presentationId: hit.presentationId,
+    }),
+    sex: state.preferredSex,
+    sourceModule: 'search',
+  });
+
   const handlePrimaryOpen = (hit: UnifiedSearchResultItem) => {
     if (query.trim().length >= 2) addRecentSearch(query.trim());
+
+    if (hit.category === 'resource' || hit.category === 'video' || hit.route === 'study') {
+      if (onOpenStudyContext) {
+        onOpenStudyContext(buildStudyInputForHit(hit));
+        return;
+      }
+    }
+
+    if (hit.category === 'relationship') {
+      if (onOpenStudyContext) {
+        onOpenStudyContext(buildStudyInputForHit(hit));
+        return;
+      }
+      if (hit.conceptId) {
+        onOpenRelationships(hit.conceptId);
+        return;
+      }
+    }
 
     if (hit.category === 'structure') {
       if (hit.inModel) {
@@ -446,13 +486,22 @@ export default function SearchPage({
                 <div className="a360-card-actions flex-wrap">
                   {hit.category === 'structure' ? (
                     <>
-                      {hit.inModel && (
+                      {onOpenStudyContext && (
                         <button
                           type="button"
                           className="a360-card-btn"
+                          onClick={() => onOpenStudyContext(buildStudyInputForHit(hit))}
+                        >
+                          Study Workspace <ArrowRight size={14} />
+                        </button>
+                      )}
+                      {hit.inModel && (
+                        <button
+                          type="button"
+                          className="a360-btn-secondary"
                           onClick={() => handlePrimaryOpen(hit)}
                         >
-                          Inspect in 3D <ArrowRight size={14} />
+                          Inspect in 3D
                         </button>
                       )}
                       {hit.conceptId && (
@@ -491,13 +540,24 @@ export default function SearchPage({
                       )}
                     </>
                   ) : hit.category === 'presentation' ? (
-                    <button
-                      type="button"
-                      className="a360-card-btn"
-                      onClick={() => handlePrimaryOpen(hit)}
-                    >
-                      <Play size={13} /> Open 3D Walkthrough
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="a360-card-btn"
+                        onClick={() => handlePrimaryOpen(hit)}
+                      >
+                        <Play size={13} /> Open 3D Walkthrough
+                      </button>
+                      {onOpenStudyContext && (
+                        <button
+                          type="button"
+                          className="a360-btn-secondary"
+                          onClick={() => onOpenStudyContext(buildStudyInputForHit(hit))}
+                        >
+                          Study Workspace
+                        </button>
+                      )}
+                    </>
                   ) : hit.category === 'curriculum' ? (
                     <button
                       type="button"
@@ -528,8 +588,36 @@ export default function SearchPage({
                             ? 'Open Lab'
                             : hit.category === 'quiz'
                               ? 'Practice Question'
-                              : 'Open Module'}
+                              : hit.category === 'video'
+                                ? 'Watch in Study Workspace'
+                                : hit.category === 'resource'
+                                  ? 'Open Reading in Study Workspace'
+                                  : hit.category === 'relationship'
+                                    ? 'Study Relationship in 3D'
+                                    : 'Open Module'}
                       </button>
+                      {onOpenStudyContext &&
+                        hit.category !== 'video' &&
+                        hit.category !== 'resource' &&
+                        hit.category !== 'relationship' && (
+                          <button
+                            type="button"
+                            className="a360-btn-secondary"
+                            onClick={() => onOpenStudyContext(buildStudyInputForHit(hit))}
+                          >
+                            Study Workspace
+                          </button>
+                        )}
+                      {hit.externalUrl && (
+                        <a
+                          href={hit.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="a360-btn-secondary"
+                        >
+                          Open External Source
+                        </a>
+                      )}
                       {hit.domainId && onOpenEducator && hit.category === 'subject' && (
                         <button
                           type="button"

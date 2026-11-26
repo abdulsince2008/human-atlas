@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Bookmark, CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
+import { ArrowRight, Bookmark, CheckCircle2, Eye, RotateCcw, XCircle } from 'lucide-react';
+import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS } from '../anatomy-systems';
+import Persistent3DPane from '../components/Persistent3DPane';
 import { useStudy } from '../components/StudyContext';
+import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
 import { QUIZ_DIFFICULTY_LEVELS, QUIZ_QUESTIONS } from '../quiz-data';
+import { resolveStudyContext, type StudyContextInput } from '../study-context-engine';
 
 interface Props {
+  atlas?: Atlas | null;
   onInspectConcept: (conceptId: string) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 interface SavedProgress {
@@ -29,13 +35,16 @@ function loadProgress(): SavedProgress {
   }
 }
 
-export default function QuizPage({ onInspectConcept }: Props) {
-  const { isBookmarked, recordQuizResult, toggleBookmark } = useStudy();
+export default function QuizPage({ atlas = null, onInspectConcept, onOpenStudyContext }: Props) {
+  const { state: studyState, setPreferredSex, isBookmarked, recordQuizResult, toggleBookmark } =
+    useStudy();
+  const { effectiveAtlas } = useSexAwareAtlas(atlas, studyState.preferredSex);
   const [systemFilter, setSystemFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [unsolvedOnly, setUnsolvedOnly] = useState(false);
   const [index, setIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [showInline3D, setShowInline3D] = useState(false);
   const [progress, setProgress] = useState<SavedProgress>(() => loadProgress());
 
   useEffect(() => {
@@ -100,6 +109,33 @@ export default function QuizPage({ onInspectConcept }: Props) {
       }),
     [progress.correctIds],
   );
+
+  const postAnswerContext = useMemo(() => {
+    if (!current || selectedOption === null) return null;
+    return resolveStudyContext(
+      {
+        questionId: current.id,
+        conceptId: current.relatedConceptId,
+        topicId: current.topicId,
+        systemId: current.systemId,
+        sex: studyState.preferredSex,
+        sourceModule: 'quiz',
+      },
+      effectiveAtlas,
+    );
+  }, [current, selectedOption, studyState.preferredSex, effectiveAtlas]);
+
+  const relatedPoolQuestions = useMemo(() => {
+    if (!current) return [];
+    return pool
+      .map((q, poolIdx) => ({ q, poolIdx }))
+      .filter(
+        ({ q }) =>
+          q.id !== current.id &&
+          (q.relatedConceptId === current.relatedConceptId || q.systemId === current.systemId),
+      )
+      .slice(0, 3);
+  }, [current, pool]);
 
   return (
     <div className="a360-page a360-narrow">
@@ -296,7 +332,7 @@ export default function QuizPage({ onInspectConcept }: Props) {
                 {selectedOption === current.correctIndex ? 'Correct' : 'Review Explanation'}
               </p>
               <p>{current.explanation}</p>
-              <div className="a360-feedback-actions">
+              <div className="a360-feedback-actions flex flex-wrap gap-2">
                 <button
                   type="button"
                   className="a360-inspect-link"
@@ -305,7 +341,82 @@ export default function QuizPage({ onInspectConcept }: Props) {
                   Inspect {current.relatedStructureName} in 3D
                   <ArrowRight size={14} />
                 </button>
+                <button
+                  type="button"
+                  className="a360-btn-secondary"
+                  aria-expanded={showInline3D}
+                  onClick={() => setShowInline3D((v) => !v)}
+                >
+                  <Eye size={14} />
+                  {showInline3D ? 'Hide Inline 3D Preview' : 'Toggle Inline 3D Preview'}
+                </button>
+                {onOpenStudyContext && (
+                  <button
+                    type="button"
+                    className="a360-btn-primary"
+                    onClick={() =>
+                      onOpenStudyContext({
+                        questionId: current.id,
+                        conceptId: current.relatedConceptId,
+                        topicId: current.topicId,
+                        systemId: current.systemId,
+                        sex: studyState.preferredSex,
+                        sourceModule: 'quiz',
+                      })
+                    }
+                  >
+                    Open in Connected Study Workspace
+                    <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
+
+              {postAnswerContext && (
+                <div className="a360-quiz-connected-drawer" data-testid="quiz-connected-drawer">
+                  <p className="a360-muted">
+                    Connected Study Context: {postAnswerContext.relationships.outgoing.length + postAnswerContext.relationships.incoming.length} anatomical relationships ·{' '}
+                    {postAnswerContext.physiologyModules.length} physiology simulations ·{' '}
+                    {postAnswerContext.clinicalCases.length} clinical scenarios ·{' '}
+                    {postAnswerContext.videoResources.length} verified YouTube lectures ·{' '}
+                    {postAnswerContext.coverage.mesh3D}
+                  </p>
+
+                  {showInline3D && (
+                    <div className="mt-3">
+                      <Persistent3DPane
+                        atlas={effectiveAtlas}
+                        matchedPartIds={postAnswerContext.matchedPartIds}
+                        anatomySex={studyState.preferredSex}
+                        onSexChange={setPreferredSex}
+                        in3DModel={postAnswerContext.in3DModel}
+                        missingMeshMessage={postAnswerContext.coverage.meshMessage}
+                        highlightedLabel={current.relatedStructureName}
+                        compact
+                        hideToolbarViews
+                      />
+                    </div>
+                  )}
+
+                  {relatedPoolQuestions.length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      <span className="a360-muted">Related MCQs:</span>
+                      {relatedPoolQuestions.map(({ q, poolIdx }) => (
+                        <button
+                          key={q.id}
+                          type="button"
+                          className="a360-mini-btn"
+                          onClick={() => {
+                            setIndex(poolIdx);
+                            setSelectedOption(null);
+                          }}
+                        >
+                          {q.relatedStructureName} ({q.difficulty})
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

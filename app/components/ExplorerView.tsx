@@ -2,6 +2,7 @@ import {
   Activity,
   ArrowUpRight,
   Bookmark,
+  BookOpen,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -111,6 +112,7 @@ import AiNavigatorPanel from './AiNavigatorPanel';
 import type { AppRoute } from './SiteHeader';
 import { useStudy } from './StudyContext';
 import StudyResourceList from './StudyResourceList';
+import type { StudyContextInput } from '../study-context-engine';
 import { Button } from '@/components/ui/button';
 import {
   Combobox,
@@ -134,6 +136,7 @@ interface Props {
   onOpenFullSearch: () => void;
   onOpenRelationships?: (conceptId: string) => void;
   onOpenActivity?: (route: AppRoute, targetId?: string) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 type RailTab = 'systems' | 'studio';
@@ -176,6 +179,7 @@ export default function ExplorerView({
   onOpenFullSearch,
   onOpenRelationships,
   onOpenActivity,
+  onOpenStudyContext,
 }: Props) {
   const studioRef = useRef<HTMLDivElement>(null);
   const detailTitle = useRef<HTMLHeadingElement>(null);
@@ -3399,6 +3403,24 @@ export default function ExplorerView({
                   >
                     <GitBranch size={15} />
                     Relationships
+                  </Button>
+                )}
+                {onOpenStudyContext && (
+                  <Button
+                    variant="ghost"
+                    className="utility-action"
+                    onClick={() =>
+                      onOpenStudyContext({
+                        conceptId: chosen.id,
+                        partId: selected?.id,
+                        systemId: canonicalSys?.id,
+                        sex: anatomySex,
+                        sourceModule: 'explorer',
+                      })
+                    }
+                  >
+                    <BookOpen size={15} />
+                    Study Workspace
                   </Button>
                 )}
               </div>

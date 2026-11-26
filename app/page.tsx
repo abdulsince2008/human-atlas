@@ -23,12 +23,19 @@ import RevisionPage from './pages/RevisionPage';
 import SearchPage from './pages/SearchPage';
 import SyllabusNavigatorPage from './pages/SyllabusNavigatorPage';
 import SystemsPage from './pages/SystemsPage';
+import UniversalStudyWorkspace from './components/UniversalStudyWorkspace';
+import {
+  encodeStudyContextHash,
+  parseStudyContextFromHash,
+  type StudyContextInput,
+} from './study-context-engine';
 
 const ExplorerView = lazy(() => import('./components/ExplorerView'));
 const PresentationStudioPage = lazy(() => import('./pages/PresentationStudioPage'));
 
 function parseRouteFromHash(): AppRoute {
   const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].toLowerCase();
+  if (hash === 'study') return 'study';
   if (hash === 'explorer' || hash === '3d') return 'explorer';
   if (hash === 'present' || hash === 'presentation' || hash === 'studio') return 'present';
   if (hash === 'systems' || hash === 'reference') return 'systems';
@@ -128,6 +135,13 @@ export default function Home() {
   }>({});
   const [practicalLabSystemIntent, setPracticalLabSystemIntent] =
     useState<CanonicalSystemId | null>(null);
+  const [studyInputState, setStudyInputState] = useState<StudyContextInput>(() => {
+    if (typeof window === 'undefined') return { conceptId: 'FMA7088', sourceModule: 'study' };
+    return parseRouteFromHash() === 'study'
+      ? parseStudyContextFromHash(window.location.hash)
+      : { conceptId: 'FMA7088', sourceModule: 'study' };
+  });
+  const [studyReturnRoute, setStudyReturnRoute] = useState<AppRoute | null>(null);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -221,6 +235,9 @@ export default function Home() {
       }
       if (nextRoute === 'practical-lab') {
         setPracticalLabSystemIntent(params.get('system') as CanonicalSystemId | null);
+      }
+      if (nextRoute === 'study') {
+        setStudyInputState(parseStudyContextFromHash(window.location.hash));
       }
     };
 
@@ -424,6 +441,39 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, []);
 
+  const openStudyContext = useCallback(
+    (input: StudyContextInput, originRoute?: AppRoute) => {
+      const rawOrigin = originRoute ?? route;
+      const normalizedSource =
+        rawOrigin === 'practical-lab' ? 'practical_lab' : rawOrigin;
+      const normalized: StudyContextInput = {
+        ...input,
+        sourceModule: input.sourceModule ?? (normalizedSource as StudyContextInput['sourceModule']),
+      };
+      if (originRoute && originRoute !== 'study') {
+        setStudyReturnRoute(originRoute);
+      } else if (route !== 'study') {
+        setStudyReturnRoute(route);
+      }
+      setStudyInputState(normalized);
+      const targetHash = encodeStudyContextHash(normalized);
+      if (window.location.hash !== targetHash) {
+        window.location.hash = targetHash;
+      }
+      setRoute('study');
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    },
+    [route],
+  );
+
+  const updateStudyInput = useCallback((next: StudyContextInput) => {
+    setStudyInputState(next);
+    const targetHash = encodeStudyContextHash(next);
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }, []);
+
   const openUniversalTopic = useCallback(
     (params: {
       route: AppRoute;
@@ -531,6 +581,40 @@ export default function Home() {
                   onOpenEducatorDomain={(domainId) =>
                     openEducatorWorkspace({ sourceKind: 'domain', domainId })
                   }
+                  onOpenStudyContext={(input) => openStudyContext(input, 'home')}
+                />
+              )}
+
+              {route === 'study' && (
+                <UniversalStudyWorkspace
+                  atlas={atlas}
+                  atlasError={atlasError}
+                  studyInput={studyInputState}
+                  returnLabel={
+                    studyReturnRoute
+                      ? studyReturnRoute.charAt(0).toUpperCase() + studyReturnRoute.slice(1)
+                      : null
+                  }
+                  onReturnOrigin={
+                    studyReturnRoute ? () => navigate(studyReturnRoute) : undefined
+                  }
+                  onChangeStudyInput={updateStudyInput}
+                  onInspectInFullExplorer={inspectConceptIn3D}
+                  onOpenRelationships={openRelationships}
+                  onOpenPhysiology={(moduleId, systemId) => {
+                    setPhysiologyIntent({ moduleId, systemId });
+                    navigate('physiology');
+                  }}
+                  onOpenClinical={(caseId, systemId) => {
+                    setClinicalIntent({ caseId, systemId });
+                    navigate('clinical');
+                  }}
+                  onOpenHistology={(entryId, systemId) => {
+                    setHistologyIntent({ entryId, systemId });
+                    navigate('histology');
+                  }}
+                  onOpenPresentation={openPresentation}
+                  onOpenSystemLesson={openSystemInLearn}
                 />
               )}
 
@@ -572,6 +656,7 @@ export default function Home() {
                   onOpenLearnSystem={openSystemInLearn}
                   onOpenFlashcards={openFlashcards}
                   onOpenPracticalLab={() => navigate('practical-lab')}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'systems')}
                 />
               )}
 
@@ -582,6 +667,7 @@ export default function Home() {
                   onInspectConcept={inspectConceptIn3D}
                   onOpenLearnSystem={openSystemInLearn}
                   onOpenReference={openReference}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'relationships')}
                 />
               )}
 
@@ -603,6 +689,7 @@ export default function Home() {
                       domainId: domainId ?? 'human_anatomy',
                     })
                   }
+                  onOpenStudyContext={(input) => openStudyContext(input, 'learn')}
                 />
               )}
 
@@ -625,10 +712,17 @@ export default function Home() {
                     })
                   }
                   onOpenPresentation={openPresentation}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'search')}
                 />
               )}
 
-              {route === 'quiz' && <QuizPage onInspectConcept={inspectConceptIn3D} />}
+              {route === 'quiz' && (
+                <QuizPage
+                  atlas={atlas}
+                  onInspectConcept={inspectConceptIn3D}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'quiz')}
+                />
+              )}
 
               {route === 'practical-lab' && (
                 <PracticalLabPage
@@ -637,14 +731,17 @@ export default function Home() {
                   initialSystemId={practicalLabSystemIntent}
                   onInspectConcept={inspectConceptIn3D}
                   onOpenLearnSystem={openSystemInLearn}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'practical-lab')}
                 />
               )}
 
               {route === 'dashboard' && (
                 <DashboardPage
+                  atlas={atlas}
                   onNavigate={navigate}
                   onInspectConcept={inspectConceptIn3D}
                   onOpenLearnSystem={openSystemInLearn}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'dashboard')}
                 />
               )}
 
@@ -658,6 +755,7 @@ export default function Home() {
                   onOpenLearnSystem={openSystemInLearn}
                   onOpenPracticalLab={() => navigate('practical-lab')}
                   onOpenReference={openReference}
+                  onOpenStudyContext={(input) => openStudyContext(input, route)}
                 />
               )}
 
@@ -667,6 +765,7 @@ export default function Home() {
                   initialSystemId={physiologyIntent.systemId}
                   onInspectConcept={inspectConceptIn3D}
                   onOpenLearnSystem={openSystemInLearn}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'physiology')}
                 />
               )}
 
@@ -676,6 +775,7 @@ export default function Home() {
                   initialSystemId={histologyIntent.systemId ?? undefined}
                   onInspectConcept={inspectConceptIn3D}
                   onOpenLearnSystem={openSystemInLearn}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'histology')}
                 />
               )}
 
@@ -686,6 +786,7 @@ export default function Home() {
                   onInspectConcept={inspectConceptIn3D}
                   onOpenLearnSystem={openSystemInLearn}
                   onOpenPresentation={openPresentation}
+                  onOpenStudyContext={(input) => openStudyContext(input, 'clinical')}
                 />
               )}
 
@@ -708,6 +809,7 @@ export default function Home() {
                     initialPresentationIntent={presentationIntent}
                     onInspectConcept={inspectConceptIn3D}
                     onOpenClinical={() => navigate('clinical')}
+                    onOpenStudyContext={(input) => openStudyContext(input, 'present')}
                   />
                 </Suspense>
               )}
@@ -731,6 +833,7 @@ export default function Home() {
                     onOpenFullSearch={() => navigate('search')}
                     onOpenRelationships={openRelationships}
                     onOpenActivity={openActivityFromExplorer}
+                    onOpenStudyContext={(input) => openStudyContext(input, 'explorer')}
                   />
                 </Suspense>
               )}

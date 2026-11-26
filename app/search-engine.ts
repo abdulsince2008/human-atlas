@@ -8,11 +8,14 @@ import type { AppRoute } from './components/SiteHeader';
 import { CLINICAL_CASES } from './data/clinical-data';
 import { HISTOLOGY_ENTRIES } from './data/histology-data';
 import { PHYSIOLOGY_MODULES } from './data/physiology-data';
+import { getAllKnownExternalResources } from './data/study-resources';
+import { VERIFIED_YOUTUBE_VIDEOS } from './data/video-resources';
 import { EDUCATION_TOPICS } from './education/education-content';
 import { CURRICULUM_FRAMEWORKS } from './education/education-curricula';
 import type { CurriculumAuthorityId, EducationDomainId, EducationTrackId } from './education/education-types';
 import {
   KNOWLEDGE_GRAPH_V2,
+  VERIFIED_RELATIONSHIPS,
   type ModelCoverageTier,
   type StructureCategory,
   type StructureKnowledgeV2,
@@ -26,6 +29,7 @@ import {
   REGISTRY_SUBJECTS,
   REGISTRY_TOPICS,
 } from './registry/knowledge-registry';
+import type { StudyContextInput } from './study-context-engine';
 
 export interface SearchFilterOptions {
   system?: CanonicalSystemId | 'all';
@@ -413,12 +417,15 @@ export type UnifiedSearchCategory =
   | 'subject'
   | 'topic'
   | 'structure'
+  | 'relationship'
   | 'terminology'
   | 'physiology'
   | 'histology'
   | 'clinical'
   | 'presentation'
   | 'quiz'
+  | 'resource'
+  | 'video'
   | 'curriculum'
   | 'educator';
 
@@ -447,6 +454,11 @@ export interface UnifiedSearchResultItem {
   partId?: string;
   presentationId?: string;
   frameworkId?: CurriculumAuthorityId;
+  relationshipId?: string;
+  resourceId?: string;
+  videoId?: string;
+  externalUrl?: string;
+  studyInput?: StudyContextInput;
   route: AppRoute;
   academicTracks: string[];
   coverageStatusLabel: string;
@@ -963,16 +975,153 @@ export function searchUnifiedEducationCatalog(
     }
   }
 
+  // 12. Verified Anatomical Relationships
+  for (const rel of VERIFIED_RELATIONSHIPS) {
+    const srcRec = CURATED_V2_BY_ID.get(rel.sourceConceptId);
+    const title = `${srcRec?.canonicalName ?? rel.sourceConceptId} -> ${rel.targetLabel}`;
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      title,
+      `${rel.directionLabel} · ${rel.sourceReference}`,
+      rel.note,
+      14,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `rel-${rel.id}`,
+        category: 'relationship',
+        categoryLabel: 'Anatomical Relationship',
+        score: res.score - 2,
+        matchReason: res.reason,
+        title,
+        subtitle: `${rel.directionLabel} · ${srcRec?.canonicalSystem ?? 'anatomy'}`,
+        summary: rel.note,
+        domainId: 'human_anatomy',
+        domainLabel: 'Human Anatomy',
+        systemId: srcRec?.canonicalSystem,
+        conceptId: rel.sourceConceptId,
+        relationshipId: rel.id,
+        studyInput: {
+          conceptId: rel.sourceConceptId,
+          relationshipId: rel.id,
+          systemId: srcRec?.canonicalSystem,
+          sourceModule: 'search',
+          sourceItemId: rel.id,
+        },
+        route: 'relationships',
+        academicTracks: ['secondary_premed', 'medical_foundations', 'clinical_applied'],
+        coverageStatusLabel: rel.verificationStatus === 'verified' ? 'Verified relationship' : 'Draft relationship',
+        inModel: Boolean(srcRec?.visualization.inModel),
+        metadataLine: `Relationship · ${rel.type.replace(/_/g, ' ')}`,
+        keywords: [rel.directionLabel, rel.targetLabel, srcRec?.canonicalName ?? ''],
+      });
+    }
+  }
+
+  // 13. Extended External Study Resources (OpenStax, NCBI, Radiopaedia, Histology Guide, etc.)
+  for (const er of getAllKnownExternalResources()) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      er.title,
+      `${er.publisher} · ${er.licenseNote}`,
+      er.summary,
+      10,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `extres-${er.id}`,
+        category: 'resource',
+        categoryLabel: 'External Reading',
+        score: res.score - 4,
+        matchReason: res.reason,
+        title: er.title,
+        subtitle: `${er.publisher} · ${er.licenseNote}`,
+        summary: er.summary,
+        domainId: er.domainIds?.[0] ?? 'human_anatomy',
+        domainLabel: er.publisher,
+        systemId: er.canonicalSystems[0],
+        conceptId: er.conceptIds[0],
+        topicId: er.topicIds?.[0],
+        resourceId: er.id,
+        externalUrl: er.url,
+        studyInput: {
+          resourceId: er.id,
+          conceptId: er.conceptIds[0],
+          topicId: er.topicIds?.[0],
+          domainId: er.domainIds?.[0],
+          systemId: er.canonicalSystems[0],
+          sourceModule: 'search',
+          sourceItemId: er.id,
+        },
+        route: 'study',
+        academicTracks: er.academicLevels ?? ['secondary_premed', 'medical_foundations'],
+        coverageStatusLabel: `${er.accessType.replace(/_/g, ' ')} · External link`,
+        metadataLine: `External Reading · ${er.publisher}`,
+        keywords: [er.publisher, er.licenseNote],
+      });
+    }
+  }
+
+  // 14. Verified Topic-Specific YouTube Educational Videos
+  for (const vid of VERIFIED_YOUTUBE_VIDEOS) {
+    const res = scoreTextMatch(
+      term,
+      tokens,
+      vid.title,
+      `${vid.channelTitle} · Verified Educational Video`,
+      vid.learningRelevance,
+      12,
+    );
+    if (res.score > 0) {
+      pushUnique({
+        key: `ytvid-${vid.id}`,
+        category: 'video',
+        categoryLabel: 'Educational Video',
+        score: res.score - 2,
+        matchReason: res.reason,
+        title: vid.title,
+        subtitle: `${vid.channelTitle} · Verified YouTube oEmbed`,
+        summary: vid.learningRelevance,
+        domainId: vid.domainIds[0] ?? 'human_anatomy',
+        domainLabel: vid.channelTitle,
+        systemId: vid.canonicalSystems[0],
+        conceptId: vid.conceptIds[0],
+        topicId: vid.topicIds[0],
+        videoId: vid.id,
+        externalUrl: vid.watchUrl,
+        studyInput: {
+          videoId: vid.id,
+          conceptId: vid.conceptIds[0],
+          topicId: vid.topicIds[0],
+          domainId: vid.domainIds[0],
+          systemId: vid.canonicalSystems[0],
+          sourceModule: 'search',
+          sourceItemId: vid.id,
+        },
+        route: 'study',
+        academicTracks: vid.academicLevels,
+        coverageStatusLabel: 'oEmbed-verified YouTube lecture',
+        metadataLine: `Video · ${vid.channelTitle}`,
+        keywords: [vid.channelTitle, vid.youtubeId],
+      });
+    }
+  }
+
   const categoryCounts: Record<Exclude<UnifiedSearchCategory, 'all'>, number> = {
     subject: 0,
     topic: 0,
     structure: 0,
+    relationship: 0,
     terminology: 0,
     physiology: 0,
     histology: 0,
     clinical: 0,
     presentation: 0,
     quiz: 0,
+    resource: 0,
+    video: 0,
     curriculum: 0,
     educator: 0,
   };

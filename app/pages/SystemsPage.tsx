@@ -19,6 +19,7 @@ import {
   KNOWLEDGE_GRAPH_V2,
   type StructureCategory,
 } from '../knowledge-graph';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   atlas: Atlas | null;
@@ -32,6 +33,7 @@ interface Props {
   onOpenLearnSystem: (systemId: CanonicalSystemId, topicId?: string) => void;
   onOpenFlashcards: (systemId: CanonicalSystemId) => void;
   onOpenPracticalLab: () => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 export default function SystemsPage({
@@ -46,6 +48,7 @@ export default function SystemsPage({
   onOpenLearnSystem,
   onOpenFlashcards,
   onOpenPracticalLab,
+  onOpenStudyContext,
 }: Props) {
   const { state: studyState, setPreferredSex } = useStudy();
   const preferredSex = studyState.preferredSex;
@@ -216,6 +219,22 @@ export default function SystemsPage({
               >
                 Open System Lessons
               </button>
+              {onOpenStudyContext && (
+                <button
+                  type="button"
+                  className="a360-btn-secondary"
+                  onClick={() =>
+                    onOpenStudyContext({
+                      conceptId: activeRecord?.conceptId,
+                      systemId: active.id,
+                      sex: preferredSex,
+                      sourceModule: 'systems',
+                    })
+                  }
+                >
+                  Connected Study Workspace
+                </button>
+              )}
               <button
                 type="button"
                 className="a360-btn-primary"
@@ -294,6 +313,7 @@ export default function SystemsPage({
               onOpenLearnSystem={onOpenLearnSystem}
               onOpenFlashcards={onOpenFlashcards}
               onOpenPracticalLab={onOpenPracticalLab}
+              onOpenStudyContext={onOpenStudyContext}
             />
           )}
 

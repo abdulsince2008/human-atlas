@@ -28,6 +28,8 @@ import { resolveNaturalAnatomyColors } from '../tissue-materials';
 import { getPartCenter } from '../visualization-colors';
 import { useStudy } from '../components/StudyContext';
 import StudyResourceList from '../components/StudyResourceList';
+import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
+import type { StudyContextInput } from '../study-context-engine';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -37,6 +39,7 @@ interface Props {
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId, topicId?: string) => void;
   onOpenReference: (conceptId: string) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 const RELATIONSHIP_COLOR: Record<RelationshipType, string> = {
@@ -88,6 +91,7 @@ export default function RelationshipsPage({
   onInspectConcept,
   onOpenLearnSystem,
   onOpenReference,
+  onOpenStudyContext,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string>(initialConceptId ?? 'FMA7088');
   const [filterText, setFilterText] = useState('');
@@ -99,7 +103,8 @@ export default function RelationshipsPage({
   const [showAllNodes, setShowAllNodes] = useState(false);
   const [focusRequest, setFocusRequest] = useState(1);
 
-  const { isBookmarked, toggleBookmark } = useStudy();
+  const { state: studyState, isBookmarked, toggleBookmark } = useStudy();
+  const { effectiveAtlas } = useSexAwareAtlas(atlas, studyState.preferredSex);
 
   useEffect(() => {
     if (initialConceptId) {
@@ -110,12 +115,12 @@ export default function RelationshipsPage({
   }, [initialConceptId]);
 
   const conceptPartsMap = useMemo(
-    () => new Map(atlas?.concepts.map((c) => [c.id, c.elements]) ?? []),
-    [atlas],
+    () => new Map(effectiveAtlas?.concepts.map((c) => [c.id, c.elements]) ?? []),
+    [effectiveAtlas],
   );
   const partMap = useMemo(
-    () => new Map(atlas?.parts.map((p) => [p.id, p]) ?? []),
-    [atlas],
+    () => new Map(effectiveAtlas?.parts.map((p) => [p.id, p]) ?? []),
+    [effectiveAtlas],
   );
 
   const curatedList = useMemo(() => {
@@ -134,13 +139,13 @@ export default function RelationshipsPage({
   }, [filterText, systemFilter]);
 
   const activeRecord = useMemo(
-    () => getStructureRecordV2(selectedId, atlas),
-    [selectedId, atlas],
+    () => getStructureRecordV2(selectedId, effectiveAtlas),
+    [selectedId, effectiveAtlas],
   );
 
   const relationships = useMemo(
-    () => getRelationshipsForConcept(selectedId, atlas),
-    [selectedId, atlas],
+    () => getRelationshipsForConcept(selectedId, effectiveAtlas),
+    [selectedId, effectiveAtlas],
   );
 
   const allCombinedNodes = useMemo(() => {
@@ -228,7 +233,9 @@ export default function RelationshipsPage({
   // Build role-based GPU color overrides on top of Natural Anatomy base + illustrative spatial connectors
   const { sceneState, activeLegendRoles } = useMemo(() => {
     const selectedIds = new Set<string>(conceptPartsMap.get(selectedId) ?? []);
-    const colorOverrides: Record<string, string> = atlas ? resolveNaturalAnatomyColors(atlas) : {};
+    const colorOverrides: Record<string, string> = effectiveAtlas
+      ? resolveNaturalAnatomyColors(effectiveAtlas)
+      : {};
     const edges: SceneRelationshipEdge[] = [];
     const legendMap = new Map<string, { label: string; color: string }>();
 
@@ -273,6 +280,7 @@ export default function RelationshipsPage({
     const state: SceneState = {
       embedded: true,
       suppressHoverTooltip: true,
+      anatomySex: studyState.preferredSex,
       explode: 0,
       visible: DEFAULT_VISIBLE,
       selected: highlightMode === 'natural' ? [] : Array.from(selectedIds),
@@ -292,7 +300,8 @@ export default function RelationshipsPage({
       activeLegendRoles: Array.from(legendMap.values()),
     };
   }, [
-    atlas,
+    effectiveAtlas,
+    studyState.preferredSex,
     conceptPartsMap,
     partMap,
     selectedId,
@@ -417,6 +426,22 @@ export default function RelationshipsPage({
                 <Bookmark size={14} /> {saved ? 'Saved' : 'Save'}
               </button>
 
+              {onOpenStudyContext && (
+                <button
+                  type="button"
+                  className="a360-btn-secondary"
+                  onClick={() =>
+                    onOpenStudyContext({
+                      conceptId: activeRecord.conceptId,
+                      systemId: activeRecord.canonicalSystem,
+                      sex: studyState.preferredSex,
+                      sourceModule: 'relationships',
+                    })
+                  }
+                >
+                  Open Connected Study Workspace
+                </button>
+              )}
               {activeRecord.visualization.inModel && (
                 <button
                   type="button"
@@ -494,7 +519,7 @@ export default function RelationshipsPage({
               </div>
 
               <div className="a360-rel-3d-viewport a360-rel-3d-primary">
-                {atlas ? (
+                {atlas && effectiveAtlas ? (
                   <Suspense
                     fallback={<div className="a360-empty-box">Loading 3D spatial network…</div>}
                   >
@@ -502,7 +527,7 @@ export default function RelationshipsPage({
                       atlas={atlas}
                       state={sceneState}
                       onSelect={(partId) => {
-                        const part = atlas.parts.find((p) => p.id === partId);
+                        const part = effectiveAtlas.parts.find((p) => p.id === partId);
                         if (part) selectStructure(part.conceptId);
                       }}
                       onProgress={() => {}}
@@ -729,6 +754,22 @@ export default function RelationshipsPage({
                     >
                       Focus Network Here
                     </button>
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        className="a360-btn-secondary"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            conceptId: node.conceptId!,
+                            relationshipId: node.key.replace(/^in-/, ''),
+                            sex: studyState.preferredSex,
+                            sourceModule: 'relationships',
+                          })
+                        }
+                      >
+                        Study Workspace
+                      </button>
+                    )}
                     {node.hasMesh && (
                       <button
                         type="button"

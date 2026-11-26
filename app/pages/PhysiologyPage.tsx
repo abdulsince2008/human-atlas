@@ -18,12 +18,14 @@ import {
   type PhysiologyModuleSpec,
 } from '../data/physiology-data';
 import { resolvePhysiologyTarget } from '../utils/deep-link-resolver';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   initialModuleId?: string | null;
   initialSystemId?: CanonicalSystemId | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 function getDefaults(mod: PhysiologyModuleSpec): Record<string, number> {
@@ -35,6 +37,7 @@ export default function PhysiologyPage({
   initialSystemId,
   onInspectConcept,
   onOpenLearnSystem,
+  onOpenStudyContext,
 }: Props) {
   const [selectedId, setSelectedId] = useState<PhysiologyModuleSpec['id']>(() =>
     resolvePhysiologyTarget(initialModuleId, initialSystemId),
@@ -584,6 +587,23 @@ export default function PhysiologyPage({
             >
               <BookOpen size={14} /> Study {activeSys?.name.en} Lessons
             </button>
+            {onOpenStudyContext && (
+              <button
+                type="button"
+                className="a360-btn-primary"
+                style={{ marginTop: '8px', width: '100%' }}
+                onClick={() =>
+                  onOpenStudyContext({
+                    physiologyId: activeMod.id,
+                    conceptId: activeMod.linkedConcepts[0]?.conceptId,
+                    systemId: activeMod.systemId,
+                    sourceModule: 'physiology',
+                  })
+                }
+              >
+                Open in Connected Study Workspace <ArrowRight size={14} />
+              </button>
+            )}
           </div>
 
           <div className="a360-coverage-box">

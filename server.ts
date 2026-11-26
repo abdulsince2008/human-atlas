@@ -129,9 +129,124 @@ async function startServer() {
       ok: true,
       model: AI_MODEL_NAME,
       keyConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
+      youtubeKeyConfigured: Boolean(process.env.YOUTUBE_API_KEY?.trim()),
       requireSubscription: isSubscriptionRequiredByDefault(),
       devPreviewEligible: !isProductionMode(),
     });
+  });
+
+  // Optional server-side YouTube Educational Search Proxy (cached & quota-guarded)
+  const ytSearchCache = new Map<string, { at: number; items: unknown[] }>();
+  let ytWindowResetAt = Date.now() + 3_600_000;
+  let ytRequestsInWindow = 0;
+
+  app.get('/api/youtube/search', async (req, res) => {
+    const rawQuery = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (rawQuery.length < 2 || rawQuery.length > 120) {
+      res.status(400).json({
+        ok: false,
+        configured: Boolean(process.env.YOUTUBE_API_KEY?.trim()),
+        code: 'INVALID_QUERY',
+        error: 'Search query must be between 2 and 120 characters.',
+        items: [],
+      });
+      return;
+    }
+
+    const apiKey = process.env.YOUTUBE_API_KEY?.trim();
+    if (!apiKey) {
+      res.json({
+        ok: true,
+        configured: false,
+        items: [],
+        notice:
+          'Server-side YOUTUBE_API_KEY is not configured. Showing curated verified lectures and direct YouTube search fallback.',
+      });
+      return;
+    }
+
+    const normalizedKey = rawQuery.toLowerCase();
+    const cached = ytSearchCache.get(normalizedKey);
+    if (cached && Date.now() - cached.at < 15 * 60_000) {
+      res.json({ ok: true, configured: true, cached: true, items: cached.items });
+      return;
+    }
+
+    if (Date.now() > ytWindowResetAt) {
+      ytWindowResetAt = Date.now() + 3_600_000;
+      ytRequestsInWindow = 0;
+    }
+    if (ytRequestsInWindow >= 45) {
+      res.status(429).json({
+        ok: false,
+        configured: true,
+        code: 'QUOTA_GUARD',
+        error: 'Hourly YouTube API proxy quota safeguard reached. Use curated lectures or direct YouTube search.',
+        items: [],
+      });
+      return;
+    }
+    ytRequestsInWindow += 1;
+
+    try {
+      const eduQuery = `${rawQuery} anatomy physiology medical education`;
+      const url = new URL('https://www.googleapis.com/youtube/v3/search');
+      url.searchParams.set('part', 'snippet');
+      url.searchParams.set('type', 'video');
+      url.searchParams.set('videoEmbeddable', 'true');
+      url.searchParams.set('safeSearch', 'strict');
+      url.searchParams.set('relevanceLanguage', 'en');
+      url.searchParams.set('maxResults', '4');
+      url.searchParams.set('q', eduQuery);
+      url.searchParams.set('key', apiKey);
+
+      const ytRes = await fetch(url.toString());
+      if (!ytRes.ok) {
+        res.status(502).json({
+          ok: false,
+          configured: true,
+          code: 'UPSTREAM_ERROR',
+          error: `YouTube Data API returned status ${ytRes.status}.`,
+          items: [],
+        });
+        return;
+      }
+
+      const data = (await ytRes.json()) as {
+        items?: {
+          id?: { videoId?: string };
+          snippet?: { title?: string; channelTitle?: string; description?: string; publishedAt?: string };
+        }[];
+      };
+
+      const items = (data.items ?? [])
+        .map((it) => {
+          const vid = it.id?.videoId ?? '';
+          if (!/^[A-Za-z0-9_-]{11}$/.test(vid)) return null;
+          return {
+            youtubeId: vid,
+            title: String(it.snippet?.title ?? 'Educational Lecture'),
+            channelTitle: String(it.snippet?.channelTitle ?? 'YouTube'),
+            description: String(it.snippet?.description ?? '').slice(0, 220),
+            watchUrl: `https://www.youtube.com/watch?v=${vid}`,
+            embedUrl: `https://www.youtube-nocookie.com/embed/${vid}?rel=0`,
+          };
+        })
+        .filter(Boolean);
+
+      if (ytSearchCache.size > 100) ytSearchCache.clear();
+      ytSearchCache.set(normalizedKey, { at: Date.now(), items });
+
+      res.json({ ok: true, configured: true, cached: false, items });
+    } catch {
+      res.status(502).json({
+        ok: false,
+        configured: true,
+        code: 'NETWORK_ERROR',
+        error: 'Unable to reach YouTube Data API.',
+        items: [],
+      });
+    }
   });
 
   // Retrieve or initialize user's server-metered AI entitlement & plan catalog

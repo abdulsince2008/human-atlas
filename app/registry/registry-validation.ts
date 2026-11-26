@@ -9,6 +9,7 @@ import {
   REGISTRY_TOPICS,
 } from './knowledge-registry';
 import type { RegistryValidationResult } from './registry-types';
+import { validateVideoResources } from '../data/video-resources';
 
 export function validateKnowledgeRegistry(atlas?: Atlas | null): RegistryValidationResult {
   const errors: string[] = [];
@@ -117,6 +118,11 @@ export function validateKnowledgeRegistry(atlas?: Atlas | null): RegistryValidat
         errors.push(`Chapter ${ch.id} references missing topicId ${tid}`);
       }
     }
+  }
+
+  const videoCheck = validateVideoResources();
+  if (!videoCheck.valid) {
+    errors.push(...videoCheck.errors);
   }
 
   return {

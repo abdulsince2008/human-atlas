@@ -66,6 +66,7 @@ import {
   type RecordingStatus,
 } from '../presentation/video-recorder';
 import AnatomyScene from '../scene';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   atlas: Atlas | null;
@@ -73,6 +74,7 @@ interface Props {
   initialPresentationIntent?: { id: string; seq: number } | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenClinical?: () => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 const VALID_CLINICAL_CASE_IDS = new Set(CLINICAL_CASES.map((c) => c.id));
@@ -106,6 +108,7 @@ export default function PresentationStudioPage({
   initialPresentationIntent,
   onInspectConcept,
   onOpenClinical,
+  onOpenStudyContext,
 }: Props) {
   const study = useStudy();
 
@@ -703,6 +706,21 @@ export default function PresentationStudioPage({
                 className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-medium text-teal-900 hover:bg-teal-100"
               >
                 <Stethoscope size={14} /> Clinical Library
+              </button>
+            )}
+            {onOpenStudyContext && (
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenStudyContext({
+                    presentationId: activePresentation.id,
+                    conceptId: activeStep?.scene?.selectedConceptIds?.[0],
+                    sourceModule: 'present',
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-lg border border-teal-700 bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800"
+              >
+                <BookOpen size={14} /> Study Workspace
               </button>
             )}
             <button

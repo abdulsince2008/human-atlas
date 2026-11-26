@@ -44,6 +44,7 @@ import type {
 import PracticalLabResults from './PracticalLabResults';
 import PracticalLabSetup from './PracticalLabSetup';
 import { useStudy } from './StudyContext';
+import type { StudyContextInput } from '../study-context-engine';
 
 const AnatomyScene = lazy(() => import('../scene'));
 
@@ -53,6 +54,7 @@ interface Props {
   initialSystemId?: CanonicalSystemId | null;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 type Stage = 'setup' | 'active' | 'results';
@@ -76,8 +78,9 @@ export default function PracticalLabWorkspace({
   initialSystemId,
   onInspectConcept,
   onOpenLearnSystem,
+  onOpenStudyContext,
 }: Props) {
-  const { recordPracticalExam } = useStudy();
+  const { state: studyState, recordPracticalExam } = useStudy();
   const [stage, setStage] = useState<Stage>('setup');
   const [storage, setStorage] = useState<PracticalLabStorageState>(() =>
     loadPracticalLabStorage(),
@@ -421,6 +424,7 @@ export default function PracticalLabWorkspace({
     if (!currentQuestion) {
       return {
         embedded: true,
+        anatomySex: studyState.preferredSex,
         explode: 0,
         visible: DEFAULT_VISIBLE,
         selected: [],
@@ -445,6 +449,7 @@ export default function PracticalLabWorkspace({
         // After submission in Mode B, ghost surroundings & highlight the true target so student learns exact location
         return {
           embedded: true,
+          anatomySex: studyState.preferredSex,
           explode: 0,
           visible: Array.from(new Set([...DEFAULT_VISIBLE, ...activeLayers])),
           selected: currentQuestion.targetElementIds,
@@ -464,6 +469,7 @@ export default function PracticalLabWorkspace({
       if (locateShellMode === 'system-only') {
         return {
           embedded: true,
+          anatomySex: studyState.preferredSex,
           explode: 0,
           visible: Array.from(activeLayers),
           selected: previewPartId ? [previewPartId] : [],
@@ -485,6 +491,7 @@ export default function PracticalLabWorkspace({
       const dimmedSystems = SHELL_LAYERS.filter((layer) => !activeLayers.has(layer));
       return {
         embedded: true,
+        anatomySex: studyState.preferredSex,
         explode: 0,
         visible,
         selected: previewPartId ? [previewPartId] : [],
@@ -504,6 +511,7 @@ export default function PracticalLabWorkspace({
     // Mode A (Identify) & Mode C (Knowledge): target structure solid teal in transparent body context
     return {
       embedded: true,
+      anatomySex: studyState.preferredSex,
       explode: 0,
       visible: Array.from(new Set([...DEFAULT_VISIBLE, ...activeLayers])),
       selected: currentQuestion.targetElementIds,
@@ -528,6 +536,7 @@ export default function PracticalLabWorkspace({
     resetCount,
     zoomStep,
     focusRequest,
+    studyState.preferredSex,
   ]);
 
   const runningScore = useMemo(
@@ -1005,6 +1014,22 @@ export default function PracticalLabWorkspace({
                       <ExternalLink size={13} />
                       Open in 3D Explorer
                     </button>
+                    {onOpenStudyContext && (
+                      <button
+                        type="button"
+                        className="a360-btn-secondary"
+                        onClick={() =>
+                          onOpenStudyContext({
+                            conceptId: currentQuestion.targetConceptId,
+                            systemId: currentQuestion.canonicalSystem,
+                            sourceModule: 'practical_lab',
+                          })
+                        }
+                      >
+                        Open in Study Workspace
+                        <ArrowRight size={14} />
+                      </button>
+                    )}
 
                     {currentIndex < questions.length - 1 ? (
                       <button
@@ -1055,6 +1080,7 @@ export default function PracticalLabWorkspace({
           onNewSetup={() => setStage('setup')}
           onInspectConcept={onInspectConcept}
           onOpenLearnSystem={onOpenLearnSystem}
+          onOpenStudyContext={onOpenStudyContext}
         />
       )}
     </div>

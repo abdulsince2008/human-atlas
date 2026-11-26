@@ -8,12 +8,14 @@ import {
   type HistologyEntry,
 } from '../data/histology-data';
 import StudyResourceList from '../components/StudyResourceList';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   initialEntryId?: string;
   initialSystemId?: CanonicalSystemId;
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 export default function HistologyPage({
@@ -21,6 +23,7 @@ export default function HistologyPage({
   initialSystemId,
   onInspectConcept,
   onOpenLearnSystem,
+  onOpenStudyContext,
 }: Props) {
   const [catFilter, setCatFilter] = useState<HistologyCategory | 'all'>('all');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
@@ -66,6 +69,22 @@ export default function HistologyPage({
         attribution. Broader 18-chapter Domain C curriculum packs and Haematology / Microbiology /
         Pathology slide series remain text-first (<code>asset_required</code>) until full per-chapter
         slide banks are curated.
+        {onOpenStudyContext && (
+          <div className="mt-2">
+            <button
+              type="button"
+              className="a360-btn-secondary"
+              onClick={() =>
+                onOpenStudyContext({
+                  domainId: 'radiology_imaging',
+                  sourceModule: 'histology',
+                })
+              }
+            >
+              Open Radiology Imaging in Study Workspace <ArrowRight size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
       <StudyResourceList
@@ -244,6 +263,23 @@ export default function HistologyPage({
                       onClick={() => onOpenLearnSystem(entry.canonicalSystem!)}
                     >
                       <BookOpen size={14} /> Open System Lesson
+                    </button>
+                  )}
+                  {onOpenStudyContext && (
+                    <button
+                      type="button"
+                      className="a360-btn-secondary"
+                      onClick={() =>
+                        onOpenStudyContext({
+                          histologyId: entry.id,
+                          conceptId: entry.linkedConceptIds[0],
+                          systemId: entry.canonicalSystem,
+                          domainId: 'histology',
+                          sourceModule: 'histology',
+                        })
+                      }
+                    >
+                      Connected Study Workspace <ArrowRight size={14} />
                     </button>
                   )}
                 </div>

@@ -16,6 +16,7 @@ import {
 } from '../data/clinical-data';
 import { getClinicalCaseExplainerLink } from '../presentation/builtin-presentations';
 import { resolveClinicalCaseTarget } from '../utils/deep-link-resolver';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   initialCaseId?: string | null;
@@ -23,6 +24,7 @@ interface Props {
   onInspectConcept: (conceptId: string) => void;
   onOpenLearnSystem: (systemId: CanonicalSystemId) => void;
   onOpenPresentation: (presentationId: string) => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 const CATEGORIES: { id: ClinicalCategory | 'all'; label: string }[] = [
@@ -41,6 +43,7 @@ export default function ClinicalPage({
   onInspectConcept,
   onOpenLearnSystem,
   onOpenPresentation,
+  onOpenStudyContext,
 }: Props) {
   const initialCase = resolveClinicalCaseTarget(initialCaseId, initialSystemId);
   const [cat, setCat] = useState<ClinicalCategory | 'all'>('all');
@@ -282,6 +285,23 @@ export default function ClinicalPage({
             >
               <BookOpen size={14} /> Open System Lesson
             </button>
+            {onOpenStudyContext && (
+              <button
+                type="button"
+                className="a360-btn-secondary"
+                onClick={() =>
+                  onOpenStudyContext({
+                    clinicalCaseId: active.id,
+                    conceptId: active.relevantConcepts[0]?.conceptId,
+                    systemId: active.systemId,
+                    presentationId: activeExplainer.presentationId ?? undefined,
+                    sourceModule: 'clinical',
+                  })
+                }
+              >
+                Open in Connected Study Workspace <ArrowRight size={14} />
+              </button>
+            )}
           </div>
 
           <p className="a360-provenance-line">Source Reference: {active.sourceReference}</p>

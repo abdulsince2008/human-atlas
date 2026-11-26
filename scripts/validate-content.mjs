@@ -200,6 +200,8 @@ const { validateProvenanceIntegrity, PROVENANCE_LAYERS, EDUCATIONAL_EVIDENCE_REC
   '../app/data/provenance-registry.ts'
 );
 const { validateStudyResources, STUDY_RESOURCES } = await import('../app/data/study-resources.ts');
+const { validateVideoResources, VERIFIED_YOUTUBE_VIDEOS } = await import('../app/data/video-resources.ts');
+const { resolveStudyContext } = await import('../app/study-context-engine.ts');
 const { resolveBrainRegions, resolveMusclePilotColors, FUNCTIONAL_MUSCLE_PILOTS } = await import(
   '../app/visualization-colors.ts'
 );
@@ -215,6 +217,34 @@ for (const res of STUDY_RESOURCES) {
   }
 }
 
+const videoCheck = validateVideoResources();
+assert.equal(videoCheck.valid, true, `Video resources validation failed: ${videoCheck.errors.join('; ')}`);
+for (const vid of VERIFIED_YOUTUBE_VIDEOS) {
+  for (const sysId of vid.canonicalSystems) {
+    assert.ok(canonicalSystemIds.has(sysId), `Video resource ${vid.id}: invalid canonicalSystem ${sysId}`);
+  }
+  for (const cid of vid.conceptIds) {
+    assert.ok(
+      conceptIdsInAtlas.has(cid) || plannedUnavailableConcepts.has(cid),
+      `Video resource ${vid.id}: unknown conceptId ${cid}`,
+    );
+  }
+}
+
+// Exercise resolveStudyContext over sample lessons, structures, and non-3D topics
+for (const lesson of ANATOMY_LESSONS) {
+  for (const topic of lesson.topics) {
+    const ctx = resolveStudyContext({ topicId: topic.id, systemId: lesson.systemId }, atlas);
+    assert.ok(ctx.title.length > 0, `resolveStudyContext missing title for topic ${topic.id}`);
+  }
+}
+const sampleHeartCtx = resolveStudyContext({ conceptId: 'FMA7088' }, atlas);
+assert.equal(sampleHeartCtx.in3DModel, true, 'Heart FMA7088 should resolve in3DModel=true');
+assert.ok(sampleHeartCtx.videoResources.length > 0, 'Heart FMA7088 should resolve verified YouTube videos');
+const sampleNon3dCtx = resolveStudyContext({ topicId: 'edu-cell-organelles-transport' }, atlas);
+assert.equal(sampleNon3dCtx.in3DModel, false, 'Non-3D cell transport topic should resolve in3DModel=false');
+assert.ok(sampleNon3dCtx.learningObjectives.length > 0, 'Non-3D topic should resolve real learning objectives');
+
 const brainRes = resolveBrainRegions(atlas);
 assert.ok(brainRes.totalMappedParts >= 70, `Brain regional palette mapped too few parts: ${brainRes.totalMappedParts}`);
 
@@ -224,6 +254,7 @@ for (const pilot of FUNCTIONAL_MUSCLE_PILOTS) {
 }
 
 const { validateKnowledgeRegistry } = await import('../app/registry/registry-validation.ts');
+const { REGISTRY_TOPICS } = await import('../app/registry/knowledge-registry.ts');
 const registryCheck = validateKnowledgeRegistry(atlas);
 assert.equal(
   registryCheck.valid,
@@ -231,13 +262,19 @@ assert.equal(
   `Knowledge Registry validation failed: ${registryCheck.errors.join('; ')}`,
 );
 
+const complete3DCount = REGISTRY_TOPICS.filter((t) => t.relatedConceptIds.length > 0).length;
+const plannedCount = REGISTRY_TOPICS.filter((t) => t.coverageStatus === 'planned').length;
+const textAnd2DOnlyCount = Math.max(0, REGISTRY_TOPICS.length - complete3DCount - plannedCount);
+
 console.log(
   `Content validation passed: ${KNOWLEDGE_GRAPH_V2.length} V2 knowledge structures, ` +
     `${VERIFIED_RELATIONSHIPS.length} verified relationships, ${ANATOMY_LESSONS.length} lessons ` +
     `(${ANATOMY_LESSONS.reduce((s, l) => s + l.topics.length, 0)} topics), ` +
-    `${registryCheck.metrics.domainsCount} registry domains (${registryCheck.metrics.topicsCount} topics, ${registryCheck.metrics.curriculumFrameworksCount} frameworks), ` +
+    `${registryCheck.metrics.domainsCount} registry domains (${registryCheck.metrics.topicsCount} topics: ` +
+    `${complete3DCount} 3D-mapped / ${textAnd2DOnlyCount} text-2D / ${plannedCount} planned; ${registryCheck.metrics.curriculumFrameworksCount} frameworks), ` +
     `${QUIZ_QUESTIONS.length} quiz questions, ${PHYSIOLOGY_MODULES.length} physiology specs, ` +
     `${HISTOLOGY_ENTRIES.length} histology entries, ${CLINICAL_CASES.length} clinical scenarios, ` +
     `${PROVENANCE_LAYERS.length} provenance layers (${EDUCATIONAL_EVIDENCE_RECORDS.length} evidence records), ` +
-    `${STUDY_RESOURCES.length} curated study resources, and ${brainRes.totalMappedParts} mapped brain meshes.`,
+    `${STUDY_RESOURCES.length} curated study resources, ${VERIFIED_YOUTUBE_VIDEOS.length} verified YouTube videos, ` +
+    `and ${brainRes.totalMappedParts} mapped brain meshes.`,
 );

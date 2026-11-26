@@ -17,6 +17,7 @@ import {
 import { getReviewStatusLabel } from '../data/provenance-registry';
 import { useStudy } from './StudyContext';
 import StudyResourceList from './StudyResourceList';
+import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
   record: StructureKnowledgeV2;
@@ -26,6 +27,7 @@ interface Props {
   onOpenLearnSystem: (systemId: CanonicalSystemId, topicId?: string) => void;
   onOpenFlashcards: (systemId: CanonicalSystemId) => void;
   onOpenPracticalLab: () => void;
+  onOpenStudyContext?: (input: StudyContextInput) => void;
 }
 
 type LevelTab = 'beginner' | 'intermediate' | 'advanced';
@@ -38,6 +40,7 @@ export default function StructureReferenceCard({
   onOpenLearnSystem,
   onOpenFlashcards,
   onOpenPracticalLab,
+  onOpenStudyContext,
 }: Props) {
   const [level, setLevel] = useState<LevelTab>('intermediate');
   const { isBookmarked, toggleBookmark } = useStudy();
@@ -321,6 +324,21 @@ export default function StructureReferenceCard({
         <button type="button" className="a360-btn-secondary" onClick={onOpenPracticalLab}>
           <Stethoscope size={14} /> Practical Spotter
         </button>
+        {onOpenStudyContext && (
+          <button
+            type="button"
+            className="a360-btn-primary"
+            onClick={() =>
+              onOpenStudyContext({
+                conceptId: record.conceptId,
+                systemId: record.canonicalSystem,
+                sourceModule: 'systems',
+              })
+            }
+          >
+            Open in Connected Study Workspace <ArrowRight size={14} />
+          </button>
+        )}
       </div>
 
       <StudyResourceList

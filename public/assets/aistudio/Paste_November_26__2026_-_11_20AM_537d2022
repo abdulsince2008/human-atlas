@@ -1,0 +1,932 @@
+# ANATOMY 360 — UNIVERSAL CONNECTED STUDY WORKSPACE
+## Mega Implementation Prompt: Contextual 3D Learning, Internal Feature Integration, External Study Intelligence & Adaptive Study
+
+You are working directly inside the existing repository:
+
+**Repository:** `abdulsince2008/human-atlas`  
+**Project:** Anatomy 360  
+**Primary objective:** Transform the existing Anatomy 360 project into a genuinely connected study environment where every relevant learning activity automatically connects to the correct anatomical structures, 3D visualization, curriculum content, internal study tools, and verified external learning resources.
+
+This is an IMPLEMENTATION task, not a planning-only task.
+
+You must inspect the current code, understand the architecture, identify what already works, implement missing functionality, run meaningful verification, fix failures, and provide evidence-based completion reporting.
+
+Do not stop after writing a plan.
+
+---
+
+# 0. NON-NEGOTIABLE EXECUTION RULES
+
+1. Inspect the current repository and current branch before changing anything.
+2. Do not assume the codebase matches previous summaries, documentation, or this prompt.
+3. Treat the current source code as the primary source of truth.
+4. Reuse existing components, services, registries, contexts, routes, data structures, styles, and tests wherever appropriate.
+5. Do not create duplicate systems when an existing system can be extended safely.
+6. Do not remove or regress existing functionality.
+7. Do not replace functional implementations with mockups, placeholders, hardcoded demos, or decorative UI.
+8. Do not claim that a feature is implemented merely because a button, tab, card, or route exists.
+9. Every new user-facing control must perform its advertised action.
+10. Do not fabricate anatomy relationships, academic sources, YouTube videos, URLs, citations, licensing information, or test results.
+11. Do not mark content as academically reviewed unless actual qualified review is documented.
+12. Do not mark an external resource as verified unless its URL, relevance, and required metadata have been checked.
+13. Do not silently swallow errors.
+14. Do not use broad `any` types to bypass implementation or validation.
+15. Do not break current male/female atlas selection, anatomy selection, mesh visibility, explosion, camera controls, study tracking, quizzes, or existing routes.
+16. Do not download or add large model assets unless necessary for the requested feature and justified.
+17. Avoid introducing paid services, mandatory API keys, or new recurring costs without necessity.
+18. If a capability requires an API key, backend, external service, or deployment configuration that is unavailable, implement a truthful graceful fallback and document the remaining setup.
+19. Do not ask the user to manually perform research or code inspection that you can complete yourself.
+20. Continue implementation until all feasible goals are completed and verified. Do not stop at the first successful build.
+
+## STRICT COMPLETION STANDARD
+
+A goal is complete only when:
+
+- The relevant implementation exists in the real application.
+- The implementation is connected to actual project data.
+- The feature works through the actual user interaction flow.
+- Relevant edge cases are handled.
+- Automated tests exist for important logic.
+- Existing tests and build checks pass, or failures are explicitly documented with evidence.
+- No fake completion claims are made.
+
+If a goal is only partially implemented, label it `PARTIAL`.
+
+If a goal is blocked by external configuration, label it `BLOCKED_EXTERNAL_SETUP`.
+
+If you cannot verify a goal, label it `UNVERIFIED`.
+
+Never label an unverified goal `COMPLETE`.
+
+---
+
+# 1. FIRST: REPOSITORY RECONNAISSANCE
+
+Before editing:
+
+1. Inspect the current branch, latest commit, working tree, and project structure.
+2. Read:
+   - `package.json`
+   - current README
+   - current routing and application entry point
+   - current anatomy scene and structure selection logic
+   - current universal search
+   - current study context and persistence
+   - current curriculum registry
+   - current anatomy knowledge/relationship data
+   - current chapter package engine
+   - current study-resource registry
+   - current quizzes and assessment data
+   - current physiology modules
+   - current clinical cases
+   - current histology and radiology pages
+   - current presentation system
+   - current flashcards and revision system
+   - current tests and validation scripts
+3. Locate all existing implementations related to:
+   - `knowledge-registry.ts`
+   - `registry-types.ts`
+   - `study-resources.ts`
+   - `StudyContext.tsx`
+   - chapter/topic packages
+   - concept/FMA IDs
+   - anatomy selection and inspection
+   - quiz-to-3D links
+   - relationship explorer
+   - physiology-to-3D links
+   - external reading links
+   - video lesson entries
+   - deep-link resolution
+4. Determine which connections already work, which are partial, and which are missing.
+5. Create a concise internal implementation checklist based on actual findings.
+
+Do not trust old README metrics if the current data disagrees. Derive current counts from the actual data and validation functions.
+
+Do not rewrite the architecture blindly. Preserve working systems.
+
+---
+
+# 2. CORE PRODUCT DECISION
+
+The project is moving toward a **Universal Connected Study Workspace**.
+
+The student should not have to finish one study page, navigate to another module, search for the same anatomical structure again, and manually rebuild their learning context.
+
+Instead:
+
+> When a student studies any topic, Anatomy 360 should automatically assemble the relevant anatomy, persistent 3D visualization, explanations, relationships, physiology, assessments, clinical correlations, visual resources, and further study links around that topic.
+
+The workspace must be context-aware, not merely a page containing many unrelated feature buttons.
+
+The central experience should support:
+
+- Studying a curriculum chapter.
+- Studying an individual topic.
+- Studying a specific anatomical structure.
+- Studying a concept from an MCQ.
+- Studying a relationship between structures.
+- Studying a physiology mechanism.
+- Studying a clinical case.
+- Studying histology or radiology.
+- Studying from a search result.
+- Studying from a bookmarked or weak concept.
+
+All these entry points should resolve to a shared study context.
+
+---
+
+# 3. BUILD A COMMON STUDY CONTEXT ENGINE
+
+Implement or extend a reusable, typed study-context architecture.
+
+Use the existing project registry and canonical identifiers wherever possible.
+
+A study context may include:
+
+- `conceptId`
+- `topicId`
+- `chapterId`
+- `systemId`
+- `domainId`
+- `subjectId`
+- `structureIds`
+- `relationshipIds`
+- `assessmentIds`
+- `clinicalCaseIds`
+- `physiologyIds`
+- `histologyIds`
+- `radiologyIds`
+- `presentationIds`
+- `resourceIds`
+- source module
+- source item ID
+- optional selected learning objective
+- optional selected question
+- optional relationship or mechanism being studied
+
+Do not require every field to exist. Context must work with partial information.
+
+## Requirements
+
+1. Create a single canonical resolver/service that can resolve context from any supported entry point.
+2. Use stable canonical identifiers, especially existing FMA concept IDs.
+3. Resolve topic/chapter to associated anatomy.
+4. Resolve anatomy to relevant curriculum topics.
+5. Resolve MCQs to the concept being tested.
+6. Resolve physiology simulations to relevant structures and topics.
+7. Resolve clinical cases to relevant structures, systems, and topics.
+8. Resolve histology/radiology entries to gross anatomy and relevant study content.
+9. Resolve relationships to both source and target concepts.
+10. Resolve external resources by concept, topic, chapter, and system.
+11. Handle missing mappings without crashing.
+12. Avoid false matches based only on similar display names.
+13. Avoid duplicate results.
+14. Provide deterministic ordering and relevance ranking.
+15. Keep the context resolver independent from page-specific UI wherever practical.
+
+Create or extend appropriate tests for:
+
+- Concept-only context.
+- Topic-only context.
+- Chapter context.
+- MCQ context.
+- Relationship context.
+- Physiology context.
+- Clinical case context.
+- Multiple overlapping identifiers.
+- Missing identifiers.
+- Invalid identifiers.
+- Duplicate resources.
+- Partial mappings.
+
+---
+
+# 4. UNIVERSAL STUDY WORKSPACE UI
+
+Implement a real reusable study workspace.
+
+The workspace should be usable from relevant existing study routes without requiring a complete rewrite of the application.
+
+## Desktop layout
+
+Preferred layout:
+
+- Main study content area.
+- Persistent 3D anatomy viewport beside the content.
+- Contextual resource/navigation panel or expandable sections.
+- Resizable layout where practical.
+
+The 3D viewport should remain available while the student switches between relevant study content.
+
+## Mobile layout
+
+Do not force a narrow desktop split view on mobile.
+
+Use a responsive experience such as:
+
+- Study content as the primary view.
+- 3D anatomy available through a persistent tab, drawer, or bottom sheet.
+- Easy switching between study content and anatomy.
+- Preserve the current study context during switching.
+
+## Workspace behavior
+
+The workspace must support:
+
+- Current topic/chapter title and summary.
+- Relevant learning objectives.
+- Related anatomical structures.
+- Related relationships.
+- Relevant physiology.
+- Relevant clinical cases.
+- Relevant histology/radiology.
+- Relevant assessments.
+- External study resources.
+- YouTube learning videos.
+- User bookmarks and progress where supported.
+
+Do not display every available item simultaneously.
+
+Use contextual sections, tabs, expandable cards, and sensible relevance ordering.
+
+The workspace must clearly distinguish:
+
+- Available resources.
+- Partial coverage.
+- Missing resources.
+- Planned content.
+- Reviewed content.
+- Unreviewed content.
+
+Never imply complete coverage when data is incomplete.
+
+---
+
+# 5. PERSISTENT AND SYNCHRONIZED 3D ANATOMY
+
+The 3D viewport is a central learning surface, not an unrelated tool.
+
+Implement synchronization between the current study context and the anatomy scene.
+
+## Required interactions
+
+1. Opening a chapter should focus or prepare the relevant anatomical structures.
+2. Opening a topic should highlight its mapped structures.
+3. Selecting a structure in the study content should focus the 3D viewport.
+4. Selecting a structure in 3D should update the current study context when a valid mapping exists.
+5. Clicking an MCQ's related concept should inspect that structure in the persistent workspace.
+6. Opening a physiology mechanism should show relevant anatomy when mapped.
+7. Opening a relationship should allow the student to inspect both connected structures.
+8. Opening a clinical case should focus relevant structures.
+9. Switching study sections must not unnecessarily reset camera, anatomy mode, sex selection, or current selection.
+10. Changing the current topic should update contextual highlighting predictably.
+
+## 3D behavior
+
+Preserve existing:
+
+- Male/female modes.
+- Anatomy selection.
+- Search and inspect.
+- System visibility.
+- Mesh visibility.
+- Explosion and reset.
+- Camera controls.
+- LOD behavior.
+- Existing materials and rendering.
+- Existing scene performance safeguards.
+
+Do not automatically explode the whole body every time a student opens a topic.
+
+Use restrained, educational focus behavior:
+
+- Highlight relevant structures.
+- Optionally isolate or focus when appropriate.
+- Provide an obvious reset/clear focus action.
+- Do not hide important context unexpectedly.
+
+When a concept has no available mesh, show an honest state such as:
+
+`This concept is included in the study content, but a matching 3D mesh is not currently available.`
+
+Do not silently focus a wrong structure.
+
+## Performance
+
+- Avoid unnecessary scene remounting.
+- Avoid reloading model assets for every study context change.
+- Avoid expensive full-scene scans on every React render.
+- Use existing concept-to-mesh maps and memoization.
+- Keep the viewport usable on mobile and lower-memory devices.
+- Respect the project's existing rendering architecture.
+
+---
+
+# 6. CONNECT ALL EXISTING INTERNAL STUDY FEATURES
+
+Audit every relevant existing feature and integrate it into the contextual workspace.
+
+At minimum inspect and connect:
+
+- Curriculum subjects, chapters, topics.
+- Learning outcomes.
+- Chapter explanations.
+- Chapter MCQs.
+- Short-answer exercises.
+- Applied cases.
+- Anatomy quizzes.
+- Spotter exams.
+- Flashcards and spaced repetition.
+- Bookmarks.
+- Relationship explorer.
+- Physiology simulations.
+- Histology.
+- Radiology.
+- Clinical cases.
+- Guided 3D presentations.
+- Anatomy system lessons.
+- Correlations and clinical explanations.
+- Educator learning sequences where relevant.
+- Existing search results.
+- Existing study progress and weak-concept tracking.
+
+## Rules
+
+1. Use existing data rather than duplicating it.
+2. Prefer shared resolver functions over hardcoded page-specific mappings.
+3. Every relevant content item should expose a meaningful route into the contextual workspace.
+4. Preserve the originating item and context when navigating.
+5. Provide a return-to-study action where appropriate.
+6. Do not force users to manually search the same concept again.
+7. Do not show irrelevant modules merely because they share a broad system ID.
+8. Use relevance scoring based on exact concept, topic, chapter, and system matches.
+9. Deduplicate overlapping resources.
+10. Show empty states when no relevant content exists.
+
+## MCQ-specific behavior
+
+After answering a question, the student should be able to:
+
+- Read the explanation.
+- Inspect the related structure in 3D.
+- Open the relevant topic.
+- Explore relationships.
+- Review related physiology or clinical correlations.
+- Save the concept for revision.
+- See related questions where available.
+
+Do not interrupt the question flow unnecessarily. Contextual study should be available without forcing the student to leave the quiz.
+
+---
+
+# 7. EXTERNAL STUDY INTELLIGENCE
+
+Extend the existing curated study-resource architecture.
+
+Do not create an unstructured list of URLs.
+
+External resources should be connected to canonical concepts, topics, chapters, systems, and resource types.
+
+## Resource categories
+
+Support or extend the current data model for:
+
+- Open textbooks.
+- Academic articles.
+- Review articles.
+- Medical reference pages.
+- Anatomy atlases.
+- Histology/microscopy resources.
+- Radiology/imaging resources.
+- Educational diagrams.
+- YouTube videos.
+- Research datasets and specialist resources.
+
+## Resource metadata
+
+Use a typed resource record with fields appropriate to the resource:
+
+- Stable resource ID.
+- Title.
+- Publisher or author.
+- Canonical URL.
+- Resource type.
+- Summary.
+- Related concept IDs.
+- Related topic IDs.
+- Related chapter IDs.
+- Related systems.
+- Intended academic level.
+- Access type.
+- License/access note when known.
+- Source/review status.
+- Last checked date if actually checked.
+- Optional language.
+- Optional duration for videos.
+- Optional thumbnail or provider metadata.
+- Optional availability/embed status.
+
+Do not invent metadata.
+
+Do not claim a resource is open access if only its landing page is publicly accessible.
+
+Do not claim that a page is licensed for redistribution merely because it can be viewed.
+
+## Resource ranking
+
+Prioritize:
+
+1. Exact concept match.
+2. Exact topic match.
+3. Exact chapter match.
+4. Relevant system match.
+5. Appropriate academic level.
+6. Quality/review status.
+7. Access availability.
+8. Freshness where relevant.
+
+Do not rank a broad generic article above a precise resource without reason.
+
+## External resource UI
+
+For the current study context, show:
+
+- Recommended readings.
+- More articles.
+- Relevant reference pages.
+- Relevant visual resources.
+- External atlases.
+- Source/publisher.
+- Clear access label.
+- External link action.
+
+Open external pages safely using standard browser navigation.
+
+Do not scrape or reproduce copyrighted article content without authorization.
+
+---
+
+# 8. TOPIC-SPECIFIC YOUTUBE VIDEO LEARNING
+
+The current project has chapter video storyboard/script fallbacks. Inspect the actual implementation and close the gap between video scripts and real external video learning.
+
+Implement a real video-resource model and UI.
+
+## Required behavior
+
+1. Show topic-relevant YouTube videos where available.
+2. Use official YouTube embed/player behavior.
+3. Display title, channel, thumbnail, and duration when verified and available.
+4. Connect each video to relevant concept/topic/chapter IDs.
+5. Provide a fallback to open the video on YouTube if embedding is unavailable.
+6. Handle deleted, private, region-restricted, or embed-disabled videos.
+7. Do not display fake video cards.
+8. Do not fabricate video IDs or timestamps.
+9. Do not label videos as verified or academically reviewed without actual verification.
+10. Clearly separate original Anatomy 360 storyboards from external YouTube videos.
+
+## Discovery strategy
+
+Use a provider/API integration only when it is appropriate and available.
+
+If YouTube Data API requires an API key:
+
+- Do not hardcode secrets.
+- Do not expose server keys in client code.
+- Use a secure server-side integration if the project's backend supports it.
+- Add configuration documentation.
+- Add quota-aware caching and error handling.
+- Provide a graceful no-key fallback.
+- Do not pretend live search is working when no API key is configured.
+
+If live discovery cannot be enabled in the current environment, implement the resource model, curated video support, official embed player, and honest search fallback.
+
+Do not block the entire study workspace on API configuration.
+
+---
+
+# 9. CONTEXTUAL SEARCH AND RESOURCE DISCOVERY
+
+Extend existing universal search rather than creating a competing search system.
+
+Search should support:
+
+- Anatomical structures.
+- Topics.
+- Chapters.
+- Relationships.
+- Physiology mechanisms.
+- Clinical cases.
+- Histology/radiology.
+- External readings.
+- YouTube videos.
+- Study activities.
+
+Search results should retain canonical context.
+
+When a student opens a result:
+
+- Open the relevant study workspace.
+- Restore the correct context.
+- Focus the relevant 3D structure if available.
+- Show the relevant content and resources.
+
+Add appropriate deep-link support so study context can be shared or bookmarked where the existing routing architecture supports it.
+
+Deep links must validate IDs and handle missing data safely.
+
+---
+
+# 10. ADAPTIVE STUDY RECOMMENDATIONS
+
+After the shared study context is functioning, implement a practical recommendation layer using existing student progress.
+
+Use available signals such as:
+
+- Incorrect MCQs.
+- Weak concepts.
+- Incomplete topics.
+- Flashcard review state.
+- Previously completed activities.
+- Bookmarks.
+- Current chapter/topic.
+
+Recommend relevant actions such as:
+
+- Revisit the explanation.
+- Inspect a structure in 3D.
+- Explore a relationship.
+- Review a physiology mechanism.
+- Read a curated resource.
+- Watch a relevant video.
+- Solve targeted questions.
+- Review a flashcard.
+
+## Rules
+
+1. Recommendations must be explainable.
+2. Do not recommend unavailable content.
+3. Do not recommend unrelated activities.
+4. Do not create fake student progress.
+5. Respect existing study persistence and cloud/local behavior.
+6. Avoid requiring a new AI API for basic recommendations.
+7. Use deterministic rules as the initial implementation.
+8. Add AI-generated recommendations only if the current AI architecture can support them safely and reliably.
+9. Clearly label recommendation reasons, e.g. `Based on your recent incorrect answers`.
+
+---
+
+# 11. DATA QUALITY AND REGISTRY VALIDATION
+
+Extend the existing registry validation system.
+
+Add validation for:
+
+- Invalid concept IDs.
+- Missing topic mappings.
+- Missing chapter mappings.
+- Invalid resource IDs.
+- Duplicate resources.
+- Broken internal navigation targets.
+- Missing route targets.
+- Invalid video IDs.
+- Invalid external URLs.
+- Missing required metadata.
+- Invalid relationship endpoints.
+- Resource references to nonexistent concepts.
+- Unreachable study items.
+- Incorrect or stale registry counts.
+
+Create actionable warnings rather than silently ignoring bad data.
+
+Do not require every topic to have every resource type. Missing coverage should be reported honestly, not treated as fabricated completion.
+
+Create a report that distinguishes:
+
+- Fully connected study items.
+- Partially connected items.
+- Items with no 3D mapping.
+- Items with no internal study resources.
+- Items with no external resources.
+- Items with no verified videos.
+- Items requiring academic review.
+
+---
+
+# 12. TESTING REQUIREMENTS
+
+Tests are mandatory.
+
+Add or extend tests for the context resolver, registry, workspace navigation, and integrations.
+
+## Unit tests
+
+Test:
+
+- Context resolution from each entry point.
+- Concept-to-mesh mapping.
+- Topic-to-structure mapping.
+- Chapter-to-resource mapping.
+- Quiz-to-study-context mapping.
+- Relationship-to-study-context mapping.
+- Physiology-to-anatomy mapping.
+- Clinical-to-anatomy mapping.
+- External resource ranking.
+- Duplicate elimination.
+- Missing mapping behavior.
+- Invalid IDs.
+- Deep-link parsing.
+- Recommendation ranking.
+- Video ID validation.
+- Resource validation.
+
+## Integration tests
+
+Verify:
+
+- Opening a chapter creates the correct context.
+- Opening an MCQ preserves question context.
+- Selecting a concept updates the 3D focus.
+- Selecting a 3D structure updates the study context when mapped.
+- Switching workspace sections preserves the selected topic.
+- External resource links resolve correctly.
+- YouTube embed fallback works.
+- Mobile layout does not break study navigation.
+- Existing study tracking still works.
+
+## Regression tests
+
+Run existing tests for:
+
+- Anatomy atlas.
+- Anatomy selection.
+- Female overlay.
+- Registry.
+- Curriculum.
+- Study context.
+- Quizzes.
+- Physiology.
+- Relationships.
+- Deep links.
+- Search.
+- Existing platform validation.
+
+Do not delete or weaken tests to make the suite pass.
+
+---
+
+# 13. BUILD, QUALITY, AND PERFORMANCE
+
+Inspect all existing package scripts.
+
+Run the appropriate commands, including as applicable:
+
+- TypeScript checks.
+- Production build.
+- Existing platform tests.
+- Modular tests.
+- Content validation.
+- Registry validation.
+- Anatomy asset validation.
+- Firestore/security tests if relevant.
+
+Fix failures introduced by your changes.
+
+If pre-existing failures occur:
+
+- Identify them.
+- Determine whether your changes caused them.
+- Do not conceal them.
+- Report exact commands and outcomes.
+
+Check for:
+
+- React key warnings.
+- Broken imports.
+- Runtime errors.
+- Unhandled promises.
+- Accessibility issues.
+- Responsive layout problems.
+- Unnecessary rerenders.
+- Memory leaks.
+- WebGL context issues.
+- Broken routes.
+- Dead buttons.
+- Console errors.
+
+Do not claim a browser interaction was verified if you did not actually run it.
+
+---
+
+# 14. DOCUMENTATION
+
+Update the documentation to match the implementation.
+
+Document:
+
+- Universal Study Context architecture.
+- Canonical identifiers.
+- Context resolution.
+- Workspace layout.
+- 3D synchronization behavior.
+- External resource model.
+- YouTube integration.
+- API key configuration if required.
+- Resource review/verification workflow.
+- Test commands.
+- Known limitations.
+- Actual coverage metrics.
+
+Do not leave old README statements that contradict the current implementation.
+
+Do not claim full academic validation.
+
+Do not claim every topic has a video or complete 3D coverage unless verified by the data.
+
+---
+
+# 15. IMPLEMENTATION PHASES
+
+Execute these phases in order, but continue through all feasible phases.
+
+## Phase A — Audit and baseline
+
+Inspect repository, establish baseline, map existing functionality, identify exact missing connections.
+
+## Phase B — Shared context architecture
+
+Implement typed context models and a canonical resolver using existing registries and IDs.
+
+## Phase C — Persistent study workspace
+
+Build reusable responsive workspace with synchronized 3D viewport.
+
+## Phase D — Internal feature integration
+
+Connect chapters, topics, quizzes, relationships, physiology, clinical cases, histology, radiology, presentations, flashcards, and search.
+
+## Phase E — External study library
+
+Extend curated resources, metadata, ranking, contextual display, and validation.
+
+## Phase F — YouTube learning
+
+Implement real video resource support, official embedding, fallback behavior, and optional secure discovery integration.
+
+## Phase G — Adaptive study
+
+Connect weak concepts and study progress to relevant next actions.
+
+## Phase H — Testing and quality
+
+Run full relevant test suite, build, validators, and regression checks. Fix failures.
+
+## Phase I — Documentation and final audit
+
+Update documentation and produce the final evidence report.
+
+Do not stop after Phase A.
+
+---
+
+# 16. STRICT ACCEPTANCE CRITERIA
+
+The following must be explicitly verified.
+
+### A. Study context
+
+- [ ] Chapter can open a study context.
+- [ ] Topic can open a study context.
+- [ ] Anatomy structure can open a study context.
+- [ ] MCQ can open a study context.
+- [ ] Relationship can open a study context.
+- [ ] Physiology module can open a study context.
+- [ ] Clinical case can open a study context.
+- [ ] Histology/radiology entry can open a study context.
+- [ ] Missing mappings do not crash the workspace.
+
+### B. Persistent 3D
+
+- [ ] 3D remains available while studying.
+- [ ] Relevant structures are highlighted or focused.
+- [ ] Study content can focus the 3D structure.
+- [ ] 3D selection can update study context.
+- [ ] Context switching does not unnecessarily reload the scene.
+- [ ] No incorrect structure is silently selected.
+- [ ] Mobile study experience remains usable.
+
+### C. Internal connectivity
+
+- [ ] Relevant relationships are available contextually.
+- [ ] Relevant physiology is available contextually.
+- [ ] Relevant quizzes are available contextually.
+- [ ] Relevant clinical cases are available contextually.
+- [ ] Relevant histology/radiology is available contextually.
+- [ ] Relevant learning content is available contextually.
+- [ ] Student does not need to manually search the same concept again.
+
+### D. External study
+
+- [ ] Existing curated resources are reused.
+- [ ] Resources are indexed by canonical IDs.
+- [ ] Resource ranking is relevant.
+- [ ] External links work or are clearly marked unavailable.
+- [ ] Access/license claims are truthful.
+- [ ] No fabricated links or citations.
+
+### E. YouTube
+
+- [ ] Real video resources can be represented.
+- [ ] Official embed/player is used.
+- [ ] Embed failure has a fallback.
+- [ ] No fake video IDs.
+- [ ] Script/storyboard is clearly distinguished from a real video.
+- [ ] API configuration is documented if needed.
+
+### F. Adaptive learning
+
+- [ ] Weak concepts can produce relevant study actions.
+- [ ] Recommendations use actual student progress.
+- [ ] Recommendations do not point to unavailable content.
+- [ ] Recommendation reasons are understandable.
+
+### G. Quality
+
+- [ ] New unit tests pass.
+- [ ] Relevant integration tests pass.
+- [ ] Existing regression tests pass or failures are documented.
+- [ ] Production build succeeds or exact blocker is documented.
+- [ ] Registry/data validation runs.
+- [ ] Documentation reflects actual code.
+
+A checkbox may be marked complete only when the corresponding behavior has been verified.
+
+---
+
+# 17. FINAL REPORT — REQUIRED FORMAT
+
+At the end, produce a concise but evidence-based report.
+
+## 1. Repository baseline
+
+- Branch.
+- Commit SHA.
+- Existing architecture reused.
+- Existing implementation discovered.
+- Initial test/build status.
+
+## 2. What you implemented
+
+List actual code changes and the purpose of each.
+
+Include important file paths.
+
+## 3. Acceptance criteria status
+
+For every acceptance category, report:
+
+- `COMPLETE`
+- `PARTIAL`
+- `BLOCKED_EXTERNAL_SETUP`
+- `UNVERIFIED`
+- `NOT_IMPLEMENTED`
+
+Do not omit failed criteria.
+
+## 4. Verification evidence
+
+For every test/build command:
+
+- Exact command.
+- Pass/fail.
+- Relevant output summary.
+
+## 5. Remaining gaps
+
+List unresolved tasks and why they remain unresolved.
+
+## 6. External setup
+
+List required API keys, deployment settings, or provider configuration. Never expose secret values.
+
+## 7. Final verdict
+
+State whether the connected study workspace is:
+
+- Implemented and verified.
+- Partially implemented.
+- Not yet production-ready.
+
+Explain the verdict honestly.
+
+---
+
+# FINAL INSTRUCTION
+
+The goal is not to increase the number of features.
+
+The goal is to make Anatomy 360's existing anatomy, curriculum, study tools, assessments, relationships, simulations, and learning resources operate as one coherent educational product.
+
+**Implement the actual connected study experience. Reuse the existing architecture. Verify every important behavior. Fix what fails. Report only what the code and tests prove.**
+
+Begin with repository reconnaissance and continue through implementation and verification. Do not return a plan as your final answer unless execution is genuinely blocked.
