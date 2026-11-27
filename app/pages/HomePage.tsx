@@ -21,6 +21,7 @@ import {
 import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import OnboardingExperience from '../components/OnboardingExperience';
+import SiteFooter from '../components/SiteFooter';
 import type { AppRoute } from '../components/SiteHeader';
 import SpeakGuidanceButton from '../components/SpeakGuidanceButton';
 import { useStudy } from '../components/StudyContext';
@@ -885,30 +886,80 @@ export default function HomePage({
         </div>
       </section>
 
-      <footer className="a360-footer">
-        <p>
-          <strong>Anatomy 360</strong> · Universal Human Sciences &amp; 3D Anatomy Platform ·
-          BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0
-          International.
-        </p>
-        <div className="a360-footer-links">
-          <button type="button" onClick={() => onNavigate('tools')}>
-            All Tools
-          </button>
-          <button type="button" onClick={() => onNavigate('syllabus')}>
-            Syllabus Navigator
-          </button>
-          <button type="button" onClick={() => onNavigate('educator')}>
-            Educator Workspace
-          </button>
-          <button type="button" onClick={() => onNavigate('about')}>
-            About &amp; Attribution
-          </button>
-          <button type="button" onClick={onExplore}>
-            3D Explorer
-          </button>
+      {/* SECTION E — Live Screenshots & Commercial Transparency */}
+      <section className="a360-section" aria-labelledby="section-live-previews">
+        <div className="a360-section-head">
+          <div>
+            <p className="a360-kicker">Inside the Running Platform</p>
+            <h2 id="section-live-previews">Real Views from Anatomy 360</h2>
+            <p>
+              Unretouched captures of the 3D Explorer, Guided Study Workspace, and Educator Planning
+              Workspace — explore free without login, or inspect Student Plus and Educator Plus
+              plans.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" className="a360-text-link" onClick={() => onNavigate('features')}>
+              All Features <ArrowRight size={15} aria-hidden="true" />
+            </button>
+            <button type="button" className="a360-text-link" onClick={() => onNavigate('pricing')}>
+              Plans &amp; Pricing <ArrowRight size={15} aria-hidden="true" />
+            </button>
+          </div>
         </div>
-      </footer>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            {
+              src: '/assets/screenshots/explorer-preview.png',
+              title: '3D Human Body Explorer',
+              desc: 'Rotate Male & Female WebGL anatomy meshes, filter body systems, and inspect FMA relationships.',
+              route: 'explorer' as const,
+            },
+            {
+              src: '/assets/screenshots/study-workspace-preview.png',
+              title: 'Guided Study Workspace',
+              desc: 'Read Grade 6–MBBS explanations side-by-side with live 3D anatomical views and quick checks.',
+              route: 'study' as const,
+            },
+            {
+              src: '/assets/screenshots/educator-workspace-preview.png',
+              title: 'Educator & Classroom Studio',
+              desc: 'Sequence courses across 16 subjects, manage classrooms, and export .pptx or .pdf handouts.',
+              route: 'educator' as const,
+            },
+          ].map((shot) => (
+            <article
+              key={shot.src}
+              className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white"
+            >
+              <div className="aspect-video w-full overflow-hidden border-b border-slate-200 bg-slate-100">
+                <img
+                  src={shot.src}
+                  alt={shot.title}
+                  className="h-full w-full object-cover object-top"
+                  loading="lazy"
+                />
+              </div>
+              <div className="flex flex-1 flex-col justify-between gap-2 p-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">{shot.title}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-600">{shot.desc}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigate(shot.route)}
+                  className="a360-card-link self-start"
+                >
+                  Open {shot.title} →
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <SiteFooter onNavigate={onNavigate} />
     </div>
   );
 }

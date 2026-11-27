@@ -3,7 +3,6 @@ import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import {
   AI_SUBSCRIPTION_PLANS,
   canSpendCredits,
-  createEntitlementAccount,
   estimateReserveCredits,
   getPlanById,
   provisionQuotaFromPayment,
@@ -21,6 +20,7 @@ import {
   type AiExplorerContext,
   type AiNavigatorResponsePayload,
 } from '../app/ai/navigator-contract';
+import { getBillingStore } from './billing-store';
 
 export const AI_MODEL_NAME = 'gemini-4-hydrogen';
 
@@ -145,26 +145,28 @@ export const defaultBillingAdapter: BillingProviderAdapter = {
   },
 };
 
-// Server-side in-memory quota ledger & burst rate-limit tracker
-const accountLedger = new Map<string, EntitlementAccount>();
+// In-memory short-window burst rate-limit tracker (sliding 60s window)
 const rateLimitWindow = new Map<string, number[]>();
 
-export function getOrCreateAccount(accountId?: string): {
+export function getOrCreateAccount(
+  accountId?: string,
+  options?: { firebaseUid?: string | null; customerEmail?: string | null },
+): {
   account: EntitlementAccount;
   bearerToken: string;
   isNew: boolean;
 } {
-  if (accountId && accountLedger.has(accountId)) {
-    const account = accountLedger.get(accountId)!;
-    return { account, bearerToken: signAccountToken(account.accountId), isNew: false };
-  }
-  const cleanId =
-    accountId && /^acct_[a-zA-Z0-9_-]{8,64}$/.test(accountId)
-      ? accountId
-      : `acct_${crypto.randomBytes(12).toString('hex')}`;
-  const created = createEntitlementAccount(cleanId, isSubscriptionRequiredByDefault());
-  accountLedger.set(cleanId, created);
-  return { account: created, bearerToken: signAccountToken(cleanId), isNew: true };
+  const store = getBillingStore();
+  const { account: billingRec, isNew } = store.getOrCreateAccount(accountId, {
+    requireSubscriptionByDefault: isSubscriptionRequiredByDefault(),
+    firebaseUid: options?.firebaseUid,
+    customerEmail: options?.customerEmail,
+  });
+  return {
+    account: store.toLegacyAiEntitlementAccount(billingRec),
+    bearerToken: signAccountToken(billingRec.accountId),
+    isNew,
+  };
 }
 
 export function getQuotaSummaryForAccount(accountId: string): PublicQuotaSummary {
@@ -192,17 +194,48 @@ export function applyVerifiedPaymentToLedger(payment: VerifiedPaymentEvent): {
   transactionId?: string;
   error?: string;
 } {
+  const store = getBillingStore();
   const { account } = getOrCreateAccount(payment.accountId);
   const result = provisionQuotaFromPayment(account, payment);
   if (result.error) {
     return { ok: false, alreadyProcessed: false, error: result.error };
   }
-  accountLedger.set(account.accountId, result.account);
+  if (result.alreadyProcessed) {
+    return {
+      ok: true,
+      alreadyProcessed: true,
+      summary: toPublicQuotaSummary(result.account),
+      transactionId: result.transaction?.id,
+    };
+  }
+
+  const plan = getPlanById(payment.planId)!;
+  const persisted = store.applyAiQuotaPurchase({
+    accountId: account.accountId,
+    provider: payment.provider || 'billing_webhook',
+    providerEventId: payment.providerEventId.trim(),
+    aiPlanId: plan.id,
+    amountCents: payment.amountUsdCents,
+    creditsGranted: plan.creditsIncluded,
+    validityDays: plan.validityDays,
+    paidAt: payment.paidAt ?? Date.now(),
+  });
+  store.recordProcessedWebhookEvent({
+    eventId: payment.providerEventId.trim(),
+    eventType: 'ai.quota.purchased',
+    provider: payment.provider || 'billing_webhook',
+    occurredAt: payment.paidAt ?? Date.now(),
+    accountId: account.accountId,
+    outcome: 'provisioned',
+    summary: `Provisioned ${plan.id} (${plan.creditsIncluded} credits)`,
+  });
+
+  const updated = store.getAccount(account.accountId)!;
   return {
     ok: true,
-    alreadyProcessed: result.alreadyProcessed,
-    summary: toPublicQuotaSummary(result.account),
-    transactionId: result.transaction?.id,
+    alreadyProcessed: persisted.alreadyProcessed,
+    summary: toPublicQuotaSummary(store.toLegacyAiEntitlementAccount(updated)),
+    transactionId: persisted.transaction.id,
   };
 }
 
@@ -400,7 +433,11 @@ export async function executeAiNavigationTurn(params: {
     };
 
     const settled = settleUsageCredits(account, usageMetrics);
-    accountLedger.set(account.accountId, settled.account);
+    getBillingStore().saveAiUsageSettlement(
+      account.accountId,
+      settled.account.creditsUsed,
+      settled.account.queriesUsed,
+    );
 
     return {
       status: 200,

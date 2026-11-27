@@ -42,6 +42,11 @@ const MOBILE_GROUPS: { id: ToolCategoryId; label: string; routes: AppRoute[] }[]
     label: 'All Tools & Dataset Info',
     routes: ['tools', 'atlases', 'about'],
   },
+  {
+    id: 'commercial_legal',
+    label: 'Plans, Policies & Support',
+    routes: ['features', 'pricing', 'terms', 'privacy', 'refunds', 'contact'],
+  },
 ];
 
 export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {

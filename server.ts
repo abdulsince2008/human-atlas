@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import crypto from 'node:crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { toPublicQuotaSummary, type SubscriptionPlanId, type VerifiedPaymentEvent } from './app/ai/quota';
 import type { AiExplorerContext } from './app/ai/navigator-contract';
@@ -18,10 +19,21 @@ import {
   verifyAccountToken,
   verifyWebhookSignature,
 } from './server/ai-store';
+import { getBillingStore } from './server/billing-store';
+import { verifyFirebaseIdToken } from './server/firebase-token';
+import {
+  createHostedPortalSession,
+  getCommercialRuntimeSnapshot,
+  signBillingWebhook,
+  verifyAndProcessBillingWebhook,
+  type PriceCatalogTarget,
+} from './server/billing-service';
 
 const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT ?? 3000) || 3000;
 const SESSION_COOKIE_NAME = 'a360_ai_sid';
+const SANDBOX_FALLBACK_WEBHOOK_SECRET =
+  process.env.BILLING_WEBHOOK_SECRET?.trim() || crypto.randomBytes(32).toString('hex');
 
 interface RawBodyRequest extends Request {
   rawBody?: string;
@@ -57,6 +69,64 @@ function setSessionCookie(res: Response, signedToken: string): void {
     'Partitioned',
   ];
   res.setHeader('Set-Cookie', cookieAttrs.join('; '));
+}
+
+async function resolveAuthenticatedAccountWithFirebase(req: Request): Promise<{
+  accountId: string;
+  bearerToken: string;
+  shouldSetCookie: boolean;
+  firebaseUid: string | null;
+}> {
+  const fbToken =
+    typeof req.headers['x-firebase-id-token'] === 'string'
+      ? req.headers['x-firebase-id-token']
+      : undefined;
+  const verifiedFb = fbToken ? await verifyFirebaseIdToken(fbToken) : null;
+  const fbUid = verifiedFb?.uid ?? null;
+  const fbEmail = verifiedFb?.email ?? null;
+
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader === 'string' && authHeader.toLowerCase().startsWith('bearer ')) {
+    const verified = verifyAccountToken(authHeader.slice(7).trim());
+    if (verified) {
+      const { account, bearerToken } = getOrCreateAccount(verified.accountId, {
+        firebaseUid: fbUid,
+        customerEmail: fbEmail,
+      });
+      return {
+        accountId: account.accountId,
+        bearerToken,
+        shouldSetCookie: false,
+        firebaseUid: fbUid,
+      };
+    }
+  }
+
+  const cookies = parseCookies(req.headers.cookie);
+  const verifiedCookie = verifyAccountToken(cookies[SESSION_COOKIE_NAME]);
+  if (verifiedCookie) {
+    const { account, bearerToken } = getOrCreateAccount(verifiedCookie.accountId, {
+      firebaseUid: fbUid,
+      customerEmail: fbEmail,
+    });
+    return {
+      accountId: account.accountId,
+      bearerToken,
+      shouldSetCookie: false,
+      firebaseUid: fbUid,
+    };
+  }
+
+  const { account, bearerToken } = getOrCreateAccount(undefined, {
+    firebaseUid: fbUid,
+    customerEmail: fbEmail,
+  });
+  return {
+    accountId: account.accountId,
+    bearerToken,
+    shouldSetCookie: true,
+    firebaseUid: fbUid,
+  };
 }
 
 function resolveAuthenticatedAccount(req: Request): {
@@ -471,6 +541,411 @@ async function startServer() {
       previewMode: true,
       transactionId: result.transactionId,
       account: result.summary,
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Provider-Agnostic Commercial Billing & Durable Entitlements API
+  // ---------------------------------------------------------------------------
+
+  app.get('/api/billing/config', (_req, res) => {
+    const snapshot = getCommercialRuntimeSnapshot();
+    const publicClientToken = process.env.BILLING_CLIENT_TOKEN?.trim() || null;
+    res.json({
+      ok: true,
+      snapshot,
+      clientToken: publicClientToken,
+      devSandboxAllowed: !isProductionMode(),
+    });
+  });
+
+  app.get('/api/billing/entitlements', async (req, res) => {
+    const resolved = await resolveAuthenticatedAccountWithFirebase(req);
+    if (resolved.shouldSetCookie) {
+      setSessionCookie(res, resolved.bearerToken);
+    }
+    const store = getBillingStore();
+    const record = store.getAccount(resolved.accountId)!;
+    res.json({
+      ok: true,
+      bearerToken: resolved.bearerToken,
+      entitlement: store.toPublicEntitlementSummary(record),
+    });
+  });
+
+  app.post('/api/billing/checkout-intent', verifySameOriginOrHeader, async (req, res) => {
+    const resolved = await resolveAuthenticatedAccountWithFirebase(req);
+    if (resolved.shouldSetCookie) {
+      setSessionCookie(res, resolved.bearerToken);
+    }
+
+    const body = req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
+    const planId = typeof body.planId === 'string' ? body.planId : '';
+    const interval = body.interval === 'annual' ? 'annual' : body.interval === 'none' ? 'none' : 'monthly';
+    const snapshot = getCommercialRuntimeSnapshot();
+
+    if (
+      planId !== 'student_plus' &&
+      planId !== 'educator_plus' &&
+      planId !== 'student_monthly' &&
+      planId !== 'exam_prep_pack'
+    ) {
+      res.status(400).json({
+        ok: false,
+        code: 'INVALID_PLAN',
+        error: 'Select a valid paid plan (student_plus, educator_plus, student_monthly, or exam_prep_pack).',
+      });
+      return;
+    }
+
+    if (snapshot.seller.billingProvider === 'unselected') {
+      res.status(409).json({
+        ok: false,
+        code: 'BILLING_PROVIDER_UNSELECTED',
+        error:
+          'Checkout is disabled because the owner has not finalized the payment provider (e.g., Whop, Creem, Paddle, or another processor).',
+        missingRequirements: snapshot.missingRequirements,
+      });
+      return;
+    }
+
+    if (snapshot.seller.billingEnvironment === 'production' && !snapshot.liveCheckoutAllowed) {
+      res.status(409).json({
+        ok: false,
+        code: 'LIVE_CHECKOUT_DISABLED',
+        error:
+          'Live production checkout is disabled until owner pricing confirmation, legal seller identity, provider approval, and catalog IDs are complete.',
+        missingRequirements: snapshot.missingRequirements,
+      });
+      return;
+    }
+
+    if (snapshot.seller.billingEnvironment === 'sandbox' && !snapshot.sandboxReady) {
+      res.status(409).json({
+        ok: false,
+        code: 'BILLING_CATALOG_UNCONFIGURED',
+        error:
+          'Provider catalog IDs or hosted checkout URLs are not configured yet. Use Sandbox Webhook Simulation below or configure BILLING_* environment variables.',
+        missingRequirements: snapshot.missingRequirements,
+      });
+      return;
+    }
+
+    let productId: string | null = null;
+    let priceId: string | null = null;
+    let checkoutUrl: string | null = null;
+    if (planId === 'student_plus' || planId === 'educator_plus') {
+      const mapping = snapshot.billingCatalog[planId];
+      productId = mapping.productId;
+      priceId = interval === 'annual' ? mapping.annualPriceId : mapping.monthlyPriceId;
+      checkoutUrl = interval === 'annual' ? mapping.annualCheckoutUrl : mapping.monthlyCheckoutUrl;
+    } else {
+      const addon = snapshot.aiAddonsCatalog[planId];
+      productId = addon.productId;
+      priceId = addon.priceId;
+      checkoutUrl = addon.checkoutUrl;
+    }
+
+    if (!priceId && !checkoutUrl) {
+      res.status(409).json({
+        ok: false,
+        code: 'PRICE_ID_NOT_CONFIGURED',
+        error: `No provider price ID or checkout URL is configured for "${planId}" (${interval}).`,
+      });
+      return;
+    }
+
+    const store = getBillingStore();
+    const acct = store.getAccount(resolved.accountId);
+
+    res.json({
+      ok: true,
+      bearerToken: resolved.bearerToken,
+      provider: snapshot.seller.billingProvider,
+      environment: snapshot.seller.billingEnvironment,
+      productId,
+      priceId,
+      checkoutUrl,
+      planId,
+      interval,
+      customData: {
+        accountId: resolved.accountId,
+        ...(acct?.firebaseUid ? { firebaseUid: acct.firebaseUid } : {}),
+      },
+    });
+  });
+
+  const handleBillingWebhook = async (req: RawBodyRequest, res: Response, providerParam?: string) => {
+    const rawBody = req.rawBody ?? JSON.stringify(req.body ?? {});
+    const signatureHeader =
+      (req.headers['x-billing-signature'] as string | undefined) ||
+      (req.headers['x-whop-signature'] as string | undefined) ||
+      (req.headers['creem-signature'] as string | undefined) ||
+      (req.headers['webhook-signature'] as string | undefined) ||
+      (req.headers['paddle-signature'] as string | undefined);
+    const timestampHeader =
+      (req.headers['x-billing-timestamp'] as string | undefined) ||
+      (req.headers['webhook-timestamp'] as string | undefined);
+    const webhookSecret = process.env.BILLING_WEBHOOK_SECRET?.trim() || null;
+
+    const result = await verifyAndProcessBillingWebhook({
+      rawBody,
+      signatureHeader,
+      timestampHeader,
+      webhookSecret,
+      provider: providerParam || process.env.BILLING_PROVIDER?.trim() || 'billing_provider',
+      store: getBillingStore(),
+    });
+
+    res.status(result.httpStatus).json({
+      ok: result.ok,
+      code: result.code,
+      eventId: result.eventId,
+      eventType: result.eventType,
+      alreadyProcessed: result.alreadyProcessed,
+      accountId: result.accountId,
+      error: result.error,
+    });
+  };
+
+  app.post('/api/billing/webhook', (req: RawBodyRequest, res) => {
+    void handleBillingWebhook(req, res);
+  });
+  app.post('/api/billing/webhook/:provider', (req: RawBodyRequest, res) => {
+    void handleBillingWebhook(req, res, String(req.params.provider || 'billing_provider'));
+  });
+
+  app.post('/api/billing/portal', verifySameOriginOrHeader, async (req, res) => {
+    const resolved = await resolveAuthenticatedAccountWithFirebase(req);
+    if (resolved.shouldSetCookie) {
+      setSessionCookie(res, resolved.bearerToken);
+    }
+    const store = getBillingStore();
+    const record = store.getAccount(resolved.accountId);
+    if (!record?.providerCustomerId) {
+      res.status(404).json({
+        ok: false,
+        code: 'NO_PROVIDER_CUSTOMER',
+        error:
+          'No provider customer record is linked to this account yet. Complete checkout once a live provider is active, or check your purchase confirmation receipt.',
+      });
+      return;
+    }
+
+    const portal = await createHostedPortalSession(record.providerCustomerId);
+    if (!portal.ok) {
+      res.status(503).json({
+        ok: false,
+        code: 'PORTAL_UNAVAILABLE',
+        error: portal.error,
+      });
+      return;
+    }
+    res.json({
+      ok: true,
+      overviewUrl: portal.overviewUrl,
+    });
+  });
+
+  app.post('/api/billing/sandbox/simulate', verifySameOriginOrHeader, async (req, res) => {
+    if (isProductionMode()) {
+      res.status(403).json({
+        ok: false,
+        code: 'FORBIDDEN_IN_PRODUCTION',
+        error: 'Sandbox webhook simulation is strictly disabled in production mode.',
+      });
+      return;
+    }
+
+    const resolved = await resolveAuthenticatedAccountWithFirebase(req);
+    if (resolved.shouldSetCookie) {
+      setSessionCookie(res, resolved.bearerToken);
+    }
+
+    const body = req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : {};
+    const scenario = typeof body.scenario === 'string' ? body.scenario : 'purchase_student_monthly';
+    const store = getBillingStore();
+    const current = store.getAccount(resolved.accountId)!;
+    const nowIso = new Date().toISOString();
+    const plus30DaysIso = new Date(Date.now() + 30 * 86_400_000).toISOString();
+    const plus365DaysIso = new Date(Date.now() + 365 * 86_400_000).toISOString();
+    const randSuffix = `${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+
+    const sandboxPriceOverrides: Record<string, PriceCatalogTarget> = {
+      pri_sandbox_student_mo: {
+        kind: 'subscription',
+        planId: 'student_plus',
+        interval: 'monthly',
+        productId: 'pro_sandbox_student',
+        creditsBonus: 250_000,
+        validityDays: 30,
+      },
+      pri_sandbox_student_yr: {
+        kind: 'subscription',
+        planId: 'student_plus',
+        interval: 'annual',
+        productId: 'pro_sandbox_student',
+        creditsBonus: 250_000,
+        validityDays: 365,
+      },
+      pri_sandbox_educator_mo: {
+        kind: 'subscription',
+        planId: 'educator_plus',
+        interval: 'monthly',
+        productId: 'pro_sandbox_educator',
+        creditsBonus: 500_000,
+        validityDays: 30,
+      },
+      pri_sandbox_educator_yr: {
+        kind: 'subscription',
+        planId: 'educator_plus',
+        interval: 'annual',
+        productId: 'pro_sandbox_educator',
+        creditsBonus: 500_000,
+        validityDays: 365,
+      },
+      pri_sandbox_ai_burst: {
+        kind: 'ai_credit_pack',
+        planId: 'exam_prep_pack',
+        interval: 'none',
+        productId: 'pro_sandbox_ai_burst',
+        creditsBonus: 650_000,
+        validityDays: 90,
+      },
+    };
+
+    const customerId = current.providerCustomerId ?? `ctm_sbx_${resolved.accountId.slice(5, 17)}`;
+    const subId = current.providerSubscriptionId ?? `sub_sbx_${randSuffix}`;
+    const lastPaidTxId = current.providerTransactionId ?? `txn_sbx_${randSuffix}`;
+
+    let eventPayload: Record<string, unknown>;
+    if (scenario === 'purchase_student_monthly' || scenario === 'purchase_student_annual') {
+      const annual = scenario === 'purchase_student_annual';
+      eventPayload = {
+        event_id: `evt_sbx_${randSuffix}`,
+        event_type: 'transaction.completed',
+        occurred_at: nowIso,
+        data: {
+          id: `txn_sbx_${randSuffix}`,
+          status: 'completed',
+          customer_id: customerId,
+          subscription_id: subId,
+          currency_code: 'USD',
+          custom_data: { accountId: resolved.accountId },
+          billing_period: { starts_at: nowIso, ends_at: annual ? plus365DaysIso : plus30DaysIso },
+          details: { totals: { total: annual ? '3999' : '499' } },
+          items: [
+            {
+              price_id: annual ? 'pri_sandbox_student_yr' : 'pri_sandbox_student_mo',
+              quantity: 1,
+            },
+          ],
+        },
+      };
+    } else if (scenario === 'purchase_educator_monthly' || scenario === 'purchase_educator_annual') {
+      const annual = scenario === 'purchase_educator_annual';
+      eventPayload = {
+        event_id: `evt_sbx_${randSuffix}`,
+        event_type: 'transaction.completed',
+        occurred_at: nowIso,
+        data: {
+          id: `txn_sbx_${randSuffix}`,
+          status: 'completed',
+          customer_id: customerId,
+          subscription_id: subId,
+          currency_code: 'USD',
+          custom_data: { accountId: resolved.accountId },
+          billing_period: { starts_at: nowIso, ends_at: annual ? plus365DaysIso : plus30DaysIso },
+          details: { totals: { total: annual ? '7999' : '999' } },
+          items: [
+            {
+              price_id: annual ? 'pri_sandbox_educator_yr' : 'pri_sandbox_educator_mo',
+              quantity: 1,
+            },
+          ],
+        },
+      };
+    } else if (scenario === 'purchase_ai_burst') {
+      eventPayload = {
+        event_id: `evt_sbx_${randSuffix}`,
+        event_type: 'transaction.completed',
+        occurred_at: nowIso,
+        data: {
+          id: `txn_sbx_${randSuffix}`,
+          status: 'completed',
+          customer_id: customerId,
+          currency_code: 'USD',
+          custom_data: { accountId: resolved.accountId },
+          details: { totals: { total: '999' } },
+          items: [{ price_id: 'pri_sandbox_ai_burst', quantity: 1 }],
+        },
+      };
+    } else if (scenario === 'cancel_subscription') {
+      eventPayload = {
+        event_id: `evt_sbx_${randSuffix}`,
+        event_type: 'subscription.canceled',
+        occurred_at: nowIso,
+        data: {
+          id: subId,
+          status: 'canceled',
+          customer_id: customerId,
+          canceled_at: nowIso,
+          current_billing_period: { starts_at: nowIso, ends_at: plus30DaysIso },
+          custom_data: { accountId: resolved.accountId },
+        },
+      };
+    } else if (scenario === 'payment_failed') {
+      eventPayload = {
+        event_id: `evt_sbx_${randSuffix}`,
+        event_type: 'transaction.payment_failed',
+        occurred_at: nowIso,
+        data: {
+          id: `txn_fail_${randSuffix}`,
+          status: 'past_due',
+          customer_id: customerId,
+          subscription_id: subId,
+          custom_data: { accountId: resolved.accountId },
+        },
+      };
+    } else if (scenario === 'refund' || scenario === 'chargeback') {
+      eventPayload = {
+        event_id: `evt_sbx_${randSuffix}`,
+        event_type: scenario === 'chargeback' ? 'chargeback.created' : 'refund.created',
+        occurred_at: nowIso,
+        data: {
+          id: `adj_sbx_${randSuffix}`,
+          transaction_id: lastPaidTxId,
+          subscription_id: subId,
+          customer_id: customerId,
+          action: scenario === 'chargeback' ? 'chargeback' : 'refund',
+          status: 'approved',
+          custom_data: { accountId: resolved.accountId },
+        },
+      };
+    } else {
+      res.status(400).json({ ok: false, error: `Unsupported sandbox scenario "${scenario}".` });
+      return;
+    }
+
+    const rawBody = JSON.stringify(eventPayload);
+    const sigHeader = signBillingWebhook(rawBody, SANDBOX_FALLBACK_WEBHOOK_SECRET);
+    const result = await verifyAndProcessBillingWebhook({
+      rawBody,
+      signatureHeader: sigHeader,
+      webhookSecret: SANDBOX_FALLBACK_WEBHOOK_SECRET,
+      provider: 'sandbox_simulator',
+      store,
+      priceMapOverrides: sandboxPriceOverrides,
+    });
+
+    const refreshed = store.getAccount(resolved.accountId)!;
+    res.status(result.httpStatus).json({
+      ok: result.ok,
+      sandboxSimulated: true,
+      bearerToken: resolved.bearerToken,
+      scenario,
+      webhookResult: result,
+      entitlement: store.toPublicEntitlementSummary(refreshed),
     });
   });
 

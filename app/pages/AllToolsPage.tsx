@@ -52,7 +52,7 @@ export default function AllToolsPage({ onNavigate }: Props) {
       </header>
 
       <PageOrientationBar
-        whatThisIs="This page lists all 21 tools in Anatomy 360 so you never have to guess where a feature is."
+        whatThisIs={`This page lists all ${PLATFORM_TOOLS.length} tools in Anatomy 360 so you never have to guess where a feature is.`}
         primaryHint="Pick a category below or search what you want to do, then click any card to open it."
         spokenSummary="This is the All Tools directory for Anatomy 360. You can browse learning workspaces, practice quizzes and 3D practical exams, teacher planning tools, body reference guides, and dataset disclosures in one place."
         howToSteps={[

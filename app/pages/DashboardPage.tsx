@@ -2,12 +2,16 @@ import { useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   Bookmark,
+  CreditCard,
   Download,
+  ExternalLink,
+  RefreshCw,
   RotateCcw,
   Upload,
   UserCheck,
   X,
 } from 'lucide-react';
+import { useBilling } from '../components/BillingContext';
 import {
   Bar,
   BarChart,
@@ -65,6 +69,13 @@ export default function DashboardPage({
     importStudyJson,
     resetAllStudyProgress,
   } = useStudy();
+  const {
+    entitlement,
+    busy: billingBusy,
+    statusMessage: billingStatus,
+    refreshEntitlements,
+    openPortal,
+  } = useBilling();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -571,6 +582,87 @@ export default function DashboardPage({
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* Server-Verified Plan & Billing Status */}
+      <section className="a360-chart-panel" aria-labelledby="dash-plan-heading">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 id="dash-plan-heading" className="inline-flex items-center gap-2">
+              <CreditCard size={18} aria-hidden="true" /> Subscription Plan &amp; AI Quota Entitlement
+            </h2>
+            <p className="a360-muted">
+              Verified directly against server billing records — restores automatically across
+              reloads and optional Google Sign-In sessions.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="a360-btn-secondary"
+            disabled={billingBusy}
+            onClick={() => void refreshEntitlements()}
+          >
+            <RefreshCw size={14} aria-hidden="true" /> Refresh Entitlements
+          </button>
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+            <span className="text-slate-500">Current Tier</span>
+            <strong className="mt-0.5 block text-sm text-slate-900">
+              {entitlement?.activePlanId ?? 'free_explorer'}
+            </strong>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+            <span className="text-slate-500">Subscription Status</span>
+            <strong className="mt-0.5 block text-sm text-slate-900">
+              {entitlement?.subscriptionStatus ?? 'free'}
+            </strong>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+            <span className="text-slate-500">AI Credits Remaining</span>
+            <strong className="mt-0.5 block font-mono text-sm text-slate-900">
+              {entitlement ? entitlement.aiQuota.creditsRemaining.toLocaleString() : '—'}
+            </strong>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+            <span className="text-slate-500">Account Reference</span>
+            <strong className="mt-0.5 block truncate font-mono text-xs text-slate-900">
+              {entitlement?.accountId ?? 'Pending session'}
+            </strong>
+          </div>
+        </div>
+
+        {billingStatus && (
+          <p className="mt-2 text-xs font-medium text-teal-800" role="status">
+            {billingStatus}
+          </p>
+        )}
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="a360-btn-primary"
+            onClick={() => onNavigate('pricing')}
+          >
+            View Plans &amp; Sandbox Status
+          </button>
+          <button
+            type="button"
+            className="a360-btn-secondary"
+            disabled={billingBusy}
+            onClick={() => void openPortal()}
+          >
+            <ExternalLink size={14} aria-hidden="true" /> Manage Subscription (Billing Portal)
+          </button>
+          <button
+            type="button"
+            className="a360-btn-secondary"
+            onClick={() => onNavigate('contact')}
+          >
+            Billing Help &amp; Support
+          </button>
         </div>
       </section>
     </div>

@@ -22,14 +22,21 @@ export type AppRoute =
   | 'educator'
   | 'search'
   | 'tools'
-  | 'about';
+  | 'about'
+  | 'features'
+  | 'pricing'
+  | 'terms'
+  | 'privacy'
+  | 'refunds'
+  | 'contact';
 
 export type ToolCategoryId =
   | 'learn'
   | 'practice'
   | 'teach'
   | 'explore_reference'
-  | 'system_info';
+  | 'system_info'
+  | 'commercial_legal';
 
 export type ToolIconKey =
   | 'home'
@@ -51,7 +58,12 @@ export type ToolIconKey =
   | 'database'
   | 'search'
   | 'grid'
-  | 'info';
+  | 'info'
+  | 'credit-card'
+  | 'file-text'
+  | 'shield'
+  | 'mail'
+  | 'sparkles';
 
 export interface PlatformToolEntry {
   id: string;
@@ -95,6 +107,12 @@ export const ALL_APP_ROUTES: readonly AppRoute[] = [
   'search',
   'tools',
   'about',
+  'features',
+  'pricing',
+  'terms',
+  'privacy',
+  'refunds',
+  'contact',
 ] as const;
 
 export const PLATFORM_TOOLS: PlatformToolEntry[] = [
@@ -350,6 +368,78 @@ export const PLATFORM_TOOLS: PlatformToolEntry[] = [
     icon: 'info',
     actionLabel: 'Read About & Licenses',
   },
+  {
+    id: 'features',
+    route: 'features',
+    hash: '#/features',
+    category: 'commercial_legal',
+    title: 'Features & Platform Overview',
+    technicalTitle: 'Public Capability Breakdown Across 6 Learning Areas',
+    summary: 'Inspect every Anatomy 360 tool grouped by learning, study, assessment, and teaching.',
+    bestFor: 'Prospective students, teachers, and reviewers checking live capabilities',
+    icon: 'sparkles',
+    actionLabel: 'Browse Features',
+  },
+  {
+    id: 'pricing',
+    route: 'pricing',
+    hash: '#/pricing',
+    category: 'commercial_legal',
+    title: 'Plans, Pricing & Entitlements',
+    technicalTitle: 'Free Explorer, Student Plus, Educator Plus & Billing Status',
+    summary: 'Compare free exploration and paid memberships, billing terms, AI credits, and manage your plan.',
+    bestFor: 'Students, educators, and subscribers reviewing plans or billing status',
+    icon: 'credit-card',
+    actionLabel: 'View Pricing',
+  },
+  {
+    id: 'terms',
+    route: 'terms',
+    hash: '#/terms',
+    category: 'commercial_legal',
+    title: 'Terms and Conditions',
+    technicalTitle: 'Buyer Terms, Dataset Licenses & Checkout Disclosures',
+    summary: 'Read software access rules, renewal/cancellation disclosures, dataset licenses, and disclaimers.',
+    bestFor: 'Buyers and institutions reviewing legal terms of use and sale',
+    icon: 'file-text',
+    actionLabel: 'Read Terms',
+  },
+  {
+    id: 'privacy',
+    route: 'privacy',
+    hash: '#/privacy',
+    category: 'commercial_legal',
+    title: 'Privacy Policy',
+    technicalTitle: 'Local Storage, Firebase Sync, AI & Children Privacy Disclosures',
+    summary: 'Understand how IndexedDB, optional cloud sign-in, AI prompts, and under-13 safeguards work.',
+    bestFor: 'Students, parents, schools, and reviewers checking data handling',
+    icon: 'shield',
+    actionLabel: 'Read Privacy Policy',
+  },
+  {
+    id: 'refunds',
+    route: 'refunds',
+    hash: '#/refunds',
+    category: 'commercial_legal',
+    title: 'Refund Policy',
+    technicalTitle: 'Buyer Terms, Cancellation & Credit Revocation Policy',
+    summary: 'See how refunds are requested, subscription cancellation rules, and credit reversal handling.',
+    bestFor: 'Customers checking refund eligibility or troubleshooting access',
+    icon: 'file-text',
+    actionLabel: 'Read Refund Policy',
+  },
+  {
+    id: 'contact',
+    route: 'contact',
+    hash: '#/contact',
+    category: 'commercial_legal',
+    title: 'Contact & Support',
+    technicalTitle: 'Product Support, Billing Lookup & Institutional Inquiries',
+    summary: 'Reach support for technical help, billing receipts, data requests, or institutional quotes.',
+    bestFor: 'Anyone needing technical, billing, privacy, or school contact help',
+    icon: 'mail',
+    actionLabel: 'Open Support',
+  },
 ];
 
 const TOOL_BY_ROUTE = new Map<AppRoute, PlatformToolEntry>(
@@ -425,6 +515,11 @@ export const TOOL_DIRECTORY_CATEGORIES: {
     title: 'Datasets, Sources & Platform Info',
     description: 'Inspect 3D model datasets, coverage disclosures, licenses, and validation tools.',
   },
+  {
+    id: 'commercial_legal',
+    title: 'Plans, Policies & Support',
+    description: 'Review public feature overviews, pricing plans, buyer terms, privacy, refund policy, and contact info.',
+  },
 ];
 
 export const ROUTE_DISPLAY_NAMES: Record<AppRoute, string> = {
@@ -449,6 +544,12 @@ export const ROUTE_DISPLAY_NAMES: Record<AppRoute, string> = {
   search: 'Search Everything',
   tools: 'All Tools',
   about: 'About & Licenses',
+  features: 'Features Overview',
+  pricing: 'Plans & Pricing',
+  terms: 'Terms and Conditions',
+  privacy: 'Privacy Policy',
+  refunds: 'Refund Policy',
+  contact: 'Contact & Support',
 };
 
 export interface TrackMappingOutcome {

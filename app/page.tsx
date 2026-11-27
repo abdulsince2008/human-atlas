@@ -4,6 +4,7 @@ import { CANONICAL_SYSTEMS, type CanonicalSystemId } from './anatomy-systems';
 import SiteHeader, { type AppRoute } from './components/SiteHeader';
 import { FirebaseProvider } from './components/FirebaseContext';
 import FirebaseErrorBoundary from './components/FirebaseErrorBoundary';
+import { BillingProvider } from './components/BillingContext';
 import { StudyProvider, useStudy } from './components/StudyContext';
 import type { CurriculumAuthorityId, EducationDomainId } from './education/education-types';
 import type { LearningCategoryId } from './learning-data';
@@ -11,19 +12,25 @@ import AboutPage from './pages/AboutPage';
 import AllToolsPage from './pages/AllToolsPage';
 import AtlasManagerPage from './pages/AtlasManagerPage';
 import ClinicalPage from './pages/ClinicalPage';
+import ContactPage from './pages/ContactPage';
 import DashboardPage from './pages/DashboardPage';
 import EducatorPage from './pages/EducatorPage';
+import FeaturesPage from './pages/FeaturesPage';
 import HistologyPage from './pages/HistologyPage';
 import HomePage from './pages/HomePage';
 import LearnPage from './pages/LearnPage';
 import PhysiologyPage from './pages/PhysiologyPage';
 import PracticalLabPage from './pages/PracticalLabPage';
+import PricingPage from './pages/PricingPage';
+import PrivacyPage from './pages/PrivacyPage';
 import QuizPage from './pages/QuizPage';
+import RefundPolicyPage from './pages/RefundPolicyPage';
 import RelationshipsPage from './pages/RelationshipsPage';
 import RevisionPage from './pages/RevisionPage';
 import SearchPage from './pages/SearchPage';
 import SyllabusNavigatorPage from './pages/SyllabusNavigatorPage';
 import SystemsPage from './pages/SystemsPage';
+import TermsPage from './pages/TermsPage';
 import UniversalStudyWorkspace from './components/UniversalStudyWorkspace';
 import {
   encodeStudyContextHash,
@@ -55,7 +62,13 @@ function parseRouteFromHash(): AppRoute {
   if (hash === 'educator' || hash === 'teacher' || hash === 'professor') return 'educator';
   if (hash === 'search') return 'search';
   if (hash === 'tools' || hash === 'all-tools') return 'tools';
-  if (hash === 'about') return 'about';
+  if (hash === 'about' || hash === 'licenses') return 'about';
+  if (hash === 'features') return 'features';
+  if (hash === 'pricing' || hash === 'plans') return 'pricing';
+  if (hash === 'terms' || hash === 'terms-and-conditions') return 'terms';
+  if (hash === 'privacy' || hash === 'privacy-policy') return 'privacy';
+  if (hash === 'refunds' || hash === 'refund-policy') return 'refunds';
+  if (hash === 'contact' || hash === 'support') return 'contact';
   return 'home';
 }
 
@@ -595,8 +608,9 @@ export default function Home() {
     <FirebaseErrorBoundary>
       <StudyProvider>
         <FirebaseProvider>
-          <StudySessionTracker route={route} studyInput={studyInputState} />
-          <div className={`a360-shell ${route === 'explorer' ? 'is-explorer' : ''}`}>
+          <BillingProvider>
+            <StudySessionTracker route={route} studyInput={studyInputState} />
+            <div className={`a360-shell ${route === 'explorer' ? 'is-explorer' : ''}`}>
             <SiteHeader
               route={route}
               onNavigate={navigate}
@@ -830,7 +844,21 @@ export default function Home() {
 
               {route === 'tools' && <AllToolsPage onNavigate={navigate} />}
 
-              {route === 'about' && <AboutPage onExplore={() => navigate('explorer')} />}
+              {route === 'about' && (
+                <AboutPage onExplore={() => navigate('explorer')} onNavigate={navigate} />
+              )}
+
+              {route === 'features' && <FeaturesPage onNavigate={navigate} />}
+
+              {route === 'pricing' && <PricingPage onNavigate={navigate} />}
+
+              {route === 'terms' && <TermsPage onNavigate={navigate} />}
+
+              {route === 'privacy' && <PrivacyPage onNavigate={navigate} />}
+
+              {route === 'refunds' && <RefundPolicyPage onNavigate={navigate} />}
+
+              {route === 'contact' && <ContactPage onNavigate={navigate} />}
 
               {route === 'present' && (
                 <Suspense
@@ -876,7 +904,8 @@ export default function Home() {
                 </Suspense>
               )}
             </main>
-          </div>
+            </div>
+          </BillingProvider>
         </FirebaseProvider>
       </StudyProvider>
     </FirebaseErrorBoundary>

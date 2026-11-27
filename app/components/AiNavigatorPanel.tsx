@@ -572,11 +572,15 @@ export default function AiNavigatorPanel({
           <div className="ai-arch-note">
             <CreditCard size={15} />
             <div>
-              <strong>Zero-Upfront On-The-Spot Quota Architecture</strong>
+              <strong>Metered AI Credit Add-Ons (Separate from Platform Subscriptions)</strong>
               <p>
-                Free accounts never spend unbounded developer balance upfront. When a user pays via
-                your subscription gateway webhook (<code>/api/ai/billing/webhook</code>), their AI
-                credit pack is provisioned on the spot from that payment.
+                AI credits fund metered Gemini 3D assistant queries only and are provisioned solely
+                after verified server webhook confirmation (<code>/api/billing/webhook</code>{' '}
+                or dev preview webhook). Refunded transactions revoke granted credits. See{' '}
+                <a href="#/pricing" className="underline">
+                  Plans &amp; Pricing
+                </a>
+                .
               </p>
             </div>
           </div>

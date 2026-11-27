@@ -1,5 +1,6 @@
 import { Film, BookOpen } from 'lucide-react';
 import type { CanonicalSystemId } from '../anatomy-systems';
+import { useBilling } from '../components/BillingContext';
 import EducatorToolkitPanel from '../components/EducatorToolkitPanel';
 import TeacherClassroomPanel from '../components/TeacherClassroomPanel';
 import type { AppRoute } from '../components/SiteHeader';
@@ -38,6 +39,8 @@ export default function EducatorPage({
   onNavigate,
   onOpenTopic,
 }: Props) {
+  const { entitlement } = useBilling();
+
   return (
     <div className="a360-page" data-testid="educator-page">
       <header className="a360-page-header">
@@ -78,6 +81,31 @@ export default function EducatorPage({
           ))}
         </ol>
       </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
+        <span>
+          <strong>Active Access:</strong>{' '}
+          {entitlement?.entitlements.educatorPlusFeatures
+            ? 'Educator Plus subscription active'
+            : `${entitlement?.activePlanId ?? 'Free Explorer'} (all workspace tools available during pre-commercial preview)`}
+        </span>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigate('pricing')}
+            className="font-semibold text-teal-800 hover:underline"
+          >
+            Plans &amp; Educator Plus →
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate('contact')}
+            className="font-semibold text-teal-800 hover:underline"
+          >
+            Department Inquiries →
+          </button>
+        </div>
+      </div>
 
       <TeacherClassroomPanel />
 

@@ -6,7 +6,9 @@ import {
   Box,
   ClipboardCheck,
   Compass,
+  CreditCard,
   Database,
+  FileText,
   Film,
   Flame,
   GitBranch,
@@ -16,8 +18,11 @@ import {
   Info,
   Layers,
   LayoutGrid,
+  Mail,
   Microscope,
   Search,
+  Shield,
+  Sparkles,
   Stethoscope,
 } from 'lucide-react';
 import type { ToolIconKey } from '../navigation-registry';
@@ -62,6 +67,16 @@ export default function ToolIcon({ name, size = 16 }: { name: ToolIconKey; size?
       return <Search size={size} aria-hidden="true" />;
     case 'grid':
       return <LayoutGrid size={size} aria-hidden="true" />;
+    case 'credit-card':
+      return <CreditCard size={size} aria-hidden="true" />;
+    case 'file-text':
+      return <FileText size={size} aria-hidden="true" />;
+    case 'shield':
+      return <Shield size={size} aria-hidden="true" />;
+    case 'mail':
+      return <Mail size={size} aria-hidden="true" />;
+    case 'sparkles':
+      return <Sparkles size={size} aria-hidden="true" />;
     case 'info':
     default:
       return <Info size={size} aria-hidden="true" />;

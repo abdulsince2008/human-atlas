@@ -1,11 +1,14 @@
 import { ArrowUpRight } from 'lucide-react';
 import PageOrientationBar from '../components/PageOrientationBar';
+import SiteFooter from '../components/SiteFooter';
+import type { AppRoute } from '../navigation-registry';
 
 interface Props {
   onExplore: () => void;
+  onNavigate?: (route: AppRoute) => void;
 }
 
-export default function AboutPage({ onExplore }: Props) {
+export default function AboutPage({ onExplore, onNavigate }: Props) {
   return (
     <div className="a360-page a360-narrow">
       <header className="a360-page-header">
@@ -241,7 +244,18 @@ export default function AboutPage({ onExplore }: Props) {
         <button type="button" className="a360-btn-primary" onClick={onExplore}>
           Open 3D Anatomy Explorer
         </button>
+        {onNavigate && (
+          <button
+            type="button"
+            className="a360-btn-secondary"
+            onClick={() => onNavigate('pricing')}
+          >
+            Plans &amp; Policies
+          </button>
+        )}
       </div>
+
+      {onNavigate && <SiteFooter onNavigate={onNavigate} />}
     </div>
   );
 }

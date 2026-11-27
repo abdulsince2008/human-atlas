@@ -333,3 +333,53 @@ export function toPublicQuotaSummary(
     transactions: account.transactions.slice(0, 8),
   };
 }
+
+export const AI_CREDIT_DISCLOSURES = {
+  meteringFormula: 'Credits are metered per verified Gemini API token count (prompt tokens + 4x output tokens, min 250 credits per turn).',
+  expiryPolicy:
+    'Monthly AI passes apply credits for 30 days; Exam Prep Burst Packs apply credits for 90 days. Expired subscription periods revoke remaining subscription-cycle credits.',
+  refundPolicy:
+    'If a purchase is refunded, disputed, or charged back via the payment provider, the granted credit amount for that transaction is revoked from the account balance on the server.',
+  separationNotice:
+    'AI credit packs fund metered Gemini 3D assistant queries only and are kept separate from core Free Explorer, Student Plus, and Educator Plus platform tools.',
+} as const;
+
+export function revokeCreditsFromRefund(
+  account: EntitlementAccount,
+  params: {
+    refundEventId: string;
+    creditsToRevoke: number;
+    revertPlanTo?: SubscriptionPlanId;
+  },
+  nowMs = Date.now(),
+): {
+  account: EntitlementAccount;
+  revoked: boolean;
+  alreadyProcessed: boolean;
+} {
+  const cleanEventId = params.refundEventId.trim();
+  if (!cleanEventId) {
+    return { account, revoked: false, alreadyProcessed: false };
+  }
+  if (account.processedPaymentIds.includes(cleanEventId)) {
+    return { account, revoked: false, alreadyProcessed: true };
+  }
+
+  const revokeAmt = Math.max(0, Math.round(params.creditsToRevoke));
+  const nextPurchased = Math.max(account.creditsUsed, account.creditsPurchased - revokeAmt);
+  const nextPlan = params.revertPlanTo ?? 'free_preview';
+
+  return {
+    revoked: true,
+    alreadyProcessed: false,
+    account: {
+      ...account,
+      planId: nextPlan,
+      creditsPurchased: nextPurchased,
+      subscriptionExpiresAt: nextPlan === 'free_preview' ? null : account.subscriptionExpiresAt,
+      processedPaymentIds: [cleanEventId, ...account.processedPaymentIds].slice(0, 50),
+      updatedAt: nowMs,
+    },
+  };
+}
+
