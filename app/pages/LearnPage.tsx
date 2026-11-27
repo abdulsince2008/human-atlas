@@ -5,6 +5,7 @@ import { CURATED_KNOWLEDGE } from '../anatomy-knowledge';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import EducatorToolkitPanel from '../components/EducatorToolkitPanel';
 import MedicalCurriculumHub from '../components/MedicalCurriculumHub';
+import PageOrientationBar from '../components/PageOrientationBar';
 import type { AppRoute } from '../components/SiteHeader';
 import SystemLearnWorkspace from '../components/SystemLearnWorkspace';
 import type { CurriculumAuthorityId, EducationDomainId, EducationTrackId } from '../education/education-types';
@@ -130,6 +131,17 @@ export default function LearnPage({
           </button>
         </div>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Study all 12 human body systems and 16 health science subjects step by step."
+        primaryHint="Pick a tab below: start with Body Systems for visual lessons, or 16 Subjects for school & university chapters."
+        spokenSummary="Learn Human Anatomy and Biomedical Sciences. Choose Body Systems for step-by-step organ lessons paired with 3D views, or choose All 16 Subjects to explore biology, physiology, pharmacology, and clinical chapters."
+        howToSteps={[
+          'Choose "Learn by System" to inspect organs across the 12 body systems.',
+          'Choose "Medical & Science Subjects" to open any of the 16 subjects and switch between Grade 6–12, Pre-Med/MBBS, and Advanced reading levels.',
+          'Click "Open in Connected Study Workspace" on any chapter to study alongside the interactive 3D body.',
+        ]}
+      />
 
       {educatorModeOpen && (
         <EducatorToolkitPanel

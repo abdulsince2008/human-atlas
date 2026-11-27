@@ -7,6 +7,7 @@ import {
   type HistologyCategory,
   type HistologyEntry,
 } from '../data/histology-data';
+import PageOrientationBar from '../components/PageOrientationBar';
 import StudyResourceList from '../components/StudyResourceList';
 import type { StudyContextInput } from '../study-context-engine';
 
@@ -60,6 +61,17 @@ export default function HistologyPage({
           import-ready specimen micrograph slots.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Look closely at human tissues under a real microscope and see which 3D organs they belong to."
+        primaryHint="Filter by tissue group below, click Zoom Specimen to inspect a slide closely, or open its whole 3D organ."
+        spokenSummary="Tissues Under the Microscope, the Histology Library. Browse epithelial, connective, muscle, and nervous tissue micrographs, inspect key visual clues, and open the connected organ in 3D."
+        howToSteps={[
+          'Choose a tissue type button (Epithelial, Connective, Muscle, or Nervous).',
+          'Tap Zoom Specimen on any card to enlarge the microscope image and read what to look for.',
+          'Use the quick self-check inside any card to verify what you noticed.',
+        ]}
+      />
 
       <div className="a360-coverage-box" role="note">
         <strong>Microscopy Media Disclosure:</strong> All 10 core Histology Library specimen panels

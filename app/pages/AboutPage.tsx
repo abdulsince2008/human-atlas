@@ -1,4 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
+import PageOrientationBar from '../components/PageOrientationBar';
 
 interface Props {
   onExplore: () => void;
@@ -15,6 +16,12 @@ export default function AboutPage({ onExplore }: Props) {
           worldwide, combining real 3D anatomical geometry with verified educational reference notes.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Learn what datasets power Anatomy 360, how open licenses work, and what parts are still planned."
+        primaryHint="Looking to explore the human body right away? Click Explore 3D Body in the top menu or open Home."
+        spokenSummary="About Anatomy 360. This platform combines BodyParts3D and HuBMAP Human Reference Atlas datasets under CC BY 4.0 open attribution, along with honest coverage disclosures and study tools that work without creating an account."
+      />
 
       <section className="a360-prose-block">
         <h2>Dataset Scope &amp; Truthful Inventory Policy</h2>

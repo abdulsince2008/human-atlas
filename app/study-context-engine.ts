@@ -655,26 +655,49 @@ export function resolveStudyContext(
     ...(educationTopic?.prerequisites ?? []),
   ]);
 
+  const isDirectEducationTopic = Boolean(
+    educationTopic && input.topicId && educationTopic.id === input.topicId,
+  );
+  const isDirectLessonTopic = Boolean(
+    lessonPair && input.topicId && lessonPair.topic.id === input.topicId,
+  );
+
   const depthExplanations = {
-    foundational:
-      educationTopic?.depthExplanations.school_foundations ??
-      educationTopic?.depthExplanations.secondary_premed ??
-      topicSupplement?.school_9_12 ??
-      effectiveConceptRecord?.education.beginner ??
-      null,
-    intermediate:
-      educationTopic?.depthExplanations.medical_foundations ??
-      educationTopic?.depthExplanations.allied_health ??
-      topicSupplement?.bs_mbbs ??
-      lessonPair?.topic.explanation.en ??
-      effectiveConceptRecord?.education.intermediate ??
-      null,
-    advanced:
-      educationTopic?.depthExplanations.clinical_applied ??
-      educationTopic?.depthExplanations.graduate_research ??
-      topicSupplement?.phd_research ??
-      effectiveConceptRecord?.education.advanced ??
-      null,
+    foundational: isDirectEducationTopic
+      ? educationTopic?.depthExplanations.school_foundations ??
+        educationTopic?.depthExplanations.secondary_premed ??
+        topicSupplement?.school_9_12 ??
+        effectiveConceptRecord?.education.beginner ??
+        null
+      : topicSupplement?.school_9_12 ??
+        effectiveConceptRecord?.education.beginner ??
+        educationTopic?.depthExplanations.school_foundations ??
+        educationTopic?.depthExplanations.secondary_premed ??
+        null,
+    intermediate: isDirectEducationTopic
+      ? educationTopic?.depthExplanations.medical_foundations ??
+        educationTopic?.depthExplanations.allied_health ??
+        topicSupplement?.bs_mbbs ??
+        lessonPair?.topic.explanation.en ??
+        effectiveConceptRecord?.education.intermediate ??
+        null
+      : topicSupplement?.bs_mbbs ??
+        lessonPair?.topic.explanation.en ??
+        effectiveConceptRecord?.education.intermediate ??
+        educationTopic?.depthExplanations.medical_foundations ??
+        educationTopic?.depthExplanations.allied_health ??
+        null,
+    advanced: isDirectEducationTopic
+      ? educationTopic?.depthExplanations.clinical_applied ??
+        educationTopic?.depthExplanations.graduate_research ??
+        topicSupplement?.phd_research ??
+        effectiveConceptRecord?.education.advanced ??
+        null
+      : topicSupplement?.phd_research ??
+        effectiveConceptRecord?.education.advanced ??
+        educationTopic?.depthExplanations.clinical_applied ??
+        educationTopic?.depthExplanations.graduate_research ??
+        null,
   };
 
   const keyFacts = uniqueStrings([
@@ -718,16 +741,18 @@ export function resolveStudyContext(
       educationTopic?.title ??
       systemMeta?.name.en ??
       'Connected Study Context'
-    : educationTopic?.title ??
-      lessonPair?.topic.title.en ??
-      requestedClinical?.title ??
-      requestedPhysiology?.title ??
-      requestedHistology?.title ??
-      requestedRadiology?.title ??
-      requestedPresentation?.title ??
-      resolvedConceptName ??
-      systemMeta?.name.en ??
-      'Connected Study Context';
+    : isDirectLessonTopic
+      ? lessonPair!.topic.title.en
+      : educationTopic?.title ??
+        lessonPair?.topic.title.en ??
+        requestedClinical?.title ??
+        requestedPhysiology?.title ??
+        requestedHistology?.title ??
+        requestedRadiology?.title ??
+        requestedPresentation?.title ??
+        resolvedConceptName ??
+        systemMeta?.name.en ??
+        'Connected Study Context';
 
   const domainMeta = domainId ? EDUCATION_DOMAINS.find((d) => d.id === domainId) : undefined;
   const primarySubjectLabel =

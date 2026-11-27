@@ -324,8 +324,8 @@ export default function Persistent3DPane({
           <MousePointerClick size={13} aria-hidden="true" />
           <span>
             {in3DModel && matchedPartIds.length > 0
-              ? `${highlightedLabel ?? 'Target structure'} highlighted (${matchedPartIds.length} mesh${matchedPartIds.length === 1 ? '' : 'es'} · ${anatomySex}) · Click any structure to inspect`
-              : `Viewing ${anatomySex} reference atlas · Click any 3D structure to synchronize study context`}
+              ? `${highlightedLabel ?? 'Selected part'} shown in 3D (${matchedPartIds.length} piece${matchedPartIds.length === 1 ? '' : 's'} · ${anatomySex}) · Drag to spin · Tap any part to study it`
+              : `Viewing ${anatomySex} 3D body · Drag to spin, scroll to zoom, or tap any part to sync notes`}
           </span>
         </div>
       </div>

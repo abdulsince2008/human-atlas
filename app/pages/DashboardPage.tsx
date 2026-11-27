@@ -18,6 +18,7 @@ import {
   YAxis,
 } from 'recharts';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import PageOrientationBar from '../components/PageOrientationBar';
 import { useStudy } from '../components/StudyContext';
 import { ANATOMY_LESSONS } from '../learning-data';
 import { QUIZ_QUESTIONS } from '../quiz-data';
@@ -58,6 +59,8 @@ export default function DashboardPage({
     revisionQueue,
     updateProfile,
     dismissOnboarding,
+    reopenOnboarding,
+    setExperienceDepth,
     exportStudyJson,
     importStudyJson,
     resetAllStudyProgress,
@@ -162,12 +165,45 @@ export default function DashboardPage({
         <p className="a360-kicker">
           Personal Progress · Stored Locally ({backendName === 'indexeddb' ? 'IndexedDB' : 'Browser Storage'})
         </p>
-        <h1>Student Study Dashboard</h1>
+        <h1>Your Progress &amp; Study Plan</h1>
         <p className="a360-lead">
-          Track real lesson progress, Practical Lab spotter accuracy, spaced-repetition flashcards,
-          weak anatomical areas, and saved structures—with zero fabricated statistics.
+          Track completed topics, Practical Lab spotter accuracy, spaced-repetition flashcards,
+          weak anatomical areas, and saved structures—saved locally with optional cloud sync and JSON backup.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="See everything you have studied so far, what to review next, and manage your learning level or backup."
+        primaryHint={
+          state.trackSelected
+            ? `Active track: ${state.profile.track} · Mode: ${state.experienceDepth === 'guided' ? 'Guided' : 'Full / Advanced'}`
+            : 'No study track chosen yet (currently Open Exploration). Pick a track below or keep browsing freely.'
+        }
+        spokenSummary="This is your Study Dashboard. You can check completed topics, quiz and practical exam scores, suggested next study steps, and export or restore your progress anytime."
+        howToSteps={[
+          'Check Top Recommendations below to pick up right where you will improve fastest.',
+          'Adjust your name, course track, or explanation mode (Guided vs Full) anytime.',
+          'Download a JSON backup before clearing browser storage or moving devices.',
+        ]}
+        rightSlot={
+          <div className="a360-embedded-toolgroup" role="group" aria-label="Explanation mode">
+            <button
+              type="button"
+              className={`a360-mini-btn ${state.experienceDepth === 'guided' ? 'active' : ''}`}
+              onClick={() => setExperienceDepth('guided')}
+            >
+              Guided Mode
+            </button>
+            <button
+              type="button"
+              className={`a360-mini-btn ${state.experienceDepth === 'full' ? 'active' : ''}`}
+              onClick={() => setExperienceDepth('full')}
+            >
+              Full Mode
+            </button>
+          </div>
+        }
+      />
 
       {!state.onboardingDismissed && (
         <section className="a360-onboarding-banner" aria-label="Quick start guide">
@@ -175,9 +211,7 @@ export default function DashboardPage({
             <p className="a360-kicker">Quick-Start Guide</p>
             <h2>How to get the most from Anatomy 360</h2>
             <p className="a360-muted">
-              1. Inspect real organs in the 3D Explorer or Relationship Explorer. 2. Complete
-              structured 12-system lessons. 3. Test yourself in the Practical Lab—any missed organ
-              automatically enters your Revision Queue and Flashcards.
+              1. Inspect organs in the 3D Explorer or Study Workspace. 2. Follow structured 12-system or 16-subject lessons. 3. Test yourself in Practice Quizzes or Practical Lab—any missed organ automatically enters your Revision Queue.
             </p>
           </div>
           <button
@@ -195,10 +229,25 @@ export default function DashboardPage({
       <section className="a360-profile-bar" aria-label="Local student profile">
         <div className="a360-profile-head">
           <UserCheck size={18} />
-          <div>
-            <strong>Local Study Profile</strong>
+          <div className="flex flex-col gap-0.5">
+            <strong>
+              Local Profile ·{' '}
+              {state.trackSelected
+                ? state.profile.track
+                : 'Open Exploration (No track chosen yet)'}
+            </strong>
             <span>Stored privately in your browser · No account required</span>
           </div>
+          <button
+            type="button"
+            className="a360-mini-btn ml-auto"
+            onClick={() => {
+              reopenOnboarding();
+              onNavigate('home');
+            }}
+          >
+            Change Role / Pathway
+          </button>
         </div>
         <div className="a360-profile-fields">
           <label className="a360-select-field">

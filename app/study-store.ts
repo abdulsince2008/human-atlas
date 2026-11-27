@@ -1,4 +1,5 @@
 import type { CanonicalSystemId } from './anatomy-systems';
+import type { EducationTrackId } from './education/education-types';
 import { ANATOMY_LESSONS } from './learning-data';
 import { loadPracticalLabStorage } from './practical-lab/storage';
 import type { ExamAttemptSummary, WeakConceptStats } from './practical-lab/types';
@@ -9,6 +10,7 @@ import {
   type FlashcardReviewState,
   type ReviewRating,
 } from './spaced-repetition';
+import type { StudyContextInput } from './study-context-engine';
 import type { CustomSyllabusProfile } from './syllabus/syllabus-types';
 import {
   readPersistedAnatomySex,
@@ -52,6 +54,9 @@ export interface StudyActivityEntry {
   detail?: string;
 }
 
+export type AudienceRole = 'unset' | 'learning' | 'teaching' | 'exploring';
+export type ExperienceDepth = 'guided' | 'full';
+
 export interface LocalStudentProfile {
   displayName: string;
   track: StudyTrack;
@@ -64,6 +69,11 @@ export interface StudyStateV1 {
   updatedAt: number;
   migratedLegacy: boolean;
   onboardingDismissed: boolean;
+  onboardingCompleted: boolean;
+  trackSelected: boolean;
+  audienceRole: AudienceRole;
+  educationTrackId: EducationTrackId | null;
+  experienceDepth: ExperienceDepth;
   preferredSex: AnatomySex;
   profile: LocalStudentProfile;
   completedTopicIds: string[];
@@ -79,6 +89,8 @@ export interface StudyStateV1 {
   activityLog: StudyActivityEntry[];
   customSyllabi: CustomSyllabusProfile[];
   educatorSequences: Record<string, string[]>;
+  lastStudyContext: StudyContextInput | null;
+  lastRoute: string | null;
 }
 
 export function createEmptyStudyState(): StudyStateV1 {
@@ -87,10 +99,15 @@ export function createEmptyStudyState(): StudyStateV1 {
     updatedAt: Date.now(),
     migratedLegacy: false,
     onboardingDismissed: false,
+    onboardingCompleted: false,
+    trackSelected: false,
+    audienceRole: 'unset',
+    educationTrackId: null,
+    experienceDepth: 'guided',
     preferredSex: readPersistedAnatomySex(),
     profile: {
-      displayName: 'Anatomy Student',
-      track: 'MBBS / Medical',
+      displayName: 'Explorer',
+      track: 'General Biology',
       dailyFlashcardGoal: 15,
       updatedAt: Date.now(),
     },
@@ -104,6 +121,8 @@ export function createEmptyStudyState(): StudyStateV1 {
     activityLog: [],
     customSyllabi: [],
     educatorSequences: {},
+    lastStudyContext: null,
+    lastRoute: null,
   };
 }
 
@@ -175,9 +194,13 @@ export function validateAndSanitizeStudyState(raw: unknown): {
     'Nursing / Allied Health',
     'General Biology',
   ];
-  const track = validTracks.includes(profileObj.track as StudyTrack)
+  const isLegacyPayload = obj.audienceRole === undefined && obj.trackSelected === undefined;
+  const hasExplicitValidTrack = validTracks.includes(profileObj.track as StudyTrack);
+  const track: StudyTrack = hasExplicitValidTrack
     ? (profileObj.track as StudyTrack)
-    : base.profile.track;
+    : isLegacyPayload && profileObj.track !== undefined
+      ? 'MBBS / Medical'
+      : base.profile.track;
 
   const completedTopicIds = Array.isArray(obj.completedTopicIds)
     ? Array.from(new Set(obj.completedTopicIds.filter((x): x is string => typeof x === 'string')))
@@ -271,6 +294,63 @@ export function validateAndSanitizeStudyState(raw: unknown): {
     }
   }
 
+  const validRoles: AudienceRole[] = ['unset', 'learning', 'teaching', 'exploring'];
+  const audienceRole: AudienceRole = validRoles.includes(obj.audienceRole as AudienceRole)
+    ? (obj.audienceRole as AudienceRole)
+    : base.audienceRole;
+
+  const validEduTracks: EducationTrackId[] = [
+    'school_foundations',
+    'secondary_premed',
+    'medical_foundations',
+    'clinical_applied',
+    'allied_health',
+    'graduate_research',
+  ];
+  const educationTrackId: EducationTrackId | null = validEduTracks.includes(
+    obj.educationTrackId as EducationTrackId,
+  )
+    ? (obj.educationTrackId as EducationTrackId)
+    : null;
+
+  const hasSavedHistory =
+    completedTopicIds.length > 0 ||
+    answeredIds.length > 0 ||
+    practicalAttempts.length > 0 ||
+    Object.keys(flashcardReviews).length > 0 ||
+    Object.keys(bookmarks).length > 0 ||
+    customSyllabi.length > 0;
+
+  const trackSelected =
+    typeof obj.trackSelected === 'boolean'
+      ? obj.trackSelected
+      : hasExplicitValidTrack || hasSavedHistory;
+
+  const onboardingCompleted =
+    typeof obj.onboardingCompleted === 'boolean'
+      ? obj.onboardingCompleted
+      : Boolean(obj.onboardingDismissed) || hasSavedHistory;
+
+  const experienceDepth: ExperienceDepth =
+    obj.experienceDepth === 'full' || obj.experienceDepth === 'guided'
+      ? obj.experienceDepth
+      : isLegacyPayload && (track === 'MBBS / Medical' || track === 'Nursing / Allied Health')
+        ? 'full'
+        : 'guided';
+
+  let lastStudyContext: StudyContextInput | null = null;
+  if (obj.lastStudyContext && typeof obj.lastStudyContext === 'object') {
+    const lsc = obj.lastStudyContext as Record<string, unknown>;
+    lastStudyContext = {
+      conceptId: typeof lsc.conceptId === 'string' ? lsc.conceptId : undefined,
+      partId: typeof lsc.partId === 'string' ? lsc.partId : undefined,
+      topicId: typeof lsc.topicId === 'string' ? lsc.topicId : undefined,
+      domainId: typeof lsc.domainId === 'string' ? (lsc.domainId as StudyContextInput['domainId']) : undefined,
+      systemId: typeof lsc.systemId === 'string' ? (lsc.systemId as CanonicalSystemId) : undefined,
+      sourceModule: typeof lsc.sourceModule === 'string' ? (lsc.sourceModule as StudyContextInput['sourceModule']) : 'study',
+    };
+  }
+
   return {
     ok: true,
     state: {
@@ -278,6 +358,11 @@ export function validateAndSanitizeStudyState(raw: unknown): {
       updatedAt: typeof obj.updatedAt === 'number' ? obj.updatedAt : Date.now(),
       migratedLegacy: Boolean(obj.migratedLegacy),
       onboardingDismissed: Boolean(obj.onboardingDismissed),
+      onboardingCompleted,
+      trackSelected,
+      audienceRole,
+      educationTrackId,
+      experienceDepth,
       preferredSex: obj.preferredSex === 'female' ? 'female' : 'male',
       profile: {
         displayName:
@@ -303,6 +388,8 @@ export function validateAndSanitizeStudyState(raw: unknown): {
       activityLog,
       customSyllabi,
       educatorSequences,
+      lastStudyContext,
+      lastRoute: typeof obj.lastRoute === 'string' ? obj.lastRoute.slice(0, 40) : null,
     },
   };
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Search } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import PageOrientationBar from '../components/PageOrientationBar';
 import StructureReferenceCard from '../components/StructureReferenceCard';
 import { useStudy } from '../components/StudyContext';
 import {
@@ -152,6 +153,17 @@ export default function SystemsPage({
           relationships, multi-level explanations, model coverage status, lessons, and 3D inspection.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Browse every organ and bone organized by body system, with simple and medical notes."
+        primaryHint="Choose Male or Female on the left, pick a body system, then tap any body part to read about it or open it in 3D."
+        spokenSummary="Body Systems and Parts Guide. Pick Male or Female on the left, select any of the 12 body systems, and tap a body part to inspect its role or launch it in 3D."
+        howToSteps={[
+          'Select one of the 12 systems from the list (like Heart & Blood Vessels or Bones).',
+          'Pick any structure to view its location, function, and connections.',
+          'Click Open in Study Workspace or Inspect in 3D to see it in 3D.',
+        ]}
+      />
 
       <div className="a360-split-layout">
         <aside className="a360-system-nav" aria-label="Anatomical systems">

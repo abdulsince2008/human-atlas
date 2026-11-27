@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { DEFAULT_VISIBLE, type Atlas, type SceneState } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
+import PageOrientationBar from '../components/PageOrientationBar';
 import { useStudy } from '../components/StudyContext';
 import {
   ANATOMY_FLASHCARDS,
@@ -134,6 +135,17 @@ export default function RevisionPage({
           from the canonical atlas curriculum—combined with Practical Lab misses and saved items.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Practice memory flashcards, review missed exam spots, and reopen organs you saved."
+        primaryHint="Tap Show Answer on any flashcard, then rate how well you knew it (Understood, Repeat later, or Difficult)."
+        spokenSummary="Flashcards, Revision Queue, and Saved Bookmarks. Try recalling the answer before flipping each card, then rate how confident you felt so the platform schedules your next review automatically."
+        howToSteps={[
+          'Use Flashcards to test your memory one card at a time (turn on 3D preview to see the organ).',
+          'Open Revision Queue to focus on items you missed in Practical Lab or marked difficult.',
+          'Check Saved Bookmarks to jump right back to favorite body parts and topics.',
+        ]}
+      />
 
       <div className="a360-category-tabs" role="tablist" aria-label="Revision sections">
         <button

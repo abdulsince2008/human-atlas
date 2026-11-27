@@ -13,6 +13,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { useStudy } from '../components/StudyContext';
+import PageOrientationBar from '../components/PageOrientationBar';
 import type { AppRoute } from '../components/SiteHeader';
 import {
   CURRICULUM_FRAMEWORKS,
@@ -344,6 +345,17 @@ export default function SyllabusNavigatorPage({
           Browse {CURRICULUM_FRAMEWORKS.length} public national, regulatory, and university curriculum alignment references worldwide or paste/upload your own school, university, MBBS, nursing, or graduate syllabus to inspect real Anatomy 360 topic coverage locally.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Find lessons that match your exact school, board, or university syllabus—or paste your own course list."
+        primaryHint="Browse the 13 built-in curricula below, or switch to the Match Custom Syllabus tab to paste your own chapters."
+        spokenSummary="Worldwide Syllabus Navigator. Pick a school or medical curriculum on the first tab, or switch to Custom Syllabus to paste your own course outline and see which Anatomy 360 lessons match."
+        howToSteps={[
+          'Use tab 1 to pick an existing school, national board, or university curriculum.',
+          'Use tab 2 to paste your own syllabus lines or upload a .txt, .md, or .csv file.',
+          'Click any matched topic to open its study workspace, or send the list straight to the Educator Workspace.',
+        ]}
+      />
 
       {/* Mode Switcher */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-4" role="tablist" aria-label="Syllabus navigator modes">

@@ -66,6 +66,7 @@ import {
   type RecordingStatus,
 } from '../presentation/video-recorder';
 import AnatomyScene from '../scene';
+import SpeakGuidanceButton from '../components/SpeakGuidanceButton';
 import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
@@ -690,15 +691,23 @@ export default function PresentationStudioPage({
             </div>
             <div>
               <h1 className="text-base font-semibold tracking-tight text-slate-900">
-                Clinical Mechanism &amp; 3D Presentation Studio
+                3D Lecture &amp; Guided Walkthrough Studio
               </h1>
               <p className="text-xs text-slate-600">
-                Guided 3D clinical explanations, presenter narration scripts, knowledge checks, and local video export.
+                Play step-by-step 3D anatomy tours with presenter scripts, quick checks, or custom lecture slides.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {activeStep && (
+              <SpeakGuidanceButton
+                text={`${activeStep.title}. ${resolveStepCaption(activeStep)}`}
+                label="Listen"
+                stopLabel="Stop"
+                compact
+              />
+            )}
             {onOpenClinical && (
               <button
                 type="button"

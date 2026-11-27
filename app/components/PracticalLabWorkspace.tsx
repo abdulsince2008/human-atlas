@@ -43,6 +43,7 @@ import type {
 } from '../practical-lab/types';
 import PracticalLabResults from './PracticalLabResults';
 import PracticalLabSetup from './PracticalLabSetup';
+import PageOrientationBar from './PageOrientationBar';
 import { useStudy } from './StudyContext';
 import type { StudyContextInput } from '../study-context-engine';
 
@@ -564,6 +565,19 @@ export default function PracticalLabWorkspace({
           on the interactive human model.
         </p>
       </header>
+
+      {stage === 'setup' && (
+        <PageOrientationBar
+          whatThisIs="A 3D spotter test where the model highlights an organ for you to name—or asks you to tap the right part in 3D."
+          primaryHint="Pick your body system, choose Untimed if you want to practice calmly, and press Start Exam."
+          spokenSummary="3D Spotter Practical Lab. Choose which body system and difficulty you want, start untimed for calm practice or timed for exam prep, and identify highlighted 3D body parts."
+          howToSteps={[
+            'Choose All Systems or focus on one system (such as Cardiovascular or Skeletal).',
+            'Pick Foundational difficulty and Untimed mode if this is your first spotter test.',
+            'Any structure you miss is added automatically to your Weak Areas & Flashcards queue.',
+          ]}
+        />
+      )}
 
       {stage === 'setup' && (
         <PracticalLabSetup

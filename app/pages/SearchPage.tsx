@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import type { CanonicalSystemId } from '../anatomy-systems';
+import PageOrientationBar from '../components/PageOrientationBar';
 import type { AppRoute } from '../components/SiteHeader';
 import StructureReferenceCard from '../components/StructureReferenceCard';
 import { useStudy } from '../components/StudyContext';
@@ -64,21 +65,21 @@ interface Props {
 }
 
 const UNIFIED_CATEGORY_TABS: { id: UnifiedSearchCategory; label: string }[] = [
-  { id: 'all', label: 'All' },
+  { id: 'all', label: 'All Results' },
   { id: 'subject', label: 'Subjects' },
-  { id: 'topic', label: 'Topics' },
-  { id: 'structure', label: '3D Structures' },
-  { id: 'relationship', label: 'Relationships' },
-  { id: 'terminology', label: 'Terminology' },
-  { id: 'physiology', label: 'Physiology' },
-  { id: 'histology', label: 'Histology' },
-  { id: 'clinical', label: 'Clinical' },
-  { id: 'presentation', label: '3D Walkthroughs' },
-  { id: 'quiz', label: 'Quizzes' },
-  { id: 'resource', label: 'External Readings' },
+  { id: 'topic', label: 'Study Topics' },
+  { id: 'structure', label: '3D Body Parts' },
+  { id: 'relationship', label: 'Connections' },
+  { id: 'terminology', label: 'Word Meanings' },
+  { id: 'physiology', label: 'Body Functions' },
+  { id: 'histology', label: 'Microscope Tissues' },
+  { id: 'clinical', label: 'Clinical Cases' },
+  { id: 'presentation', label: '3D Tours' },
+  { id: 'quiz', label: 'Practice Quizzes' },
+  { id: 'resource', label: 'Books & Readings' },
   { id: 'video', label: 'Videos' },
   { id: 'curriculum', label: 'Syllabi' },
-  { id: 'educator', label: 'Educator' },
+  { id: 'educator', label: 'Teacher Tools' },
 ];
 
 export default function SearchPage({
@@ -272,12 +273,20 @@ export default function SearchPage({
         <p className="a360-kicker">Universal Knowledge Search</p>
         <h1>Search Across All Subjects, Topics, 3D Anatomy &amp; Syllabi</h1>
         <p className="a360-lead">
-          One unified discovery index across all 16 biomedical domains, chapters, learning
-          outcomes, 3,432+ FMA concepts, 2,401 multi-layer 3D meshes (2,301 Male · 2,328 Female + 8
-          optional), physiology labs, histology entries, clinical cases, guided 3D walkthroughs,
-          MCQs, and 13 worldwide curricula.
+          Find any 3D body part, subject, lesson, quiz question, microscope tissue, reading, or syllabus in one place across {state.preferredSex === 'female' ? 'Female & Male' : 'Male & Female'} datasets.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Type any organ, topic, or exam keyword below to search the whole platform at once."
+        primaryHint="Use the category buttons below the search bar to focus on 3D Body Parts, Study Topics, Practice Quizzes, or Syllabi."
+        spokenSummary="Search everything in Anatomy 360. Type a body part like Heart, Lung, or Kidney, or a subject like Pharmacology, then choose whether to open it in the Study Workspace, inspect it in 3D, or practice questions."
+        howToSteps={[
+          'Type any everyday word (like Heart or breathing) or scientific term (like FMA7088 or ADME).',
+          'Pick a category tab such as 3D Body Parts, Study Topics, or Practice Quizzes to narrow down results.',
+          'Click Study Workspace to learn side-by-side with 3D, or Inspect in 3D to jump directly to the model.',
+        ]}
+      />
 
       <div className="a360-big-search">
         <Search size={18} />
@@ -534,7 +543,8 @@ export default function SearchPage({
                               })
                             }
                           >
-                            <Bookmark size={13} />
+                            <Bookmark size={13} aria-hidden="true" />
+                            <span>{saved ? 'Saved' : 'Save'}</span>
                           </button>
                         </>
                       )}

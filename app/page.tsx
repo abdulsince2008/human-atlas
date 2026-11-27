@@ -4,10 +4,11 @@ import { CANONICAL_SYSTEMS, type CanonicalSystemId } from './anatomy-systems';
 import SiteHeader, { type AppRoute } from './components/SiteHeader';
 import { FirebaseProvider } from './components/FirebaseContext';
 import FirebaseErrorBoundary from './components/FirebaseErrorBoundary';
-import { StudyProvider } from './components/StudyContext';
+import { StudyProvider, useStudy } from './components/StudyContext';
 import type { CurriculumAuthorityId, EducationDomainId } from './education/education-types';
 import type { LearningCategoryId } from './learning-data';
 import AboutPage from './pages/AboutPage';
+import AllToolsPage from './pages/AllToolsPage';
 import AtlasManagerPage from './pages/AtlasManagerPage';
 import ClinicalPage from './pages/ClinicalPage';
 import DashboardPage from './pages/DashboardPage';
@@ -53,6 +54,7 @@ function parseRouteFromHash(): AppRoute {
   if (hash === 'syllabus' || hash === 'syllabi' || hash === 'curricula') return 'syllabus';
   if (hash === 'educator' || hash === 'teacher' || hash === 'professor') return 'educator';
   if (hash === 'search') return 'search';
+  if (hash === 'tools' || hash === 'all-tools') return 'tools';
   if (hash === 'about') return 'about';
   return 'home';
 }
@@ -72,6 +74,39 @@ interface EducatorIntentState {
   domainId?: EducationDomainId;
   frameworkId?: CurriculumAuthorityId;
   customSyllabusId?: string;
+}
+
+function StudySessionTracker({
+  route,
+  studyInput,
+}: {
+  route: AppRoute;
+  studyInput: StudyContextInput;
+}) {
+  const { ready, state, recordLastRoute, recordLastStudyContext, dismissOnboarding } = useStudy();
+
+  useEffect(() => {
+    if (!ready) return;
+    recordLastRoute(route);
+  }, [ready, route, recordLastRoute]);
+
+  useEffect(() => {
+    if (!ready || route !== 'study') return;
+    if (studyInput.conceptId || studyInput.topicId || studyInput.domainId || studyInput.systemId) {
+      recordLastStudyContext(studyInput);
+    }
+  }, [ready, route, studyInput, recordLastStudyContext]);
+
+  useEffect(() => {
+    if (!ready || state.onboardingDismissed || typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = parseHashParams();
+    if (searchParams.get('autostart') === '1' || hashParams.get('autostart') === '1') {
+      dismissOnboarding(true);
+    }
+  }, [ready, state.onboardingDismissed, dismissOnboarding]);
+
+  return null;
 }
 
 export default function Home() {
@@ -560,6 +595,7 @@ export default function Home() {
     <FirebaseErrorBoundary>
       <StudyProvider>
         <FirebaseProvider>
+          <StudySessionTracker route={route} studyInput={studyInputState} />
           <div className={`a360-shell ${route === 'explorer' ? 'is-explorer' : ''}`}>
             <SiteHeader
               route={route}
@@ -791,6 +827,8 @@ export default function Home() {
               )}
 
               {route === 'atlases' && <AtlasManagerPage />}
+
+              {route === 'tools' && <AllToolsPage onNavigate={navigate} />}
 
               {route === 'about' && <AboutPage onExplore={() => navigate('explorer')} />}
 

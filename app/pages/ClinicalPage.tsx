@@ -16,6 +16,7 @@ import {
 } from '../data/clinical-data';
 import { getClinicalCaseExplainerLink } from '../presentation/builtin-presentations';
 import { resolveClinicalCaseTarget } from '../utils/deep-link-resolver';
+import PageOrientationBar from '../components/PageOrientationBar';
 import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
@@ -85,6 +86,17 @@ export default function ClinicalPage({
           mechanisms. Launch synchronized 3D presentations where full anatomical coverage is verified.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="See how body structure explains real-life medical situations and everyday health scenarios."
+        primaryHint="Pick a scenario on the left, read the clear explanation, and launch the matching 3D walkthrough or organ."
+        spokenSummary="Real-Life Medical Cases and Clinical Correlations. Select a scenario on the left to see why anatomy explains how symptoms happen, then open the matching 3D presentation or study workspace."
+        howToSteps={[
+          'Choose a topic filter or pick any case from the left list.',
+          'Read the scenario and anatomical explanation side by side.',
+          'Try the case check question or tap Launch Guided 3D Presentation.',
+        ]}
+      />
 
       <div className="a360-coverage-box" role="note">
         <strong>Educational Notice:</strong> {CLINICAL_CASE_DISCLAIMER}

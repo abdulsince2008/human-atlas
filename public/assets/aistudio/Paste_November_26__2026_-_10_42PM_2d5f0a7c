@@ -1,0 +1,1242 @@
+# ANATOMY 360 — UNIVERSAL USABILITY, INTUITIVE NAVIGATION & GUIDED LEARNING EXPERIENCE
+
+## PRIMARY MISSION
+
+You are working on the existing Anatomy 360 platform: a comprehensive 3D human anatomy and biomedical learning environment.
+
+Your mission is to make the **entire existing platform extremely easy to understand, navigate, discover, and use for every audience**, from:
+
+- A Grade 6 student who has never used an educational platform.
+- A beginner with limited reading ability who primarily understands visual interfaces, icons, pictures, and familiar social-media-style interactions.
+- A Grade 9–12 student, FSc pre-medical student, or MDCAT candidate.
+- An MBBS/MD, nursing, allied-health, or graduate student.
+- A teacher, lecturer, anatomy educator, or university professor.
+
+The platform should feel immediately understandable, even to someone who has never used a medical learning application before.
+
+A Grade 6 child should be able to open Anatomy 360 and immediately understand:
+
+1. Where to start.
+2. What they can learn.
+3. Which button to press.
+4. What they are currently looking at.
+5. How to move to the next step.
+6. How to practice what they have learned.
+
+A professor should be able to open the platform and quickly access professional teaching, course planning, curriculum alignment, demonstrations, presentations, and educational resources without navigating through beginner-oriented instructions.
+
+**The ultimate goal is that users never have to wonder where a feature is, what a section does, or where they should go next.**
+
+---
+
+# 1. NON-NEGOTIABLE RULE: REMOVE NOTHING
+
+This is an organization and usability improvement project, NOT a feature-reduction project.
+
+**DO NOT REMOVE ANYTHING.**
+
+Do not delete, disable, downgrade, replace, or silently discard:
+
+- Existing features.
+- Existing tools.
+- Existing educational content.
+- Existing 3D anatomy functionality.
+- Existing models, meshes, structures, and anatomical mappings.
+- Existing learning tracks and curriculum coverage.
+- Existing quizzes and practical assessments.
+- Existing study resources and videos.
+- Existing educator and professor functionality.
+- Existing simulations and clinical cases.
+- Existing study-progress functionality.
+- Existing data, persistence, and user preferences.
+- Existing integrations.
+- Existing routes or deep links.
+- Existing advanced controls.
+
+You may reorganize navigation, group related tools, redesign layouts, introduce guided workflows, add contextual help, simplify labels, improve visual hierarchy, and make existing capabilities easier to discover.
+
+You may move controls into better-organized sections, but their underlying functionality must remain available.
+
+If several features currently appear as separate destinations, you may present them within a clearer parent category, provided users can still access each feature individually.
+
+The user must never lose access to an existing capability merely because the interface has become simpler.
+
+**Simplify the experience, not the platform.**
+
+---
+
+# 2. FIRST: FULL REPOSITORY RECONNAISSANCE
+
+Before changing any code, inspect the latest repository and current implementation.
+
+Do not assume that README descriptions perfectly match the current UI.
+
+Inspect and understand at minimum:
+
+- `app/page.tsx`
+- `app/components/SiteHeader.tsx`
+- `app/pages/HomePage.tsx`
+- `app/components/UniversalStudyWorkspace.tsx`
+- `app/components/Persistent3DPane.tsx`
+- `app/components/StudyContext.tsx`
+- `app/study-store.ts`
+- `app/pages/EducatorPage.tsx`
+- `app/pages/LearnPage.tsx`
+- `app/pages/DashboardPage.tsx`
+- `app/pages/SyllabusNavigatorPage.tsx`
+- `app/pages/SearchPage.tsx`
+- All remaining pages and their connected components.
+- `app/globals.css`
+- Existing routing, navigation callbacks, study state, persistence, and mobile layouts.
+
+Inspect the complete existing feature inventory, including features that are not immediately visible on the homepage.
+
+At minimum, account for all existing application destinations:
+
+- Home
+- 3D Anatomy Explorer
+- Guided 3D Presentation Studio
+- Systems / Reference
+- Learn / Curriculum
+- Connected Study Workspace
+- Practical Lab
+- Study Dashboard
+- Flashcards / Revision
+- Bookmarks
+- Physiology
+- Histology
+- Clinical Correlations
+- Quizzes
+- Atlas & Pack Manager
+- Worldwide Syllabus Navigator
+- Teacher & Professor Workspace
+- Unified Search
+- About / Licenses
+
+Also inspect the functionality inside each destination.
+
+Create an internal feature inventory and a route-to-feature mapping before implementing changes.
+
+**No existing feature should become unreachable after the redesign.**
+
+Reuse existing architecture, components, IDs, routing, registries, and state management. Extend existing systems instead of creating disconnected replacement systems.
+
+---
+
+# 3. DESIGN THE PLATFORM AROUND USER INTENT
+
+The current platform contains many powerful capabilities. The problem to solve is that users should not need to understand the platform's internal structure before they can use it.
+
+Instead, organize the experience around what the user wants to accomplish.
+
+Build a simple primary navigation structure with clear destinations.
+
+A possible direction is:
+
+### A. Home
+The starting point, with a clear explanation of what to do first.
+
+### B. Learn
+Everything related to discovering and understanding human anatomy and biomedical subjects.
+
+This must make the following accessible:
+
+- 3D Anatomy Explorer
+- All learning subjects
+- Body systems
+- Individual topics and chapters
+- Connected Study Workspace
+- Syllabus Navigator
+- Reference library
+- Search and discovery
+
+### C. Practice
+Everything related to testing and tracking learning:
+
+- Quizzes
+- Practical Lab
+- Flashcards
+- Revision
+- Study Dashboard
+- Weak areas
+- Bookmarks
+- Adaptive study recommendations
+
+### D. Teach
+Everything a teacher or professor needs:
+
+- Teacher & Professor Workspace
+- Course planning
+- Curriculum mapping
+- Teaching sequences
+- Lecture outlines
+- Chapter decks
+- Student worksheets
+- Classroom tools
+- Guided presentations
+
+### E. All Tools
+A complete, organized directory containing every existing advanced feature and destination.
+
+Include:
+
+- Relationship Explorer
+- Physiology Simulations
+- Histology Library
+- Clinical Correlations
+- Presentation Studio
+- Atlas & Pack Manager
+- All remaining specialist functionality.
+
+This is a suggested information architecture, not permission to delete or replace existing destinations.
+
+You may refine the exact names and grouping after inspecting the code.
+
+### Navigation requirements
+
+- Keep global search easy to find from anywhere.
+- Use clear icons alongside understandable labels.
+- Give each category a one-sentence explanation.
+- Show the active destination clearly.
+- Make dropdowns and mobile navigation predictable.
+- Avoid unnecessarily deep navigation.
+- Users should generally be able to reach an important feature within no more than three deliberate navigation actions.
+- Do not hide advanced features permanently.
+- Keep every existing route and supported deep link working.
+- Keep mobile navigation organized rather than simply displaying one excessively long list.
+
+A user should understand the difference between Learn, Practice, Teach, and All Tools without reading technical documentation.
+
+---
+
+# 4. BUILD A REAL FIRST-TIME USER EXPERIENCE
+
+The first visit is one of the most important parts of this project.
+
+The current welcome banner is not enough on its own.
+
+Create an intuitive, visually guided onboarding experience that helps users choose how they want to use Anatomy 360.
+
+The onboarding must be optional, lightweight, and easy to skip.
+
+## Initial welcome
+
+Use simple language such as:
+
+**Welcome to Anatomy 360**
+
+"Explore the human body, learn how it works, and practice what you discover."
+
+Then offer clear visual choices:
+
+### I am learning
+For school students, pre-medical students, medical students, and other learners.
+
+### I am teaching
+For teachers, lecturers, professors, and educators.
+
+### I just want to explore
+For people who want to freely explore the human body without choosing a course or learning track.
+
+These should be entry pathways, not permission gates.
+
+Everyone must retain access to every feature.
+
+## Learning-level selection
+
+For users selecting the learning pathway, make it easy to choose an appropriate level.
+
+Inspect the existing `EDUCATION_TRACKS` and `StudyTrack` definitions before implementing this.
+
+Reuse the real existing learning-track values.
+
+Present them with understandable labels and short explanations, including the relevant school, pre-medical, medical, allied-health, and graduate pathways.
+
+Do not invent unsupported curriculum tracks.
+
+Allow users to skip the selection and change it later.
+
+### Important existing default-profile issue
+
+Inspect `createEmptyStudyState()` in `app/study-store.ts`.
+
+The current new-user default profile uses `MBBS / Medical`.
+
+This should not automatically assign a medical-student identity to every new user.
+
+Introduce a sensible first-visit profile-selection flow or an explicit unselected/general-exploration state, using backward-compatible state handling.
+
+Preserve existing users' saved profiles and learning preferences.
+
+Do not reset existing study data or break imported JSON backups.
+
+## Remember the user's chosen experience
+
+Where appropriate, remember:
+
+- User's selected audience or role.
+- Selected learning track.
+- Preferred learning depth.
+- Completed onboarding steps.
+- Previous learning activity.
+
+Make changes possible at any time.
+
+Do not require account creation just to begin learning.
+
+---
+
+# 5. MAKE THE HOMEPAGE AN ACTUAL STARTING POINT
+
+The homepage should answer three questions immediately:
+
+1. What can I do here?
+2. Which path is right for me?
+3. What should I do next?
+
+Reorganize the existing homepage around a clear hierarchy.
+
+## Recommended homepage experience
+
+### Section 1 — Welcome and Start Here
+
+A clear primary heading.
+
+One short explanation.
+
+A highly visible primary action:
+
+**Start Learning**
+
+Supporting options:
+
+- Explore the Human Body
+- Continue Learning
+- Find My Syllabus
+- Teach with Anatomy 360
+
+Adapt the visible recommendations to the user's chosen role and progress.
+
+### Section 2 — Choose What You Want to Do
+
+Use visually distinct cards with recognizable illustrations or icons.
+
+For example:
+
+- Explore the human body in 3D.
+- Learn a subject.
+- Study an organ.
+- Practice a quiz.
+- Find a syllabus.
+- Prepare a lecture.
+
+Every card must explain what happens when the user selects it.
+
+### Section 3 — Continue Learning
+
+When saved activity exists, show useful next actions:
+
+- Continue the last topic.
+- Review difficult concepts.
+- Resume a practical session.
+- Continue a saved syllabus.
+- Open due flashcards.
+
+When there is no activity, show an appropriate beginner starting point.
+
+### Section 4 — Explore All Subjects
+
+Keep the existing complete subject catalogue and its filters.
+
+Make the hierarchy easier to understand:
+
+Subject → Chapter → Topic → Learning Workspace.
+
+Use plain-language explanations where helpful.
+
+### Section 5 — Explore the Human Body
+
+Keep all existing anatomical systems and existing functionality.
+
+Make the body itself an intuitive discovery interface.
+
+A user should understand that selecting a body system or structure takes them into its relevant anatomy and learning content.
+
+### Section 6 — Teaching and Professional Tools
+
+Give teachers and professors a clear dedicated pathway.
+
+### Section 7 — Complete Tools and Resources
+
+Keep every existing specialist tool discoverable.
+
+### Section 8 — Platform Information
+
+Keep relevant coverage metrics, educational information, licenses, and other important disclosures.
+
+The exact ordering can be improved through implementation, but the homepage must not become another overwhelming catalogue.
+
+Use progressive disclosure and meaningful section hierarchy.
+
+Do not remove existing homepage content merely because the layout changes.
+
+---
+
+# 6. MAKE THE EXPERIENCE UNDERSTANDABLE WITHOUT STRONG READING ABILITY
+
+This requirement is extremely important.
+
+The design must work for users who primarily understand interfaces through pictures, symbols, familiar interaction patterns, and visual feedback.
+
+Do not interpret this as permission to make an icon-only interface.
+
+Use a combination of:
+
+- Recognizable icons.
+- Clear illustrations.
+- Short, simple labels.
+- Large, obvious action buttons.
+- Visual examples.
+- Consistent colors and visual meanings.
+- Simple step-by-step guidance.
+- Optional audio instructions.
+
+### Audio guidance
+
+Investigate whether browser-native speech synthesis can provide a useful optional way to read instructions, button descriptions, and short guidance aloud.
+
+If supported, implement it without adding a paid API or external subscription.
+
+Requirements:
+
+- Never autoplay speech.
+- Provide an obvious speaker/listen control.
+- Allow users to stop speech.
+- Keep written instructions available.
+- Gracefully handle unsupported browsers.
+- Do not make audio mandatory for completing any action.
+
+### Visual interaction principles
+
+Use clear action patterns such as:
+
+- Explore
+- Open
+- Learn
+- Watch
+- Practice
+- Save
+- Continue
+- Go Back
+
+Do not require a user to understand complicated terminology before interacting.
+
+For example:
+
+Instead of displaying only "Physiology Simulation", explain:
+
+"See how the heart and lungs work."
+
+Instead of displaying only "Relationship Explorer", explain:
+
+"See how body parts connect to one another."
+
+Keep proper scientific terminology available within the content for advanced users.
+
+The objective is to explain complex science simply without making the science inaccurate.
+
+### Accessibility
+
+Implement and verify:
+
+- Readable text sizes.
+- Strong color contrast.
+- Clear active and selected states.
+- Consistent icon meanings.
+- Large touch targets.
+- Keyboard navigation.
+- Visible focus indicators.
+- Accessible names and labels.
+- Useful screen-reader semantics.
+- No information communicated through color alone.
+- Responsive layouts.
+
+Never make a critical action dependent on hover.
+
+---
+
+# 7. CREATE TWO DEPTHS OF EXPERIENCE WITHOUT SPLITTING THE PLATFORM
+
+The platform must support both a simple beginner experience and an advanced professional experience.
+
+Do not create two separate products or disconnected copies of functionality.
+
+Instead, introduce a coherent interface that can progressively reveal complexity.
+
+## Guided Experience
+
+Optimized for:
+
+- Grade 6–8 students.
+- First-time users.
+- Beginners.
+- Users with limited digital or reading confidence.
+
+Characteristics:
+
+- Clear next action.
+- Simple terminology.
+- Visual instructions.
+- Step-by-step workflows.
+- Beginner-friendly explanations.
+- Less unnecessary information shown at once.
+- Obvious back and continue controls.
+
+## Full / Advanced Experience
+
+Optimized for:
+
+- Pre-medical students.
+- Medical students.
+- Researchers.
+- Professors.
+- Experienced users.
+
+Characteristics:
+
+- Faster navigation.
+- Detailed controls.
+- Scientific terminology.
+- Advanced study dimensions.
+- Professional tools.
+- Full access to all relevant functionality.
+
+### Crucial rule
+
+Guided Experience must not remove tools.
+
+Advanced Experience must not become a separate application.
+
+A user must be able to move between beginner explanations and advanced detail whenever needed.
+
+Use the existing academic-depth system where appropriate:
+
+- Foundational
+- Intermediate
+- Advanced
+
+Verify how `depthLevel` currently affects the actual learning content.
+
+Do not merely rename the depth buttons while leaving the content unchanged.
+
+---
+
+# 8. REDESIGN THE CONNECTED STUDY WORKSPACE FOR CLARITY
+
+The existing Universal Connected Study Workspace is a major strength of Anatomy 360.
+
+Preserve its architecture, its persistent 3D viewport, its synchronized study context, and all existing learning dimensions.
+
+Do not replace it with a simpler but less capable study page.
+
+The current workspace includes:
+
+- Overview & Depth
+- Relationships
+- Physiology
+- Histology & Radiology
+- Clinical & 3D Tours
+- Assessments
+- Readings & Videos
+- Next Steps
+
+Keep every one of these capabilities.
+
+However, make the labels, descriptions, and navigation more understandable.
+
+Use short labels with supporting descriptions or contextual help.
+
+For example:
+
+- Overview — Learn about this topic.
+- Connections — See what this structure connects to.
+- How It Works — Explore its function.
+- Look Closer — Explore tissues and radiology.
+- Real-World Learning — Clinical cases and 3D tours.
+- Practice — Test what you learned.
+- Books & Videos — Explore further resources.
+- What's Next — Find your next study action.
+
+Keep full scientific terminology available in the actual content.
+
+### Workspace orientation
+
+Every workspace should make it easy to understand:
+
+- What am I studying?
+- What does this section contain?
+- What can I do here?
+- How does this connect to the 3D model?
+- Where should I go next?
+
+### Guided learning flow
+
+Provide an intuitive learning sequence, where appropriate:
+
+1. Look at the structure.
+2. Understand what it is.
+3. Learn what it does.
+4. Explore how it connects to other structures.
+5. See relevant examples or simulations.
+6. Practice with questions.
+7. Review suggested next steps.
+
+This should be guidance, not a forced sequence.
+
+Experienced users must still be able to jump directly into any existing workspace dimension.
+
+### Persistent 3D viewport
+
+Preserve:
+
+- Single-mount architecture.
+- Correct anatomical synchronization.
+- Male/female anatomy selection.
+- Structure focus.
+- Contextual highlighting.
+- Existing 3D controls.
+- Desktop split layout.
+- Mobile pane switching.
+
+Improve the explanation of available viewport controls so a beginner understands how to rotate, zoom, select, and inspect structures.
+
+Do not compromise rendering quality or performance.
+
+---
+
+# 9. DESIGN A PROPER PROFESSOR AND EDUCATOR JOURNEY
+
+The professional experience must be equally intuitive, but it should not be forced through a school-student onboarding process.
+
+When someone chooses "I am teaching", make the next steps obvious.
+
+The educator should quickly understand the available workflow:
+
+1. Choose a subject or curriculum.
+2. Select the desired chapters and topics.
+3. Inspect learning outcomes and coverage.
+4. Build or reorder a teaching sequence.
+5. Open the relevant anatomy or learning material.
+6. Prepare a lecture or demonstration.
+7. Generate and export teaching materials.
+
+Use the existing Teacher & Professor Workspace, TeacherClassroomPanel, and EducatorToolkitPanel.
+
+Preserve all existing capabilities, including:
+
+- All existing subject domains.
+- Curriculum references.
+- Custom syllabi.
+- Course planning.
+- Learning outcomes.
+- Coverage disclosures.
+- Custom teaching sequences.
+- Lecture outlines.
+- Chapter decks.
+- Printable student worksheets.
+- Existing export formats.
+- Classroom functionality.
+
+Organize these into clearly understandable professional sections.
+
+Provide helpful descriptions for each tool.
+
+Make it obvious where a professor begins and how they reach the result they need.
+
+Do not add unnecessary beginner explanations inside advanced professional workflows.
+
+---
+
+# 10. GLOBAL SEARCH AND COMPLETE FEATURE DISCOVERY
+
+Anatomy 360 contains a large volume of knowledge and functionality.
+
+Users must not need to remember which page contains a particular feature.
+
+Inspect the existing unified search engine and improve its discoverability.
+
+Users should be able to find relevant content across existing supported categories, including:
+
+- Anatomical structures.
+- 3D meshes and concepts.
+- Subjects.
+- Chapters.
+- Topics.
+- Curriculum references.
+- Relationships.
+- Quizzes.
+- Physiology.
+- Histology.
+- Clinical cases.
+- External readings.
+- Verified videos.
+- Presentations.
+- Educator resources.
+- Other existing searchable content.
+
+Improve the search interface with understandable category names and sensible filtering.
+
+Provide useful result descriptions.
+
+Make each result's next action clear:
+
+- View in 3D.
+- Open lesson.
+- Study this topic.
+- Practice questions.
+- Open related resource.
+
+Preserve canonical identifiers and existing search functionality.
+
+Never fabricate a result or show a link to unavailable content.
+
+### Complete All Tools directory
+
+This is a critical discoverability requirement.
+
+Create or improve a dedicated directory that exposes every existing tool and destination.
+
+Organize it by meaningful categories.
+
+Every directory entry should include:
+
+- Tool name.
+- Simple description.
+- Appropriate icon.
+- What the tool is used for.
+- A direct working action to open it.
+
+Where appropriate, explain which users benefit most from the tool.
+
+This directory must be a complete index, not merely a list of selected popular features.
+
+Use the actual route and component inventory to generate or validate it.
+
+It must stay synchronized with the real application.
+
+---
+
+# 11. MAKE EVERY PAGE EXPLAIN ITSELF
+
+Improve the user experience across the entire application, not just the homepage.
+
+Every major page should answer:
+
+1. What is this page?
+2. What can I do here?
+3. What is the primary action?
+4. What should I do next?
+
+Use a consistent page structure:
+
+- Clear page title.
+- One short plain-language explanation.
+- Primary action.
+- Organized controls.
+- Contextual help.
+- Appropriate empty states.
+- Useful completion or success feedback.
+- A logical next step.
+
+Add contextual help where a control or scientific term may be confusing.
+
+Help must be optional and should not interrupt experienced users.
+
+Avoid excessive explanatory paragraphs.
+
+Use progressive disclosure for complex controls.
+
+Group related options together.
+
+Avoid showing every advanced setting at the same visual priority.
+
+---
+
+# 12. MOBILE AND TOUCH-FIRST EXPERIENCE
+
+Do not treat mobile responsiveness as merely shrinking the desktop layout.
+
+The mobile interface must feel intentionally designed.
+
+Inspect every existing page and workflow at mobile widths.
+
+Improve:
+
+- Navigation drawer structure.
+- Touch-friendly cards.
+- Button sizes.
+- Tab navigation.
+- Study workspace switching.
+- Search.
+- 3D viewport controls.
+- Content spacing.
+- Scroll behavior.
+- Sticky elements.
+- Dropdown behavior.
+- Modals and dialogs.
+
+The mobile user must understand where they are and how to return.
+
+Do not create huge navigation lists with no meaningful grouping.
+
+Use collapsible categories where appropriate, while keeping all existing tools accessible.
+
+Avoid horizontal overflow and inaccessible controls.
+
+Preserve the persistent single-mount 3D viewport behavior.
+
+---
+
+# 13. VISUAL DESIGN RULES
+
+The platform should look like a polished, premium educational product.
+
+Use a consistent visual language across all existing pages.
+
+Prioritize:
+
+- Strong visual hierarchy.
+- Clear primary and secondary actions.
+- Consistent spacing.
+- Consistent iconography.
+- Meaningful illustrations.
+- Readable typography.
+- Predictable interactions.
+- Clear loading and error states.
+- Responsive layout.
+- Calm, professional visual styling.
+
+Do not redesign everything into a generic dashboard.
+
+Do not add unnecessary animations.
+
+Do not make every section a colorful card.
+
+Avoid overwhelming users with metrics, technical labels, and decorative information before they have a reason to see it.
+
+Keep the premium scientific identity of Anatomy 360.
+
+The visual design must support learning and teaching, not compete with them.
+
+---
+
+# 14. DATA, ROUTING AND BACKWARD COMPATIBILITY
+
+Usability improvements must not damage existing functionality.
+
+Preserve:
+
+- Existing `AppRoute` destinations.
+- Existing hash routes and route aliases.
+- Existing deep-link parameters.
+- Existing study-context links.
+- Existing navigation callbacks.
+- Existing search query behavior.
+- Existing selected-topic and structure context.
+- Existing local persistence.
+- Existing IndexedDB data.
+- Existing localStorage migration.
+- Existing JSON export/import compatibility.
+- Existing student progress.
+- Existing educator sequences.
+- Existing custom syllabi.
+- Existing sex-aware anatomy state.
+- Existing Firebase integration and cloud synchronization.
+
+Do not reset user data during onboarding redesign.
+
+If the data model needs changes, introduce safe backward-compatible migrations.
+
+Do not make account creation mandatory.
+
+Do not introduce paid APIs, external subscriptions, or unnecessary infrastructure.
+
+---
+
+# 15. IMPLEMENTATION STRATEGY
+
+Execute in these phases.
+
+## Phase A — Existing UX Audit
+
+Inspect the current application and create a verified inventory of every route, major feature, and important action.
+
+Identify:
+
+- Duplicate entry points.
+- Confusing labels.
+- Overloaded pages.
+- Hidden capabilities.
+- Unclear navigation.
+- Missing first-time guidance.
+- Weak empty states.
+- Mobile navigation problems.
+- Inconsistent interaction patterns.
+- Audience-specific workflow gaps.
+
+Do not begin removing or replacing existing systems.
+
+## Phase B — Information Architecture
+
+Design the complete navigation hierarchy.
+
+Map every existing destination and feature to its new discoverable location.
+
+Verify that every existing route remains accessible.
+
+Implement the improved navigation.
+
+## Phase C — Onboarding and User Pathways
+
+Implement the lightweight welcome experience.
+
+Support learning, teaching, and open exploration pathways.
+
+Use actual existing track definitions.
+
+Preserve old profile data.
+
+Make it possible to skip, revisit, and change preferences.
+
+## Phase D — Homepage Reorganization
+
+Transform the current homepage into an effective starting point.
+
+Preserve all existing destinations and content.
+
+Provide clear starting actions and role-aware recommendations.
+
+## Phase E — Guided and Advanced Learning Experience
+
+Improve the Connected Study Workspace and all its learning dimensions.
+
+Implement simple explanations and progressive disclosure.
+
+Preserve all advanced functionality.
+
+## Phase F — Educator Experience
+
+Improve the professional teaching workflow.
+
+Make planning, teaching, presenting, and exporting intuitive.
+
+Reuse existing educator functionality.
+
+## Phase G — Global Discoverability
+
+Improve search and build a complete All Tools directory.
+
+Validate that all existing capabilities are represented.
+
+## Phase H — Page-by-Page Usability
+
+Apply consistent page orientation, contextual help, labels, actions, and feedback.
+
+Inspect every major page.
+
+## Phase I — Mobile and Accessibility
+
+Test desktop, tablet, and mobile layouts.
+
+Check keyboard access, contrast, touch targets, labels, and optional audio guidance.
+
+## Phase J — Verification and Regression
+
+Run the relevant test suite, validators, type checks, lint, and production build.
+
+Fix regressions introduced by the work.
+
+Document any pre-existing failures honestly.
+
+**Do not stop after generating a design plan. Implement the actual improvements.**
+
+---
+
+# 16. STRICT ACCEPTANCE CRITERIA
+
+The implementation is not complete until these requirements are checked.
+
+## A. Feature preservation
+
+- [ ] Every existing feature remains available.
+- [ ] Every existing page remains reachable.
+- [ ] Every existing route and alias works.
+- [ ] Deep links continue to work.
+- [ ] Search functionality is preserved.
+- [ ] Study progress is preserved.
+- [ ] Educator functionality is preserved.
+- [ ] Existing 3D capabilities are preserved.
+- [ ] No feature was silently removed or disabled.
+
+## B. First-time user experience
+
+- [ ] A new user understands what Anatomy 360 does.
+- [ ] A learner can choose a suitable starting pathway.
+- [ ] A teacher or professor can access a professional pathway.
+- [ ] A user can explore without mandatory onboarding.
+- [ ] Onboarding can be skipped.
+- [ ] Preferences can be changed later.
+- [ ] The default profile no longer incorrectly assumes every new user is an MBBS student.
+- [ ] Existing profiles remain intact.
+
+## C. Beginner usability
+
+- [ ] A Grade 6 student can identify where to start.
+- [ ] A beginner can understand the major navigation categories.
+- [ ] Complex terminology has helpful explanations.
+- [ ] Primary actions are visually obvious.
+- [ ] Every important workflow has a clear next step.
+- [ ] A beginner can enter and use the Connected Study Workspace.
+- [ ] A beginner can return to the previous location without confusion.
+
+## D. Low-reading-confidence usability
+
+- [ ] Important actions have recognizable visual cues.
+- [ ] Icons are accompanied by understandable labels.
+- [ ] Buttons have predictable behavior.
+- [ ] Optional audio guidance works where supported.
+- [ ] Audio never autoplays.
+- [ ] Critical actions do not depend on reading long instructions.
+- [ ] Navigation remains understandable without hover.
+
+## E. Professor usability
+
+- [ ] A professor can identify the teaching workspace immediately.
+- [ ] Course and curriculum planning are easy to find.
+- [ ] Teaching sequences remain available.
+- [ ] Lecture and worksheet exports remain available.
+- [ ] Presentation functionality remains accessible.
+- [ ] Professional workflows avoid unnecessary beginner onboarding.
+
+## F. Complete discoverability
+
+- [ ] Global search remains accessible.
+- [ ] All existing search categories remain available.
+- [ ] All Tools directory includes every existing destination.
+- [ ] Each directory entry opens the correct feature.
+- [ ] No important functionality becomes hidden or inaccessible.
+- [ ] Related learning tools are discoverable from relevant contexts.
+
+## G. Connected Study Workspace
+
+- [ ] All eight existing study dimensions remain available.
+- [ ] The persistent 3D viewport remains functional.
+- [ ] Study context synchronization remains correct.
+- [ ] Learning depth remains functional.
+- [ ] Mobile content/viewer switching works.
+- [ ] Beginners can understand the workspace.
+- [ ] Advanced users retain direct access to detailed controls.
+
+## H. Responsive and accessible design
+
+- [ ] Mobile navigation is usable.
+- [ ] Desktop navigation is usable.
+- [ ] No horizontal overflow exists on tested screen sizes.
+- [ ] Touch targets are sufficiently large.
+- [ ] Keyboard navigation works.
+- [ ] Focus indicators are visible.
+- [ ] Color contrast is appropriate.
+- [ ] Important controls have accessible names.
+- [ ] No critical action requires hover.
+
+## I. Technical regression
+
+- [ ] No broken imports.
+- [ ] No broken navigation targets.
+- [ ] No broken deep links.
+- [ ] No unnecessary data resets.
+- [ ] No persistence regressions.
+- [ ] No broken 3D synchronization.
+- [ ] No newly introduced console errors.
+- [ ] No broken production build.
+
+A checkbox may only be marked complete after its corresponding behavior has actually been verified.
+
+---
+
+# 17. TEST REAL USER JOURNEYS
+
+Do not rely only on code inspection.
+
+Verify the application through actual user journeys.
+
+### Journey 1 — Grade 6 beginner
+
+Open the platform as a new user.
+
+Can the student:
+
+1. Understand what the platform does?
+2. Find the human body?
+3. Select the heart?
+4. See it in 3D?
+5. Understand a simple explanation?
+6. Explore a related concept?
+7. Complete a practice question?
+8. Find out what to do next?
+
+### Journey 2 — User with limited reading ability
+
+Can the user:
+
+1. Identify important actions through visuals?
+2. Understand the main navigation?
+3. Use the speaker control for optional guidance?
+4. Start exploring without reading lengthy explanations?
+5. Understand how to go back?
+
+### Journey 3 — Medical student
+
+Can the user:
+
+1. Select an appropriate learning level?
+2. Open a medical topic?
+3. Access detailed anatomy?
+4. Use relationships and physiology?
+5. Study histology or clinical content?
+6. Practice questions?
+7. Review weak areas?
+
+### Journey 4 — Professor
+
+Can the professor:
+
+1. Find the educator workspace?
+2. Select a curriculum or subject?
+3. Inspect learning outcomes?
+4. Create a teaching sequence?
+5. Access a presentation?
+6. Generate teaching material?
+7. Export the available outputs?
+
+### Journey 5 — Existing returning user
+
+Can an existing user:
+
+1. Open a saved topic or bookmark?
+2. Continue from a previous context?
+3. Access all tools?
+4. Preserve their profile and study progress?
+5. Switch between guided and advanced experiences?
+
+Report actual results for every journey.
+
+Do not claim a journey passed if it was not tested.
+
+---
+
+# 18. FINAL VERIFICATION
+
+Inspect `package.json` and run the project's existing validation commands.
+
+At minimum, attempt:
+
+```bash
+npm run validate:all
+npm run build
+```
+
+If any command cannot run because of environment limitations, state the exact reason.
+
+Also perform appropriate manual browser testing at desktop and mobile dimensions.
+
+Check:
+
+- All routes.
+- Main navigation.
+- Mobile drawer.
+- Onboarding.
+- All Tools directory.
+- Search.
+- Study Workspace.
+- Educator Workspace.
+- Existing user persistence.
+- New user persistence.
+- Responsive behavior.
+
+Do not delete or weaken existing tests to make the suite pass.
+
+Fix regressions caused by your changes.
+
+---
+
+# 19. REQUIRED FINAL REPORT
+
+At completion, provide:
+
+## 1. Repository baseline
+- Starting commit SHA.
+- Existing architecture inspected.
+- Existing routes and features inventoried.
+
+## 2. Information architecture
+- New navigation structure.
+- Full route-to-category mapping.
+- How every existing tool remains accessible.
+
+## 3. Implemented improvements
+- Onboarding.
+- Beginner experience.
+- Professional experience.
+- Homepage.
+- Navigation.
+- Study Workspace.
+- Search and All Tools directory.
+- Mobile and accessibility improvements.
+
+Include actual file paths.
+
+## 4. Feature preservation audit
+List any feature that was modified, moved, or reorganized.
+
+Explicitly confirm that no existing capability was removed.
+
+## 5. User journey results
+Report each of the five test journeys as:
+
+- `PASS`
+- `PARTIAL`
+- `FAILED`
+- `UNVERIFIED`
+
+Explain any incomplete result.
+
+## 6. Technical verification
+List exact commands and their actual outcomes.
+
+## 7. Remaining limitations
+List anything incomplete, blocked, or not tested.
+
+Do not hide limitations.
+
+---
+
+# FINAL PRODUCT PRINCIPLE
+
+Anatomy 360 should not feel like a collection of unrelated tools.
+
+It should feel like one coherent platform that understands whether someone is learning, practicing, exploring, or teaching—and makes the next useful action obvious.
+
+A Grade 6 student should feel confident using it.
+
+A person with limited reading ability should be able to understand its main interactions.
+
+A medical student should have access to the depth they need.
+
+A professor should be able to prepare and teach efficiently.
+
+And every existing capability must remain available.
+
+**Do not make Anatomy 360 smaller to make it easier. Make the full power of Anatomy 360 easier to understand, reach, and use.**
+
+Start by inspecting the complete existing implementation, then execute the work, test the real user journeys, and report what was actually achieved.

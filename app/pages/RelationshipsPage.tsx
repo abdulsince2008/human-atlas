@@ -27,6 +27,7 @@ import {
 import { resolveNaturalAnatomyColors } from '../tissue-materials';
 import { getPartCenter } from '../visualization-colors';
 import { useStudy } from '../components/StudyContext';
+import PageOrientationBar from '../components/PageOrientationBar';
 import StudyResourceList from '../components/StudyResourceList';
 import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
 import type { StudyContextInput } from '../study-context-engine';
@@ -332,6 +333,17 @@ export default function RelationshipsPage({
           directional connectors and an instant 2D radial graph toggle.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="See how one body part connects to blood vessels, nerves, bones, and neighbors in 3D or 2D."
+        primaryHint="Pick any body part on the left, then click any connected card to jump between neighbors or switch to 2D diagram view."
+        spokenSummary="How Parts Connect, the Structure Relationship Explorer. Select a body part on the left to trace its blood supply, nerve control, muscle attachments, and nearby organs in 3D or as a simple 2D map."
+        howToSteps={[
+          'Pick an organ or muscle from the left list (start with Heart or Biceps brachii).',
+          'Use the filter pills to focus on blood supply, nerves, or attachments.',
+          'Click Study Context to learn why those connections matter.',
+        ]}
+      />
 
       <div className="a360-rel-workspace">
         <aside className="a360-rel-sidebar" aria-label="Select central structure">

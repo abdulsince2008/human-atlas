@@ -7209,3 +7209,700 @@ body:has(.detail-sheet) [data-slot='sheet-overlay'] {
     height: 180px;
   }
 }
+
+/* ============================================================================
+   UNIVERSAL ACCESSIBILITY, INTENT NAVIGATION, ONBOARDING & ALL TOOLS DIRECTORY
+   ============================================================================ */
+
+/* Enhanced Intent Dropdowns */
+.a360-nav-dropdown.is-wide {
+  min-width: 560px;
+}
+
+.a360-drop-summary {
+  margin: 0;
+  padding: 8px 12px 6px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.a360-drop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.a360-drop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.a360-drop-item-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--foreground);
+}
+
+.a360-drop-item.active .a360-drop-item-head {
+  color: var(--primary);
+}
+
+.a360-drop-footer {
+  border-top: 1px solid var(--border);
+  padding: 6px 8px 2px;
+}
+
+.a360-drop-all-link {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary);
+  border-radius: 6px;
+}
+
+.a360-drop-all-link:hover {
+  background: var(--accent);
+}
+
+/* Collapsible Mobile Drawer Categories */
+.a360-mobile-accordion {
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.a360-mobile-group-btn {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--foreground);
+  text-align: left;
+}
+
+.a360-mobile-group-btn:hover {
+  background: var(--muted);
+}
+
+.a360-mobile-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 8px 4px;
+}
+
+.a360-mobile-nav-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.a360-mobile-nav-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.a360-mobile-nav-copy strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.a360-mobile-nav-copy small {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+}
+
+/* Speech Guidance Control */
+.a360-speak-wrap {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.a360-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #ffffff;
+  color: var(--foreground);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color 160ms, background 160ms, color 160ms;
+}
+
+.a360-speak-btn.is-compact {
+  min-height: 36px;
+  padding: 6px 11px;
+  font-size: 12.5px;
+}
+
+.a360-speak-btn:hover {
+  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.a360-speak-btn.is-speaking {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.a360-speak-note {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+/* Page Self-Orientation Bar */
+.a360-orient-bar {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.a360-orient-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.a360-orient-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.a360-orient-what {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.a360-orient-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.a360-orient-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.a360-orient-steps {
+  margin: 0;
+  padding: 10px 12px 2px 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+/* Non-Blocking Welcome & Pathway Gateway */
+.a360-onboarding-gateway {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.a360-onboarding-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.a360-onboarding-head h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.a360-onboarding-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.a360-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.a360-role-card {
+  text-align: left;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+  transition: border-color 160ms, background 160ms;
+}
+
+.a360-role-card:hover,
+.a360-role-card.active {
+  border-color: var(--primary);
+  background: #f0f7f9;
+}
+
+.a360-role-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.a360-role-card strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.a360-role-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  flex: 1;
+}
+
+.a360-role-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.a360-track-picker {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.a360-track-picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.a360-track-picker-head h3 {
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.a360-simple-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.a360-track-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.a360-track-option {
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 76px;
+}
+
+.a360-track-option:hover {
+  border-color: var(--primary);
+}
+
+.a360-track-option.active {
+  border-color: var(--primary);
+  background: var(--accent);
+}
+
+.a360-track-option-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground);
+  font-size: 13.5px;
+}
+
+.a360-track-option > span:last-child {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.a360-track-confirm-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Compact Pathway Bar (after onboarding complete/skipped) */
+.a360-pathway-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.a360-pathway-strip-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.a360-pathway-strip-copy strong {
+  color: var(--foreground);
+}
+
+.a360-pathway-strip-copy span {
+  color: var(--muted-foreground);
+}
+
+.a360-pathway-strip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Home Intent Grid & Continue Learning Card */
+.a360-intent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.a360-intent-card {
+  text-align: left;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 124px;
+  transition: border-color 160ms, background 160ms;
+}
+
+.a360-intent-card:hover {
+  border-color: var(--primary);
+  background: #f8fbfc;
+}
+
+.a360-intent-card strong {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.a360-intent-card span:last-child {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.a360-continue-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.a360-continue-copy h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.a360-continue-copy p {
+  margin: 0;
+}
+
+.a360-continue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* All Tools Directory */
+.a360-tools-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.a360-tools-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.a360-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.a360-tool-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.a360-tool-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.a360-tool-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.a360-tool-card-top h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.a360-tool-tech {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.a360-tool-summary {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--foreground);
+  flex: 1;
+}
+
+.a360-tool-bestfor {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.a360-tool-card-footer {
+  padding-top: 4px;
+}
+
+/* Study Workspace Guided Flow & Step Footer */
+.a360-guided-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.a360-guided-flow-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-right: 4px;
+}
+
+.a360-guided-step {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.a360-guided-step:hover {
+  border-color: var(--primary);
+  color: var(--foreground);
+}
+
+.a360-guided-step.active {
+  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.a360-study-orient-note {
+  padding: 10px 14px;
+  border: 1px solid #cce3e8;
+  border-radius: 10px;
+  background: #f2f9fb;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.a360-study-step-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Educator 7-Step Strip */
+.a360-educator-workflow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.a360-educator-workflow-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.a360-educator-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 12.5px;
+  color: var(--foreground);
+}
+
+@media (max-width: 1023px) {
+  .a360-role-grid,
+  .a360-track-options,
+  .a360-intent-grid,
+  .a360-tools-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .a360-role-grid,
+  .a360-track-options,
+  .a360-intent-grid,
+  .a360-tools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .a360-guided-step,
+  .a360-speak-btn,
+  .a360-filter-btn,
+  .a360-card-btn,
+  .a360-card-link {
+    min-height: 44px;
+  }
+}
+

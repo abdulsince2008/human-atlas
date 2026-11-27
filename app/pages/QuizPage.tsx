@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Bookmark, CheckCircle2, Eye, RotateCcw, XCircle } from 'lucide-react';
 import type { Atlas } from '../anatomy';
 import { CANONICAL_SYSTEMS } from '../anatomy-systems';
+import PageOrientationBar from '../components/PageOrientationBar';
 import Persistent3DPane from '../components/Persistent3DPane';
 import { useStudy } from '../components/StudyContext';
 import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
@@ -148,6 +149,17 @@ export default function QuizPage({ atlas = null, onInspectConcept, onOpenStudyCo
           to the tested 3D structure.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Test what you remember with multiple-choice questions across all 12 body systems."
+        primaryHint="Pick your difficulty level (start with Grade 9–10 / Beginner if unsure), choose an answer, and read the instant explanation."
+        spokenSummary="Practice Quizzes. Filter by body system or level, pick an answer to check yourself right away, and tap Show in 3D to see the body part being tested."
+        howToSteps={[
+          'Choose All Systems or tap a specific body system below.',
+          'Pick a level that fits you, then click any answer option A, B, C, or D.',
+          'After answering, read why it is right or wrong and open the organ in 3D or Study Workspace.',
+        ]}
+      />
 
       <div className="a360-quiz-stats">
         <div>

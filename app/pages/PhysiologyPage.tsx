@@ -18,6 +18,7 @@ import {
   type PhysiologyModuleSpec,
 } from '../data/physiology-data';
 import { resolvePhysiologyTarget } from '../utils/deep-link-resolver';
+import PageOrientationBar from '../components/PageOrientationBar';
 import type { StudyContextInput } from '../study-context-engine';
 
 interface Props {
@@ -131,6 +132,17 @@ export default function PhysiologyPage({
           parameter controls, explicit mathematical assumptions, and direct 3D organ links.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Interactive body simulations—move the sliders to see how heart rate, breathing, kidneys, or muscles respond."
+        primaryHint="Pick a body process tab below (like Cardiovascular or Respiratory) and adjust the sliders to watch live values change."
+        spokenSummary="Interactive Physiology Simulations. Choose a body function tab below, move the sliders or press Play, and watch how outputs like blood flow, lung air volume, or kidney filtration change in real time."
+        howToSteps={[
+          'Pick a body system tab such as Cardiovascular, Respiratory, or Renal.',
+          'Move any slider (for example Heart Rate) and watch the live visual and numbers respond.',
+          'Click Open in Study Workspace or Inspect in 3D to see the organ involved.',
+        ]}
+      />
 
       <div className="a360-category-tabs" role="tablist" aria-label="Physiology simulations">
         {PHYSIOLOGY_MODULES.map((m) => (

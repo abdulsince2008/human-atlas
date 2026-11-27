@@ -1,27 +1,14 @@
-import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Menu, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import {
+  INTENT_NAV_MENUS,
+  PLATFORM_TOOLS,
+  type AppRoute,
+  type ToolCategoryId,
+} from '../navigation-registry';
+import ToolIcon from './ToolIcon';
 
-export type AppRoute =
-  | 'home'
-  | 'explorer'
-  | 'present'
-  | 'systems'
-  | 'relationships'
-  | 'learn'
-  | 'study'
-  | 'practical-lab'
-  | 'dashboard'
-  | 'revision'
-  | 'bookmarks'
-  | 'physiology'
-  | 'histology'
-  | 'clinical'
-  | 'quiz'
-  | 'atlases'
-  | 'syllabus'
-  | 'educator'
-  | 'search'
-  | 'about';
+export type { AppRoute } from '../navigation-registry';
 
 interface Props {
   route: AppRoute;
@@ -29,40 +16,48 @@ interface Props {
   onOpenSearch: () => void;
 }
 
-const CORE_LINKS: { id: AppRoute; label: string }[] = [
-  { id: 'home', label: 'Home' },
-  { id: 'explorer', label: '3D Anatomy' },
-  { id: 'present', label: 'Present' },
-  { id: 'systems', label: 'Reference' },
-  { id: 'learn', label: 'Learn' },
-  { id: 'practical-lab', label: 'Practical Lab' },
-];
-
-const STUDY_MENU: { id: AppRoute; label: string; desc: string }[] = [
-  { id: 'study', label: 'Connected Study Workspace', desc: 'Unified 3D viewport, chapters, readings, videos & recall' },
-  { id: 'syllabus', label: 'Worldwide Syllabus Navigator', desc: '13 curriculum references & custom syllabus matcher' },
-  { id: 'educator', label: 'Teacher & Professor Workspace', desc: 'All 16 domains & syllabi, outlines & worksheets' },
-  { id: 'dashboard', label: 'Study Dashboard', desc: 'Progress analytics, profile & JSON backup' },
-  { id: 'revision', label: 'Flashcards & Revision', desc: 'SM-2 spaced repetition & weak queue' },
-  { id: 'bookmarks', label: 'Saved Bookmarks', desc: 'Bookmarked organs, lessons & questions' },
-];
-
-const LABS_MENU: { id: AppRoute; label: string; desc: string }[] = [
-  { id: 'relationships', label: 'Relationship Explorer', desc: 'Visual vascular, nerve & muscle connections' },
-  { id: 'physiology', label: 'Physiology Simulations', desc: 'Cardiac, respiratory, renal & elbow mechanics' },
-  { id: 'histology', label: 'Histology Library', desc: '10 bundled tissue micrographs & study guides' },
-  { id: 'clinical', label: 'Clinical Correlations', desc: 'Regional anatomy learning scenarios' },
-  { id: 'quiz', label: 'Anatomy Quizzes', desc: 'Topic-tagged MCQ active recall' },
-  { id: 'atlases', label: 'Atlas & Pack Manager', desc: 'Multi-atlas registry & JSON validator' },
+const MOBILE_GROUPS: { id: ToolCategoryId; label: string; routes: AppRoute[] }[] = [
+  {
+    id: 'learn',
+    label: 'Learn',
+    routes: ['explorer', 'study', 'learn', 'syllabus', 'physiology'],
+  },
+  {
+    id: 'practice',
+    label: 'Practice & Progress',
+    routes: ['quiz', 'practical-lab', 'revision', 'bookmarks', 'dashboard'],
+  },
+  {
+    id: 'teach',
+    label: 'Teach',
+    routes: ['educator', 'present'],
+  },
+  {
+    id: 'explore_reference',
+    label: 'Reference & Visuals',
+    routes: ['systems', 'relationships', 'histology', 'clinical', 'search'],
+  },
+  {
+    id: 'system_info',
+    label: 'All Tools & Dataset Info',
+    routes: ['tools', 'atlases', 'about'],
+  },
 ];
 
 export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState<'study' | 'labs' | null>(null);
+  const [openMenu, setOpenMenu] = useState<'learn' | 'practice' | 'teach' | null>(null);
+  const [expandedMobileGroup, setExpandedMobileGroup] = useState<ToolCategoryId | null>('learn');
   const navRef = useRef<HTMLDivElement>(null);
 
-  const studyActive = STUDY_MENU.some((m) => m.id === route);
-  const labsActive = LABS_MENU.some((m) => m.id === route);
+  const learnMenu = INTENT_NAV_MENUS[0];
+  const practiceMenu = INTENT_NAV_MENUS[1];
+  const teachMenu = INTENT_NAV_MENUS[2];
+
+  const learnActive = learnMenu.items.some((m) => m.route === route);
+  const practiceActive = practiceMenu.items.some((m) => m.route === route);
+  const teachActive =
+    teachMenu.items.some((m) => m.route === route) && !learnActive && route !== 'learn' && route !== 'syllabus';
 
   const go = (next: AppRoute) => {
     setMobileOpen(false);
@@ -90,6 +85,15 @@ export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
     };
   }, []);
 
+  useEffect(() => {
+    const matchedGroup = MOBILE_GROUPS.find((g) => g.routes.includes(route));
+    if (matchedGroup) {
+      setExpandedMobileGroup(matchedGroup.id);
+    }
+  }, [route]);
+
+  const toolByRoute = new Map(PLATFORM_TOOLS.map((t) => [t.route, t]));
+
   return (
     <header className="a360-header" ref={navRef}>
       <div className="a360-header-inner">
@@ -105,89 +109,86 @@ export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
         </a>
 
         <nav className="a360-nav" aria-label="Main navigation">
-          {CORE_LINKS.map((item) => (
-            <a
-              key={item.id}
-              href={`#/${item.id === 'home' ? '' : item.id}`}
-              className={`a360-nav-link ${route === item.id ? 'active' : ''}`}
-              aria-current={route === item.id ? 'page' : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                go(item.id);
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
-
-          {/* Grouped Study Menu */}
-          <div className="a360-nav-group">
-            <button
-              type="button"
-              className={`a360-nav-link a360-nav-drop-btn ${studyActive ? 'active' : ''}`}
-              aria-expanded={openMenu === 'study'}
-              aria-haspopup="menu"
-              onClick={() => setOpenMenu((m) => (m === 'study' ? null : 'study'))}
-            >
-              Study <ChevronDown size={14} />
-            </button>
-            {openMenu === 'study' && (
-              <div className="a360-nav-dropdown" role="menu" aria-label="Study tools">
-                {STUDY_MENU.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="menuitem"
-                    className={`a360-drop-item ${route === item.id ? 'active' : ''}`}
-                    onClick={() => go(item.id)}
-                  >
-                    <strong>{item.label}</strong>
-                    <span>{item.desc}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Grouped Labs Menu */}
-          <div className="a360-nav-group">
-            <button
-              type="button"
-              className={`a360-nav-link a360-nav-drop-btn ${labsActive ? 'active' : ''}`}
-              aria-expanded={openMenu === 'labs'}
-              aria-haspopup="menu"
-              onClick={() => setOpenMenu((m) => (m === 'labs' ? null : 'labs'))}
-            >
-              Labs <ChevronDown size={14} />
-            </button>
-            {openMenu === 'labs' && (
-              <div className="a360-nav-dropdown" role="menu" aria-label="Education labs">
-                {LABS_MENU.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="menuitem"
-                    className={`a360-drop-item ${route === item.id ? 'active' : ''}`}
-                    onClick={() => go(item.id)}
-                  >
-                    <strong>{item.label}</strong>
-                    <span>{item.desc}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           <a
-            href="#/about"
-            className={`a360-nav-link ${route === 'about' ? 'active' : ''}`}
-            aria-current={route === 'about' ? 'page' : undefined}
+            href="#/"
+            className={`a360-nav-link ${route === 'home' ? 'active' : ''}`}
+            aria-current={route === 'home' ? 'page' : undefined}
             onClick={(e) => {
               e.preventDefault();
-              go('about');
+              go('home');
             }}
           >
-            About
+            Home
+          </a>
+
+          {([
+            { menu: learnMenu, active: learnActive },
+            { menu: practiceMenu, active: practiceActive },
+            { menu: teachMenu, active: teachActive },
+          ] as const).map(({ menu, active }) => {
+            const isOpen = openMenu === menu.id;
+            return (
+              <div key={menu.id} className="a360-nav-group">
+                <button
+                  type="button"
+                  className={`a360-nav-link a360-nav-drop-btn ${active ? 'active' : ''}`}
+                  aria-expanded={isOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setOpenMenu((m) => (m === menu.id ? null : menu.id))}
+                >
+                  <span>{menu.label}</span>
+                  <ChevronDown size={14} aria-hidden="true" />
+                </button>
+                {isOpen && (
+                  <div
+                    className={`a360-nav-dropdown ${menu.id === 'learn' ? 'is-wide' : ''}`}
+                    role="menu"
+                    aria-label={`${menu.label} menu`}
+                  >
+                    <p className="a360-drop-summary">{menu.summary}</p>
+                    <div className={menu.id === 'learn' ? 'a360-drop-grid' : 'a360-drop-list'}>
+                      {menu.items.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          role="menuitem"
+                          className={`a360-drop-item ${route === item.route ? 'active' : ''}`}
+                          onClick={() => go(item.route)}
+                        >
+                          <span className="a360-drop-item-head">
+                            <ToolIcon name={item.icon} size={15} />
+                            <strong>{item.title}</strong>
+                          </span>
+                          <span>{item.summary}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="a360-drop-footer">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="a360-drop-all-link"
+                        onClick={() => go('tools')}
+                      >
+                        Browse All Tools Directory →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <a
+            href="#/tools"
+            className={`a360-nav-link ${route === 'tools' || route === 'atlases' || route === 'about' ? 'active' : ''}`}
+            aria-current={route === 'tools' ? 'page' : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              go('tools');
+            }}
+          >
+            All Tools
           </a>
         </nav>
 
@@ -202,7 +203,7 @@ export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
             }}
             aria-label="Search human sciences and anatomical structures"
           >
-            <Search size={16} />
+            <Search size={16} aria-hidden="true" />
             <span className="a360-search-label">Search</span>
             <kbd className="a360-kbd">/</kbd>
           </button>
@@ -214,60 +215,66 @@ export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileOpen}
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
         </div>
       </div>
 
       {mobileOpen && (
         <nav className="a360-mobile-drawer" aria-label="Mobile navigation">
-          <p className="a360-mobile-group-label">Core</p>
-          {CORE_LINKS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`a360-mobile-nav-item ${route === item.id ? 'active' : ''}`}
-              onClick={() => go(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-          <p className="a360-mobile-group-label">Study</p>
-          {STUDY_MENU.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`a360-mobile-nav-item ${route === item.id ? 'active' : ''}`}
-              onClick={() => go(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-          <p className="a360-mobile-group-label">Labs & Reference</p>
-          {LABS_MENU.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`a360-mobile-nav-item ${route === item.id ? 'active' : ''}`}
-              onClick={() => go(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
           <button
             type="button"
-            className={`a360-mobile-nav-item ${route === 'search' ? 'active' : ''}`}
-            onClick={() => go('search')}
+            className={`a360-mobile-nav-item ${route === 'home' ? 'active' : ''}`}
+            onClick={() => go('home')}
           >
-            Search Directory
+            <ToolIcon name="home" size={16} />
+            <span>Home &amp; Start Here</span>
           </button>
-          <button
-            type="button"
-            className={`a360-mobile-nav-item ${route === 'about' ? 'active' : ''}`}
-            onClick={() => go('about')}
-          >
-            About & Licenses
-          </button>
+
+          {MOBILE_GROUPS.map((group) => {
+            const expanded = expandedMobileGroup === group.id;
+            return (
+              <div key={group.id} className="a360-mobile-accordion">
+                <button
+                  type="button"
+                  className="a360-mobile-group-btn"
+                  aria-expanded={expanded}
+                  onClick={() =>
+                    setExpandedMobileGroup((prev) => (prev === group.id ? null : group.id))
+                  }
+                >
+                  <span>{group.label}</span>
+                  {expanded ? (
+                    <ChevronDown size={16} aria-hidden="true" />
+                  ) : (
+                    <ChevronRight size={16} aria-hidden="true" />
+                  )}
+                </button>
+                {expanded && (
+                  <div className="a360-mobile-group-items">
+                    {group.routes.map((r) => {
+                      const entry = toolByRoute.get(r);
+                      if (!entry) return null;
+                      return (
+                        <button
+                          key={entry.id}
+                          type="button"
+                          className={`a360-mobile-nav-item ${route === entry.route ? 'active' : ''}`}
+                          onClick={() => go(entry.route)}
+                        >
+                          <ToolIcon name={entry.icon} size={16} />
+                          <span className="a360-mobile-nav-copy">
+                            <strong>{entry.title}</strong>
+                            <small>{entry.summary}</small>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
       )}
     </header>

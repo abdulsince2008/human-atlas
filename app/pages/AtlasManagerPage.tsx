@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { CheckCircle2, FileCheck2, Layers3, Upload, XCircle } from 'lucide-react';
 import { LAYER_BUNDLE_PROVENANCE } from '../atlas-layers';
+import PageOrientationBar from '../components/PageOrientationBar';
 import {
   getRegisteredContentSummary,
   REGISTERED_ATLASES,
@@ -113,6 +114,16 @@ export default function AtlasManagerPage() {
           manifests client-side.
         </p>
       </header>
+
+      <PageOrientationBar
+        whatThisIs="Check which Male, Female, and optional 3D body models are included—and what is still unmodeled."
+        primaryHint="This transparency page is great for teachers and researchers verifying 3D coverage or checking custom pack JSON files."
+        howToSteps={[
+          'Review the top summary cards showing active Male and Female part counts.',
+          'Scroll to the table below to see which body systems have full, partial, or planned 3D models.',
+          'Upload any manifest or content pack JSON file at the bottom to validate it safely in your browser.',
+        ]}
+      />
 
       <section className="a360-metrics-strip" aria-label="Registered content inventory">
         <div className="a360-metric">

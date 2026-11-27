@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
   HelpCircle,
   Microscope,
   Play,
+  SlidersHorizontal,
   Sparkles,
   Stethoscope,
   XCircle,
@@ -22,6 +23,7 @@ import type { Atlas, SystemId } from '../anatomy';
 import { CANONICAL_SYSTEMS, type CanonicalSystemId } from '../anatomy-systems';
 import type { AnatomySex } from '../atlas-layers';
 import { getStructureRecordV2 } from '../knowledge-graph';
+import { resolveWorkspaceDepthFromState } from '../navigation-registry';
 import { computeRegistryMetrics, REGISTRY_TOPICS } from '../registry/knowledge-registry';
 import {
   resolveStudyContext,
@@ -30,6 +32,7 @@ import {
 } from '../study-context-engine';
 import { useSexAwareAtlas } from '../hooks/useSexAwareAtlas';
 import Persistent3DPane from './Persistent3DPane';
+import SpeakGuidanceButton from './SpeakGuidanceButton';
 import { useStudy } from './StudyContext';
 import StudyResourceList from './StudyResourceList';
 import StudyVideoSection from './StudyVideoSection';
@@ -62,15 +65,15 @@ interface Props {
   onOpenSystemLesson: (systemId: CanonicalSystemId, topicId?: string) => void;
 }
 
-const TABS: { id: WorkspaceTab; label: string }[] = [
-  { id: 'overview', label: 'Overview & Depth' },
-  { id: 'relationships', label: 'Relationships' },
-  { id: 'physiology', label: 'Physiology' },
-  { id: 'histology_radiology', label: 'Histology & Radiology' },
-  { id: 'clinical', label: 'Clinical & 3D Tours' },
-  { id: 'assessments', label: 'Assessments' },
-  { id: 'readings_videos', label: 'Readings & Videos' },
-  { id: 'next_steps', label: 'Next Steps' },
+const TABS: { id: WorkspaceTab; label: string; guidedStepLabel: string }[] = [
+  { id: 'overview', label: 'What It Is (Overview)', guidedStepLabel: '2. What it is' },
+  { id: 'physiology', label: 'How It Works', guidedStepLabel: '3. How it works' },
+  { id: 'relationships', label: 'Connections', guidedStepLabel: '4. Connections' },
+  { id: 'histology_radiology', label: 'Microscope & Scans', guidedStepLabel: '5. Look closer' },
+  { id: 'clinical', label: 'Real Cases & 3D Tours', guidedStepLabel: '6. Real examples' },
+  { id: 'assessments', label: 'Practice Questions', guidedStepLabel: '7. Practice' },
+  { id: 'readings_videos', label: 'Books & Videos', guidedStepLabel: 'Books & Videos' },
+  { id: 'next_steps', label: "What's Next", guidedStepLabel: '8. Next step' },
 ];
 
 export default function UniversalStudyWorkspace({
@@ -89,12 +92,14 @@ export default function UniversalStudyWorkspace({
   onOpenSystemLesson,
 }: Props) {
   const {
+    ready,
     state,
     isBookmarked,
     toggleBookmark,
     setTopicCompleted,
     recordQuizResult,
     setPreferredSex,
+    setExperienceDepth,
   } = useStudy();
 
   const activeSex: AnatomySex = studyInput.sex ?? state.preferredSex;
@@ -113,7 +118,27 @@ export default function UniversalStudyWorkspace({
   );
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('overview');
-  const [depthLevel, setDepthLevel] = useState<DepthLevel>('intermediate');
+  const [depthLevel, setDepthLevel] = useState<DepthLevel>(() =>
+    resolveWorkspaceDepthFromState(
+      state.experienceDepth,
+      state.educationTrackId,
+      state.profile.track,
+    ),
+  );
+  const depthSyncedOnLoadRef = useRef(false);
+  useEffect(() => {
+    if (ready && !depthSyncedOnLoadRef.current) {
+      depthSyncedOnLoadRef.current = true;
+      setDepthLevel(
+        resolveWorkspaceDepthFromState(
+          state.experienceDepth,
+          state.educationTrackId,
+          state.profile.track,
+        ),
+      );
+    }
+  }, [ready, state.experienceDepth, state.educationTrackId, state.profile.track]);
+
   const [mobilePane, setMobilePane] = useState<'content' | 'viewer'>('content');
   const [previewConceptOverride, setPreviewConceptOverride] = useState<string | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
@@ -315,7 +340,7 @@ export default function UniversalStudyWorkspace({
             <h1>{context.title}</h1>
             <p className="a360-study-subtitle">{context.subtitle}</p>
             <p className="a360-study-coverage-line">
-              Content: {context.coverage.studyContent} · 3D Geometry: {context.coverage.mesh3D} ·{' '}
+              Content: {context.coverage.studyContent} · 3D Model: {context.coverage.mesh3D} ·{' '}
               {context.coverage.externalReadingCount} curated reading{context.coverage.externalReadingCount === 1 ? '' : 's'} ·{' '}
               {context.coverage.verifiedVideoCount} verified video{context.coverage.verifiedVideoCount === 1 ? '' : 's'} ·{' '}
               {context.coverage.reviewStatusLabel}
@@ -323,6 +348,27 @@ export default function UniversalStudyWorkspace({
           </div>
 
           <div className="a360-study-header-actions">
+            <SpeakGuidanceButton
+              text={`${context.title}. ${activeDepthText}`}
+              label="Listen"
+              stopLabel="Stop"
+              compact
+            />
+
+            <button
+              type="button"
+              className="a360-btn-secondary"
+              onClick={() => {
+                const nextMode = state.experienceDepth === 'guided' ? 'full' : 'guided';
+                setExperienceDepth(nextMode);
+                setDepthLevel(nextMode === 'guided' ? 'foundational' : 'intermediate');
+              }}
+              title="Switch between Guided plain-language mode and Full scientific mode"
+            >
+              <SlidersHorizontal size={14} aria-hidden="true" />
+              <span>{state.experienceDepth === 'guided' ? 'Guided Mode' : 'Full Mode'}</span>
+            </button>
+
             <button
               type="button"
               className={`a360-btn-secondary ${bookmarked ? 'is-active' : ''}`}
@@ -363,6 +409,31 @@ export default function UniversalStudyWorkspace({
               </button>
             )}
           </div>
+        </div>
+
+        {/* Non-blocking Guided Study Flow Bar */}
+        <div className="a360-guided-flow" aria-label="Guided study flow">
+          <span className="a360-guided-flow-label">Study Flow:</span>
+          <button
+            type="button"
+            className="a360-guided-step"
+            onClick={() => setMobilePane('viewer')}
+          >
+            1. Look in 3D
+          </button>
+          {TABS.filter((t) => t.id !== 'readings_videos').map((tab) => (
+            <button
+              key={`flow-${tab.id}`}
+              type="button"
+              className={`a360-guided-step ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => {
+                setMobilePane('content');
+                setActiveTab(tab.id);
+              }}
+            >
+              {tab.guidedStepLabel}
+            </button>
+          ))}
         </div>
       </header>
 
@@ -438,14 +509,21 @@ export default function UniversalStudyWorkspace({
             {/* TAB 1: Overview & Multi-Level Depth */}
             {activeTab === 'overview' && (
               <div className="a360-study-stack">
+                {state.experienceDepth === 'guided' && (
+                  <div className="a360-study-orient-note">
+                    <strong>How this works:</strong> Read the simple overview below while turning the
+                    3D model on the right. Tap any organ in 3D or switch levels anytime.
+                  </div>
+                )}
+
                 <div className="a360-study-depth-row">
-                  <span className="a360-muted">Academic Depth:</span>
+                  <span className="a360-muted">Reading Level:</span>
                   <div className="a360-embedded-toolgroup" role="group" aria-label="Academic depth selector">
                     {(
                       [
-                        ['foundational', 'Foundational (6–12)'],
-                        ['intermediate', 'Intermediate (Pre-Med / MBBS)'],
-                        ['advanced', 'Advanced / Clinical'],
+                        ['foundational', 'Simple (Grades 6–12)'],
+                        ['intermediate', 'Standard (Pre-Med / MBBS)'],
+                        ['advanced', 'Deep / Clinical'],
                       ] as [DepthLevel, string][]
                     ).map(([lvl, label]) => (
                       <button
@@ -1080,6 +1158,43 @@ export default function UniversalStudyWorkspace({
                 </div>
               </div>
             )}
+
+            {/* Consistent Next-Step Strip at Bottom of Study Content */}
+            <div className="a360-study-step-footer">
+              {(() => {
+                const idx = TABS.findIndex((t) => t.id === activeTab);
+                const prevTab = idx > 0 ? TABS[idx - 1] : null;
+                const nextTab = idx >= 0 && idx < TABS.length - 1 ? TABS[idx + 1] : null;
+                return (
+                  <>
+                    <div>
+                      {prevTab && (
+                        <button
+                          type="button"
+                          className="a360-btn-secondary"
+                          onClick={() => setActiveTab(prevTab.id)}
+                        >
+                          <ArrowLeft size={14} aria-hidden="true" />
+                          <span>Back: {prevTab.label}</span>
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      {nextTab && (
+                        <button
+                          type="button"
+                          className="a360-btn-primary"
+                          onClick={() => setActiveTab(nextTab.id)}
+                        >
+                          <span>Next: {nextTab.label}</span>
+                          <ArrowRight size={14} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
 

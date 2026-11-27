@@ -17,11 +17,16 @@ import {
   createEmptyStudyState,
   toggleBookmarkInState,
   validateAndSanitizeStudyState,
+  type AudienceRole,
   type BookmarkItem,
+  type ExperienceDepth,
   type LocalStudentProfile,
   type RevisionQueueEntry,
   type StudyStateV1,
+  type StudyTrack,
 } from '../study-store';
+import type { EducationTrackId } from '../education/education-types';
+import type { StudyContextInput } from '../study-context-engine';
 import type { CustomSyllabusProfile } from '../syllabus/syllabus-types';
 import { writePersistedAnatomySex, type AnatomySex } from '../female-atlas';
 
@@ -42,6 +47,19 @@ export interface StudyContextValue {
   ) => void;
   updateProfile: (patch: Partial<LocalStudentProfile>) => void;
   dismissOnboarding: (dismissed?: boolean) => void;
+  setAudienceAndTrack: (options: {
+    role?: AudienceRole;
+    educationTrackId?: EducationTrackId | null;
+    studyTrack?: StudyTrack;
+    experienceDepth?: ExperienceDepth;
+    onboardingCompleted?: boolean;
+    trackSelected?: boolean;
+    dismissBanner?: boolean;
+  }) => void;
+  setExperienceDepth: (depth: ExperienceDepth) => void;
+  reopenOnboarding: () => void;
+  recordLastStudyContext: (input: StudyContextInput) => void;
+  recordLastRoute: (route: string) => void;
   addRecentSearch: (query: string) => void;
   exportStudyJson: () => string;
   importStudyJson: (rawText: string) => Promise<{ ok: boolean; error?: string }>;
@@ -229,6 +247,7 @@ export function StudyProvider({ children }: { children: ReactNode }) {
     (patch: Partial<LocalStudentProfile>) => {
       commit((prev) => ({
         ...prev,
+        trackSelected: patch.track ? true : prev.trackSelected,
         profile: {
           ...prev.profile,
           ...patch,
@@ -241,7 +260,84 @@ export function StudyProvider({ children }: { children: ReactNode }) {
 
   const dismissOnboarding = useCallback(
     (dismissed = true) => {
-      commit((prev) => ({ ...prev, onboardingDismissed: dismissed }));
+      commit((prev) => ({
+        ...prev,
+        onboardingDismissed: dismissed,
+        onboardingCompleted: dismissed ? true : prev.onboardingCompleted,
+      }));
+    },
+    [commit],
+  );
+
+  const setAudienceAndTrack = useCallback(
+    (options: {
+      role?: AudienceRole;
+      educationTrackId?: EducationTrackId | null;
+      studyTrack?: StudyTrack;
+      experienceDepth?: ExperienceDepth;
+      onboardingCompleted?: boolean;
+      trackSelected?: boolean;
+      dismissBanner?: boolean;
+    }) => {
+      commit((prev) => ({
+        ...prev,
+        audienceRole: options.role ?? prev.audienceRole,
+        educationTrackId:
+          options.educationTrackId !== undefined ? options.educationTrackId : prev.educationTrackId,
+        experienceDepth: options.experienceDepth ?? prev.experienceDepth,
+        onboardingCompleted: options.onboardingCompleted ?? true,
+        onboardingDismissed: options.dismissBanner ?? true,
+        trackSelected:
+          options.trackSelected !== undefined
+            ? options.trackSelected
+            : Boolean(options.studyTrack || options.educationTrackId || prev.trackSelected),
+        profile: options.studyTrack
+          ? {
+              ...prev.profile,
+              track: options.studyTrack,
+              updatedAt: Date.now(),
+            }
+          : prev.profile,
+      }));
+    },
+    [commit],
+  );
+
+  const setExperienceDepth = useCallback(
+    (depth: ExperienceDepth) => {
+      commit((prev) => ({ ...prev, experienceDepth: depth }));
+    },
+    [commit],
+  );
+
+  const reopenOnboarding = useCallback(() => {
+    commit((prev) => ({
+      ...prev,
+      onboardingDismissed: false,
+      onboardingCompleted: false,
+    }));
+  }, [commit]);
+
+  const recordLastStudyContext = useCallback(
+    (input: StudyContextInput) => {
+      commit((prev) => ({
+        ...prev,
+        lastStudyContext: {
+          conceptId: input.conceptId,
+          partId: input.partId,
+          topicId: input.topicId,
+          domainId: input.domainId,
+          systemId: input.systemId,
+          sourceModule: input.sourceModule ?? 'study',
+        },
+      }));
+    },
+    [commit],
+  );
+
+  const recordLastRoute = useCallback(
+    (route: string) => {
+      commit((prev) => (prev.lastRoute === route ? prev : { ...prev, lastRoute: route }));
     },
     [commit],
   );
@@ -361,6 +457,11 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       recordPracticalExam,
       updateProfile,
       dismissOnboarding,
+      setAudienceAndTrack,
+      setExperienceDepth,
+      reopenOnboarding,
+      recordLastStudyContext,
+      recordLastRoute,
       addRecentSearch,
       exportStudyJson,
       importStudyJson,
@@ -383,6 +484,11 @@ export function StudyProvider({ children }: { children: ReactNode }) {
       recordPracticalExam,
       updateProfile,
       dismissOnboarding,
+      setAudienceAndTrack,
+      setExperienceDepth,
+      reopenOnboarding,
+      recordLastStudyContext,
+      recordLastRoute,
       addRecentSearch,
       exportStudyJson,
       importStudyJson,
