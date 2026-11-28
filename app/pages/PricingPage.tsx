@@ -511,7 +511,8 @@ export default function PricingPage({ onNavigate }: Props) {
           <p className="text-xs leading-relaxed text-slate-600">
             <ShieldCheck size={13} className="mr-1 inline text-teal-700" aria-hidden="true" />
             {BILLING_PROVIDER_DISCLOSURE} Access is granted strictly from HMAC-verified server
-            webhooks stored durably in SQLite — never from client-side callbacks alone.
+            webhooks persisted durably in Cloud SQL PostgreSQL (or local SQLite in offline dev) —
+            never from client-side callbacks alone.
           </p>
         </div>
 
@@ -536,8 +537,8 @@ export default function PricingPage({ onNavigate }: Props) {
               <p className="text-xs leading-relaxed text-slate-600">
                 Test full subscription provisioning, cancellation, payment failure, refund, and
                 chargeback reversals through our signed webhook verifier (
-                <code>/api/billing/webhook/whop</code>) and SQLite persistence. Disabled
-                automatically in production builds.
+                <code>/api/billing/webhook/whop</code>) and durable Cloud SQL billing store.
+                Disabled automatically in production builds.
               </p>
               <div className="flex flex-wrap gap-2" data-testid="sandbox-controls">
                 <button

@@ -765,9 +765,10 @@ export default function AnatomyScene({ atlas, state, onSelect, onProgress, onErr
         for (let ci = 0; ci < lod3Atlas.chunks.length; ci++) {
           if (disposed) return;
           const chunk = lod3Atlas.chunks[ci];
-          const resp = await fetch(chunk.url, { signal: abort.signal });
+          const compressed = !!chunk.gzip && typeof DecompressionStream !== 'undefined';
+          const resp = await fetch(compressed ? chunk.gzip! : chunk.url, { signal: abort.signal });
           if (!resp.ok) return;
-          const buffer = await decodeModelResponse(resp, chunk.bytes, false);
+          const buffer = await decodeModelResponse(resp, chunk.bytes, compressed);
           if (disposed) return;
 
           const groups = new Map<string, T.BufferGeometry[]>();

@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { verifyAdminFirebaseIdToken } from '../src/lib/firebase-admin.ts';
 
 interface CachedCerts {
   certs: Record<string, string>;
@@ -66,6 +67,16 @@ export async function verifyFirebaseIdToken(
   idToken: string | undefined | null,
 ): Promise<VerifiedFirebaseIdentity | null> {
   if (!idToken || typeof idToken !== 'string') return null;
+
+  const adminDecoded = await verifyAdminFirebaseIdToken(idToken);
+  if (adminDecoded?.uid) {
+    return {
+      uid: adminDecoded.uid,
+      email: typeof adminDecoded.email === 'string' ? adminDecoded.email : null,
+      emailVerified: Boolean(adminDecoded.email_verified),
+    };
+  }
+
   const projectId = getConfiguredProjectId();
   if (!projectId) return null;
 

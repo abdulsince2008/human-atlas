@@ -7,7 +7,13 @@ import {
   type CommercialPlanId,
   type CommercialRuntimeSnapshot,
 } from '../app/commercial/commercial-config';
-import type { DurableBillingStore, PaidTierPlanId, SubscriptionLifecycleStatus } from './billing-store';
+import {
+  toAsyncBillingStore,
+  type AsyncBillingStore,
+  type DurableBillingStore,
+  type PaidTierPlanId,
+  type SubscriptionLifecycleStatus,
+} from './billing-store';
 
 function envBool(key: string): boolean {
   return process.env[key]?.trim().toLowerCase() === 'true';
@@ -460,10 +466,11 @@ export async function verifyAndProcessBillingWebhook(params: {
   webhookIdHeader?: string | undefined;
   webhookSecret: string | null;
   provider?: string;
-  store: DurableBillingStore;
+  store: DurableBillingStore | AsyncBillingStore;
   priceMapOverrides?: Record<string, PriceCatalogTarget>;
   maxReplayAgeSeconds?: number;
 }): Promise<ProcessBillingWebhookResult> {
+  const store = toAsyncBillingStore(params.store);
   if (!params.webhookSecret) {
     return {
       ok: false,
@@ -533,7 +540,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       ? parsed.provider.trim()
       : 'whop');
 
-  const prior = params.store.hasProcessedWebhookEvent(eventId);
+  const prior = await store.hasProcessedWebhookEvent(eventId);
   if (prior) {
     return {
       ok: true,
@@ -608,20 +615,20 @@ export async function verifyAndProcessBillingWebhook(params: {
 
   let account =
     typeof customData.accountId === 'string'
-      ? params.store.getAccount(customData.accountId)
+      ? await store.getAccount(customData.accountId)
       : null;
   if (!account && typeof customData.firebaseUid === 'string') {
-    account = params.store.getAccountByFirebaseUid(customData.firebaseUid);
+    account = await store.getAccountByFirebaseUid(customData.firebaseUid);
   }
   if (!account && providerSubscriptionId) {
-    account = params.store.getAccountByProviderSubscriptionId(providerSubscriptionId);
+    account = await store.getAccountByProviderSubscriptionId(providerSubscriptionId);
   }
   if (!account && providerCustomerId) {
-    account = params.store.getAccountByProviderCustomerId(providerCustomerId);
+    account = await store.getAccountByProviderCustomerId(providerCustomerId);
   }
 
   if (!account) {
-    params.store.recordProcessedWebhookEvent({
+    await store.recordProcessedWebhookEvent({
       eventId,
       eventType,
       provider: providerName,
@@ -679,7 +686,7 @@ export async function verifyAndProcessBillingWebhook(params: {
   ) {
     const target = resolveCatalogPriceTarget(priceOrProductId, snapshot, params.priceMapOverrides);
     if (!target) {
-      params.store.recordProcessedWebhookEvent({
+      await store.recordProcessedWebhookEvent({
         eventId,
         eventType,
         provider: providerName,
@@ -727,7 +734,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       : occurredAt + (target.validityDays ?? 30) * 86_400_000;
 
     if (target.kind === 'ai_credit_pack') {
-      params.store.applyAiQuotaPurchase({
+      await store.applyAiQuotaPurchase({
         accountId: account.accountId,
         provider: providerName,
         providerEventId: eventId,
@@ -743,7 +750,7 @@ export async function verifyAndProcessBillingWebhook(params: {
         paidAt: occurredAt,
       });
     } else {
-      params.store.applySubscriptionUpdate({
+      await store.applySubscriptionUpdate({
         accountId: account.accountId,
         provider: providerName,
         providerEventId: eventId,
@@ -768,7 +775,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       });
     }
 
-    params.store.recordProcessedWebhookEvent({
+    await store.recordProcessedWebhookEvent({
       eventId,
       eventType,
       provider: providerName,
@@ -804,7 +811,7 @@ export async function verifyAndProcessBillingWebhook(params: {
         ? (target.planId as PaidTierPlanId)
         : account.activePlanId;
     if (!target && priceOrProductId) {
-      params.store.recordProcessedWebhookEvent({
+      await store.recordProcessedWebhookEvent({
         eventId,
         eventType,
         provider: providerName,
@@ -847,7 +854,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     const cancelScheduled = schedChange?.action === 'cancel' || Boolean(data.cancel_at_period_end);
     const canceledAtVal = data.canceledAt ?? data.canceled_at;
 
-    params.store.applySubscriptionUpdate({
+    await store.applySubscriptionUpdate({
       accountId: account.accountId,
       provider: providerName,
       providerEventId: eventId,
@@ -876,7 +883,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       occurredAt,
     });
 
-    params.store.recordProcessedWebhookEvent({
+    await store.recordProcessedWebhookEvent({
       eventId,
       eventType,
       provider: providerName,
@@ -924,7 +931,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     const effectiveStillInPeriod =
       nextStatus === 'canceled' && periodEnd !== null && Date.now() < periodEnd;
 
-    params.store.applySubscriptionUpdate({
+    await store.applySubscriptionUpdate({
       accountId: account.accountId,
       provider: providerName,
       providerEventId: eventId,
@@ -943,7 +950,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       occurredAt,
     });
 
-    params.store.recordProcessedWebhookEvent({
+    await store.recordProcessedWebhookEvent({
       eventId,
       eventType,
       provider: providerName,
@@ -969,7 +976,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     eventType === 'transaction.canceled' ||
     eventType === 'payment.failed'
   ) {
-    params.store.applySubscriptionUpdate({
+    await store.applySubscriptionUpdate({
       accountId: account.accountId,
       provider: providerName,
       providerEventId: eventId,
@@ -983,7 +990,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       occurredAt,
     });
 
-    params.store.recordProcessedWebhookEvent({
+    await store.recordProcessedWebhookEvent({
       eventId,
       eventType,
       provider: providerName,
@@ -1032,7 +1039,7 @@ export async function verifyAndProcessBillingWebhook(params: {
               : eventType === 'payment.refunded' && typeof data.id === 'string'
                 ? data.id
                 : null;
-      params.store.applyRefundOrChargeback({
+      await store.applyRefundOrChargeback({
         accountId: account.accountId,
         providerEventId: eventId,
         providerTransactionId: targetTxId,
@@ -1040,7 +1047,7 @@ export async function verifyAndProcessBillingWebhook(params: {
         occurredAt,
       });
 
-      params.store.recordProcessedWebhookEvent({
+      await store.recordProcessedWebhookEvent({
         eventId,
         eventType,
         provider: providerName,
@@ -1061,7 +1068,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     }
   }
 
-  params.store.recordProcessedWebhookEvent({
+  await store.recordProcessedWebhookEvent({
     eventId,
     eventType,
     provider: providerName,

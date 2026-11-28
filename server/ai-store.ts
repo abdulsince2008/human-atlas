@@ -20,7 +20,7 @@ import {
   type AiExplorerContext,
   type AiNavigatorResponsePayload,
 } from '../app/ai/navigator-contract';
-import { getBillingStore } from './billing-store';
+import { getAsyncBillingStore } from './billing-store';
 
 export const AI_MODEL_NAME = 'gemini-4-hydrogen';
 
@@ -148,29 +148,29 @@ export const defaultBillingAdapter: BillingProviderAdapter = {
 // In-memory short-window burst rate-limit tracker (sliding 60s window)
 const rateLimitWindow = new Map<string, number[]>();
 
-export function getOrCreateAccount(
+export async function getOrCreateAccount(
   accountId?: string,
   options?: { firebaseUid?: string | null; customerEmail?: string | null },
-): {
+): Promise<{
   account: EntitlementAccount;
   bearerToken: string;
   isNew: boolean;
-} {
-  const store = getBillingStore();
-  const { account: billingRec, isNew } = store.getOrCreateAccount(accountId, {
+}> {
+  const store = await getAsyncBillingStore();
+  const { account: billingRec, isNew } = await store.getOrCreateAccount(accountId, {
     requireSubscriptionByDefault: isSubscriptionRequiredByDefault(),
     firebaseUid: options?.firebaseUid,
     customerEmail: options?.customerEmail,
   });
   return {
-    account: store.toLegacyAiEntitlementAccount(billingRec),
+    account: await store.toLegacyAiEntitlementAccount(billingRec),
     bearerToken: signAccountToken(billingRec.accountId),
     isNew,
   };
 }
 
-export function getQuotaSummaryForAccount(accountId: string): PublicQuotaSummary {
-  const { account } = getOrCreateAccount(accountId);
+export async function getQuotaSummaryForAccount(accountId: string): Promise<PublicQuotaSummary> {
+  const { account } = await getOrCreateAccount(accountId);
   return toPublicQuotaSummary(account);
 }
 
@@ -187,15 +187,15 @@ export function checkAndRecordRateLimit(accountId: string, nowMs = Date.now()): 
   return true;
 }
 
-export function applyVerifiedPaymentToLedger(payment: VerifiedPaymentEvent): {
+export async function applyVerifiedPaymentToLedger(payment: VerifiedPaymentEvent): Promise<{
   ok: boolean;
   alreadyProcessed: boolean;
   summary?: PublicQuotaSummary;
   transactionId?: string;
   error?: string;
-} {
-  const store = getBillingStore();
-  const { account } = getOrCreateAccount(payment.accountId);
+}> {
+  const store = await getAsyncBillingStore();
+  const { account } = await getOrCreateAccount(payment.accountId);
   const result = provisionQuotaFromPayment(account, payment);
   if (result.error) {
     return { ok: false, alreadyProcessed: false, error: result.error };
@@ -210,7 +210,7 @@ export function applyVerifiedPaymentToLedger(payment: VerifiedPaymentEvent): {
   }
 
   const plan = getPlanById(payment.planId)!;
-  const persisted = store.applyAiQuotaPurchase({
+  const persisted = await store.applyAiQuotaPurchase({
     accountId: account.accountId,
     provider: payment.provider || 'billing_webhook',
     providerEventId: payment.providerEventId.trim(),
@@ -220,7 +220,7 @@ export function applyVerifiedPaymentToLedger(payment: VerifiedPaymentEvent): {
     validityDays: plan.validityDays,
     paidAt: payment.paidAt ?? Date.now(),
   });
-  store.recordProcessedWebhookEvent({
+  await store.recordProcessedWebhookEvent({
     eventId: payment.providerEventId.trim(),
     eventType: 'ai.quota.purchased',
     provider: payment.provider || 'billing_webhook',
@@ -230,11 +230,11 @@ export function applyVerifiedPaymentToLedger(payment: VerifiedPaymentEvent): {
     summary: `Provisioned ${plan.id} (${plan.creditsIncluded} credits)`,
   });
 
-  const updated = store.getAccount(account.accountId)!;
+  const updated = (await store.getAccount(account.accountId))!;
   return {
     ok: true,
     alreadyProcessed: persisted.alreadyProcessed,
-    summary: toPublicQuotaSummary(store.toLegacyAiEntitlementAccount(updated)),
+    summary: toPublicQuotaSummary(await store.toLegacyAiEntitlementAccount(updated)),
     transactionId: persisted.transaction.id,
   };
 }
@@ -343,7 +343,7 @@ export async function executeAiNavigationTurn(params: {
   history?: Array<{ role: 'user' | 'assistant'; text: string }>;
   context: AiExplorerContext;
 }): Promise<NavigateAiResult> {
-  const { account } = getOrCreateAccount(params.accountId);
+  const { account } = await getOrCreateAccount(params.accountId);
   const reserveCost = estimateReserveCredits(params.prompt);
   const gate = canSpendCredits(account, reserveCost);
 
@@ -433,7 +433,8 @@ export async function executeAiNavigationTurn(params: {
     };
 
     const settled = settleUsageCredits(account, usageMetrics);
-    getBillingStore().saveAiUsageSettlement(
+    const billingStore = await getAsyncBillingStore();
+    await billingStore.saveAiUsageSettlement(
       account.accountId,
       settled.account.creditsUsed,
       settled.account.queriesUsed,

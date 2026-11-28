@@ -12,6 +12,7 @@ import {
   type SubscriptionPlanId,
 } from '../app/ai/quota';
 import type { CommercialPlanId } from '../app/commercial/commercial-config';
+import { isCloudSqlConfigured } from '../src/db/index.ts';
 
 export type PaidTierPlanId = 'free_explorer' | 'student_plus' | 'educator_plus';
 export type SubscriptionLifecycleStatus =
@@ -129,7 +130,7 @@ export interface PublicBillingEntitlementSummary {
   transactions: BillingTransactionRecord[];
 }
 
-function normalizePaidTier(planId: string | null | undefined): PaidTierPlanId {
+export function normalizePaidTier(planId: string | null | undefined): PaidTierPlanId {
   if (planId === 'student_plus' || planId === 'educator_plus') return planId;
   return 'free_explorer';
 }
@@ -921,39 +922,11 @@ export class DurableBillingStore {
       )
       .all(record.accountId) as { event_id: string }[];
 
-    const legacyTxs: QuotaTransaction[] = txs
-      .filter((t) => t.creditsGranted > 0)
-      .map((t) => ({
-        id: t.id,
-        provider: t.provider,
-        providerEventId: t.providerEventId,
-        planId:
-          t.planId === 'student_monthly' || t.planId === 'exam_prep_pack'
-            ? t.planId
-            : 'student_monthly',
-        amountUsdCents: t.amountCents,
-        creditsGranted: t.creditsGranted,
-        provisionedAt: t.provisionedAt,
-        expiresAt: t.expiresAt,
-      }));
-
-    return {
-      ...createEntitlementAccount(record.accountId, record.requireSubscription, record.createdAt),
-      accountId: record.accountId,
-      planId: record.aiPlanId,
-      requireSubscription: record.requireSubscription,
-      creditsPurchased: record.creditsPurchased,
-      creditsUsed: record.creditsUsed,
-      queriesUsed: record.queriesUsed,
-      subscriptionExpiresAt: record.aiSubscriptionExpiresAt,
-      processedPaymentIds: [
-        ...processedRows.map((r) => r.event_id),
-        ...txs.map((t) => t.providerEventId),
-      ].slice(0, 50),
-      transactions: legacyTxs,
-      createdAt: record.createdAt,
-      updatedAt: record.updatedAt,
-    };
+    return buildLegacyAiEntitlementAccount(
+      record,
+      txs,
+      processedRows.map((r) => r.event_id),
+    );
   }
 
   toPublicEntitlementSummary(
@@ -961,57 +934,243 @@ export class DurableBillingStore {
     nowMs = Date.now(),
   ): PublicBillingEntitlementSummary {
     const legacyAi = this.toLegacyAiEntitlementAccount(record);
-    const aiQuota = toPublicQuotaSummary(legacyAi, nowMs);
     const txs = this.getTransactionsForAccount(record.accountId, 12);
-
-    const periodValid =
-      record.currentPeriodEnd === null || nowMs <= record.currentPeriodEnd;
-    const paidActive =
-      record.activePlanId !== 'free_explorer' &&
-      (record.subscriptionStatus === 'active' ||
-        record.subscriptionStatus === 'trialing' ||
-        (record.subscriptionStatus === 'canceled' &&
-          record.cancelAtPeriodEnd &&
-          periodValid)) &&
-      record.refundStatus === 'none';
-
-    const effectiveTier: CommercialPlanId = paidActive ? record.activePlanId : 'free_explorer';
-
-    return {
-      accountId: record.accountId,
-      firebaseLinked: Boolean(record.firebaseUid),
-      activePlanId: normalizePaidTier(effectiveTier),
-      billingInterval: paidActive ? record.billingInterval : 'none',
-      subscriptionStatus: record.subscriptionStatus,
-      hasActivePaidSubscription: paidActive,
-      providerCustomerId: record.providerCustomerId,
-      providerSubscriptionId: record.providerSubscriptionId,
-      productId: record.productId,
-      priceId: record.priceId,
-      currentPeriodStart: record.currentPeriodStart,
-      currentPeriodEnd: record.currentPeriodEnd,
-      cancelAtPeriodEnd: record.cancelAtPeriodEnd,
-      canceledAt: record.canceledAt,
-      refundStatus: record.refundStatus,
-      entitlements: {
-        core3dAnatomy: true,
-        studentPlusFeatures:
-          paidActive && (effectiveTier === 'student_plus' || effectiveTier === 'educator_plus'),
-        educatorPlusFeatures: paidActive && effectiveTier === 'educator_plus',
-        educatorExports: paidActive && effectiveTier === 'educator_plus',
-        educatorClassroomManager: paidActive && effectiveTier === 'educator_plus',
-      },
-      aiQuota,
-      transactions: txs,
-    };
+    return buildPublicEntitlementSummary(record, legacyAi, txs, nowMs);
   }
 }
 
+export function buildLegacyAiEntitlementAccount(
+  record: AccountBillingRecord,
+  txs: BillingTransactionRecord[],
+  processedEventIds: string[],
+): EntitlementAccount {
+  const legacyTxs: QuotaTransaction[] = txs
+    .filter((t) => t.creditsGranted > 0)
+    .map((t) => ({
+      id: t.id,
+      provider: t.provider,
+      providerEventId: t.providerEventId,
+      planId:
+        t.planId === 'student_monthly' || t.planId === 'exam_prep_pack'
+          ? t.planId
+          : 'student_monthly',
+      amountUsdCents: t.amountCents,
+      creditsGranted: t.creditsGranted,
+      provisionedAt: t.provisionedAt,
+      expiresAt: t.expiresAt,
+    }));
+
+  return {
+    ...createEntitlementAccount(record.accountId, record.requireSubscription, record.createdAt),
+    accountId: record.accountId,
+    planId: record.aiPlanId,
+    requireSubscription: record.requireSubscription,
+    creditsPurchased: record.creditsPurchased,
+    creditsUsed: record.creditsUsed,
+    queriesUsed: record.queriesUsed,
+    subscriptionExpiresAt: record.aiSubscriptionExpiresAt,
+    processedPaymentIds: [
+      ...processedEventIds,
+      ...txs.map((t) => t.providerEventId),
+    ].slice(0, 50),
+    transactions: legacyTxs,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  };
+}
+
+export function buildPublicEntitlementSummary(
+  record: AccountBillingRecord,
+  legacyAi: EntitlementAccount,
+  txs: BillingTransactionRecord[],
+  nowMs = Date.now(),
+): PublicBillingEntitlementSummary {
+  const aiQuota = toPublicQuotaSummary(legacyAi, nowMs);
+  const periodValid = record.currentPeriodEnd === null || nowMs <= record.currentPeriodEnd;
+  const paidActive =
+    record.activePlanId !== 'free_explorer' &&
+    (record.subscriptionStatus === 'active' ||
+      record.subscriptionStatus === 'trialing' ||
+      (record.subscriptionStatus === 'canceled' && record.cancelAtPeriodEnd && periodValid)) &&
+    record.refundStatus === 'none';
+
+  const effectiveTier: CommercialPlanId = paidActive ? record.activePlanId : 'free_explorer';
+
+  return {
+    accountId: record.accountId,
+    firebaseLinked: Boolean(record.firebaseUid),
+    activePlanId: normalizePaidTier(effectiveTier),
+    billingInterval: paidActive ? record.billingInterval : 'none',
+    subscriptionStatus: record.subscriptionStatus,
+    hasActivePaidSubscription: paidActive,
+    providerCustomerId: record.providerCustomerId,
+    providerSubscriptionId: record.providerSubscriptionId,
+    productId: record.productId,
+    priceId: record.priceId,
+    currentPeriodStart: record.currentPeriodStart,
+    currentPeriodEnd: record.currentPeriodEnd,
+    cancelAtPeriodEnd: record.cancelAtPeriodEnd,
+    canceledAt: record.canceledAt,
+    refundStatus: record.refundStatus,
+    entitlements: {
+      core3dAnatomy: true,
+      studentPlusFeatures:
+        paidActive && (effectiveTier === 'student_plus' || effectiveTier === 'educator_plus'),
+      educatorPlusFeatures: paidActive && effectiveTier === 'educator_plus',
+      educatorExports: paidActive && effectiveTier === 'educator_plus',
+      educatorClassroomManager: paidActive && effectiveTier === 'educator_plus',
+    },
+    aiQuota,
+    transactions: txs,
+  };
+}
+
+export interface AsyncBillingStore {
+  getAccount(accountId: string): Promise<AccountBillingRecord | null>;
+  getAccountByFirebaseUid(firebaseUid: string): Promise<AccountBillingRecord | null>;
+  getAccountByProviderCustomerId(providerCustomerId: string): Promise<AccountBillingRecord | null>;
+  getAccountByProviderSubscriptionId(
+    providerSubscriptionId: string,
+  ): Promise<AccountBillingRecord | null>;
+  getOrCreateAccount(
+    accountId?: string,
+    options?: {
+      requireSubscriptionByDefault?: boolean;
+      firebaseUid?: string | null;
+      customerEmail?: string | null;
+    },
+  ): Promise<{ account: AccountBillingRecord; isNew: boolean }>;
+  linkFirebaseIdentity(accountId: string, firebaseUid: string, email?: string | null): Promise<void>;
+  hasProcessedWebhookEvent(eventId: string): Promise<ProcessedWebhookLog | null>;
+  recordProcessedWebhookEvent(log: Omit<ProcessedWebhookLog, 'processedAt'>): Promise<boolean>;
+  getTransactionsForAccount(accountId: string, limit?: number): Promise<BillingTransactionRecord[]>;
+  getTransactionByProviderTxId(providerTxId: string): Promise<BillingTransactionRecord | null>;
+  saveAiUsageSettlement(accountId: string, creditsUsed: number, queriesUsed: number): Promise<void>;
+  applyAiQuotaPurchase(params: {
+    accountId: string;
+    provider: string;
+    providerEventId: string;
+    providerTransactionId?: string | null;
+    providerCustomerId?: string | null;
+    productId?: string | null;
+    priceId?: string | null;
+    aiPlanId: SubscriptionPlanId;
+    amountCents: number;
+    currency?: string;
+    creditsGranted: number;
+    validityDays: number | null;
+    paidAt: number;
+  }): Promise<{ alreadyProcessed: boolean; transaction: BillingTransactionRecord }>;
+  applySubscriptionUpdate(params: {
+    accountId: string;
+    provider: string;
+    providerEventId: string;
+    providerCustomerId?: string | null;
+    providerSubscriptionId?: string | null;
+    providerTransactionId?: string | null;
+    customerEmail?: string | null;
+    productId?: string | null;
+    priceId?: string | null;
+    activePlanId: PaidTierPlanId;
+    billingInterval: 'none' | 'monthly' | 'annual';
+    subscriptionStatus: SubscriptionLifecycleStatus;
+    currentPeriodStart?: number | null;
+    currentPeriodEnd?: number | null;
+    cancelAtPeriodEnd?: boolean;
+    canceledAt?: number | null;
+    refundStatus?: RefundReversalStatus;
+    amountCents?: number;
+    currency?: string;
+    creditsBonus?: number;
+    recordTransaction?: boolean;
+    occurredAt: number;
+  }): Promise<{ account: AccountBillingRecord; transaction: BillingTransactionRecord | null }>;
+  applyRefundOrChargeback(params: {
+    accountId: string;
+    providerEventId: string;
+    providerTransactionId?: string | null;
+    kind: 'refunded' | 'charged_back';
+    occurredAt: number;
+  }): Promise<{ account: AccountBillingRecord; revokedCredits: number }>;
+  recordAffiliateCommissionEntry(params: {
+    affiliateId: string;
+    qualifyingTransactionId: string;
+    internalCustomerId: string;
+    commissionBasisCents: number;
+    commissionRateBps: number;
+  }): Promise<AffiliateCommissionEntry>;
+  applyAffiliateAdjustmentForTransaction(
+    qualifyingTransactionId: string,
+    kind: 'refund' | 'chargeback',
+  ): Promise<void>;
+  getAffiliateLedgerEntry(qualifyingTransactionId: string): Promise<AffiliateCommissionEntry | null>;
+  toLegacyAiEntitlementAccount(record: AccountBillingRecord): Promise<EntitlementAccount>;
+  toPublicEntitlementSummary(
+    record: AccountBillingRecord,
+    nowMs?: number,
+  ): Promise<PublicBillingEntitlementSummary>;
+}
+
+export function toAsyncBillingStore(store: DurableBillingStore | AsyncBillingStore): AsyncBillingStore {
+  if (!(store instanceof DurableBillingStore)) {
+    return store;
+  }
+  return {
+    getAccount: async (accountId) => store.getAccount(accountId),
+    getAccountByFirebaseUid: async (firebaseUid) => store.getAccountByFirebaseUid(firebaseUid),
+    getAccountByProviderCustomerId: async (providerCustomerId) =>
+      store.getAccountByProviderCustomerId(providerCustomerId),
+    getAccountByProviderSubscriptionId: async (providerSubscriptionId) =>
+      store.getAccountByProviderSubscriptionId(providerSubscriptionId),
+    getOrCreateAccount: async (accountId, options) => store.getOrCreateAccount(accountId, options),
+    linkFirebaseIdentity: async (accountId, firebaseUid, email) =>
+      store.linkFirebaseIdentity(accountId, firebaseUid, email),
+    hasProcessedWebhookEvent: async (eventId) => store.hasProcessedWebhookEvent(eventId),
+    recordProcessedWebhookEvent: async (log) => store.recordProcessedWebhookEvent(log),
+    getTransactionsForAccount: async (accountId, limit) =>
+      store.getTransactionsForAccount(accountId, limit),
+    getTransactionByProviderTxId: async (providerTxId) =>
+      store.getTransactionByProviderTxId(providerTxId),
+    saveAiUsageSettlement: async (accountId, creditsUsed, queriesUsed) =>
+      store.saveAiUsageSettlement(accountId, creditsUsed, queriesUsed),
+    applyAiQuotaPurchase: async (params) => store.applyAiQuotaPurchase(params),
+    applySubscriptionUpdate: async (params) => store.applySubscriptionUpdate(params),
+    applyRefundOrChargeback: async (params) => store.applyRefundOrChargeback(params),
+    recordAffiliateCommissionEntry: async (params) => store.recordAffiliateCommissionEntry(params),
+    applyAffiliateAdjustmentForTransaction: async (qualifyingTransactionId, kind) =>
+      store.applyAffiliateAdjustmentForTransaction(qualifyingTransactionId, kind),
+    getAffiliateLedgerEntry: async (qualifyingTransactionId) =>
+      store.getAffiliateLedgerEntry(qualifyingTransactionId),
+    toLegacyAiEntitlementAccount: async (record) => store.toLegacyAiEntitlementAccount(record),
+    toPublicEntitlementSummary: async (record, nowMs) =>
+      store.toPublicEntitlementSummary(record, nowMs),
+  };
+}
+
 let sharedStore: DurableBillingStore | null = null;
+let sharedAsyncStore: AsyncBillingStore | null = null;
+let loadingPgStorePromise: Promise<AsyncBillingStore> | null = null;
 
 export function getBillingStore(): DurableBillingStore {
   if (!sharedStore) {
     sharedStore = new DurableBillingStore();
   }
   return sharedStore;
+}
+
+export async function getAsyncBillingStore(): Promise<AsyncBillingStore> {
+  if (sharedAsyncStore) {
+    return sharedAsyncStore;
+  }
+  if (isCloudSqlConfigured()) {
+    if (!loadingPgStorePromise) {
+      loadingPgStorePromise = import('./pg-billing-store.ts').then((mod) => {
+        sharedAsyncStore = mod.createPostgresBillingStore();
+        return sharedAsyncStore;
+      });
+    }
+    return loadingPgStorePromise;
+  }
+  sharedAsyncStore = toAsyncBillingStore(getBillingStore());
+  return sharedAsyncStore;
 }

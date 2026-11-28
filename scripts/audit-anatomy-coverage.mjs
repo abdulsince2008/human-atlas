@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { registerHooks } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { gunzipSync } from 'node:zlib';
 import ts from 'typescript';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,8 +71,14 @@ const globalSeenPartIds = new Set();
 for (const entry of allManifests) {
   const chunkBins = entry.manifest.chunks.map((c) => {
     const filePath = path.join(ROOT_DIR, 'public', c.url.replace(/^\//, ''));
-    assert.ok(fs.existsSync(filePath), `[${entry.id}] Missing binary chunk: ${filePath}`);
-    return fs.readFileSync(filePath);
+    const gzPath = c.gzip
+      ? path.join(ROOT_DIR, 'public', c.gzip.replace(/^\//, ''))
+      : `${filePath}.gz`;
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath);
+    }
+    assert.ok(fs.existsSync(gzPath), `[${entry.id}] Missing binary chunk: ${filePath} (or ${gzPath})`);
+    return gunzipSync(fs.readFileSync(gzPath));
   });
 
   for (const p of entry.manifest.parts) {

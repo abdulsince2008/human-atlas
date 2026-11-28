@@ -141,7 +141,7 @@ test('on-the-spot payment provisioning unlocks quota only after paid webhook and
   assert.equal(getRemainingCredits(topUpRes.account, 1_004_000), 250_000 + 650_000);
 });
 
-test('HMAC token and webhook signature verification block tampering and apply ledger updates', () => {
+test('HMAC token and webhook signature verification block tampering and apply ledger updates', async () => {
   const token = signAccountToken('acct_secure9988');
   assert.deepEqual(verifyAccountToken(token), { accountId: 'acct_secure9988' });
   assert.equal(verifyAccountToken(`${token}tamper`), null);
@@ -159,7 +159,7 @@ test('HMAC token and webhook signature verification block tampering and apply le
   assert.equal(verifyWebhookSignature(payload, sig, secret), true);
   assert.equal(verifyWebhookSignature(payload, 'deadbeef', secret), false);
 
-  const ledgerRes = applyVerifiedPaymentToLedger(JSON.parse(payload));
+  const ledgerRes = await applyVerifiedPaymentToLedger(JSON.parse(payload));
   assert.equal(ledgerRes.ok, true);
   assert.ok((ledgerRes.summary?.creditsRemaining ?? 0) >= 250_000);
 });

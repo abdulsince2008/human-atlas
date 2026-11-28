@@ -78,9 +78,9 @@ export default function PrivacyPage({ onNavigate }: Props) {
           a pseudonymous account ID (<code>acct_...</code>).
         </p>
         <p>
-          Server-side billing records stored in durable SQLite (<code>BILLING_DB_PATH</code>) retain
-          account IDs, optional verified Firebase UID/email (if linked), provider
-          customer/subscription/transaction IDs, active tier status, billing periods,
+          Server-side billing records stored in Cloud SQL PostgreSQL (with local SQLite fallback in
+          offline development) retain account IDs, optional verified Firebase UID/email (if linked),
+          provider customer/subscription/transaction IDs, active tier status, billing periods,
           refund/reversal status, and metered AI credit balances.
         </p>
       </section>

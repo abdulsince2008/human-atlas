@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import * as T from 'three';
 import type { Atlas } from './anatomy';
 import {
@@ -20,7 +21,11 @@ const atlas = JSON.parse(
 ) as Atlas;
 
 test('anatomical UV generator produces finite, valid UVs for real BodyParts3D binary meshes', () => {
-  const chunk0 = fs.readFileSync(path.resolve('public/models/body-0.bin'));
+  const rawChunk0 = path.resolve('public/models/body-0.bin');
+  const gzChunk0 = path.resolve('public/models/body-0.bin.gz');
+  const chunk0 = fs.existsSync(rawChunk0)
+    ? fs.readFileSync(rawChunk0)
+    : gunzipSync(fs.readFileSync(gzChunk0));
   const sampleParts = atlas.parts.filter((p) => p.chunk === 0).slice(0, 25);
   assert.ok(sampleParts.length === 25);
 
@@ -119,7 +124,10 @@ test('real LOD 3 binary manifest exists, preserves all 2,234 part IDs, and reduc
   }
   for (const c of lod3.chunks) {
     const filePath = path.resolve('public', c.url.replace(/^\//, ''));
-    assert.ok(fs.existsSync(filePath), `Missing LOD 3 binary chunk: ${c.url}`);
+    const gzPath = c.gzip
+      ? path.resolve('public', c.gzip.replace(/^\//, ''))
+      : `${filePath}.gz`;
+    assert.ok(fs.existsSync(filePath) || fs.existsSync(gzPath), `Missing LOD 3 binary chunk: ${c.url}`);
   }
 });
 

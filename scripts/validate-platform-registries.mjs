@@ -54,8 +54,11 @@ function validateAssets() {
   }
   for (const chunk of atlas.chunks ?? []) {
     const filePath = path.resolve('public', chunk.url.replace(/^\//, ''));
-    if (!fs.existsSync(filePath)) {
-      errors.push(`Missing binary chunk file: ${chunk.url}`);
+    const gzPath = chunk.gzip
+      ? path.resolve('public', chunk.gzip.replace(/^\//, ''))
+      : `${filePath}.gz`;
+    if (!fs.existsSync(filePath) && !fs.existsSync(gzPath)) {
+      errors.push(`Missing binary chunk file: ${chunk.url} (and ${chunk.gzip ?? `${chunk.url}.gz`})`);
     }
   }
   if (errors.length > 0) fail('assets', errors);
