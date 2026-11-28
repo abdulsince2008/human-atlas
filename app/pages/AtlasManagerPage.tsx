@@ -253,7 +253,7 @@ export default function AtlasManagerPage() {
         <div className="a360-chart-panel">
           <h2>Validate External Atlas Manifest JSON</h2>
           <p className="a360-muted">
-            Verify whether a candidate <code>atlas.json</code> manifest conforms to Anatomy 360 mesh,
+            Verify whether a candidate <code>atlas.json</code> manifest conforms to Alphatomy mesh,
             chunk-index, and FMA concept mapping constraints before bundling.
           </p>
           <div className="a360-backup-actions">

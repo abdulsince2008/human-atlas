@@ -58,7 +58,7 @@ export default function PricingPage({ onNavigate }: Props) {
     <div className="a360-page" data-testid="pricing-page">
       <header className="a360-page-header">
         <p className="a360-kicker">Plans &amp; Transparent Pricing</p>
-        <h1>Simple, Student-Fair Anatomy 360 Plans</h1>
+        <h1>Simple, Student-Fair Alphatomy Plans</h1>
         <p className="a360-lead">
           Explore core 3D human anatomy, body systems, practice quizzes, and local study tools for
           free — no credit card required. Upgrade cleanly for cross-device entitlements, expanded AI
@@ -140,16 +140,16 @@ export default function PricingPage({ onNavigate }: Props) {
             <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-700" aria-hidden="true" />
             <div className="space-y-1.5">
               <strong className="block font-semibold">
-                {seller.pricingConfirmed && seller.billingProvider !== 'unselected'
-                  ? 'Live Checkout Disabled Pending Payment Provider Approval & Catalog Setup'
-                  : 'Draft Launch Pricing Proposal — Live Checkout Disabled Until Provider & Owner Confirmation'}
+                {seller.pricingConfirmed
+                  ? 'Live Checkout Disabled Pending Whop Approval & Plan Credentials'
+                  : 'Draft Launch Pricing Proposal — Live On-Site Whop Checkout Pending Credentials'}
               </strong>
               <p className="text-xs leading-relaxed text-amber-900">
                 The Student Plus ($4.99/mo or $39.99/yr) and Educator Plus ($9.99/mo or $79.99/yr)
-                rates shown below are configurable launch recommendations. Live checkout remains
-                disabled until the owner selects a final Merchant of Record / payment provider (such
-                as Whop, Creem, Paddle, or another processor), confirms seller identity, and
-                configures verified catalog credentials. No live charges can occur in this state.
+                rates shown below are configurable launch recommendations processed on-site via Whop.
+                Live checkout remains disabled until seller identity, Whop KYC verification, and
+                Whop Plan IDs (<code>plan_...</code>) + Webhook Secret (<code>ws_...</code>) are
+                configured. No live charges can occur in this state.
               </p>
               {config.missingRequirements.length > 0 && (
                 <ul className="list-disc pl-4 text-xs text-amber-900/90">
@@ -300,13 +300,13 @@ export default function PricingPage({ onNavigate }: Props) {
                       <CreditCard size={15} aria-hidden="true" />
                       {canTriggerCheckout
                         ? config.liveCheckoutAllowed
-                          ? `Subscribe (${formatUsdCents(priceCents)})`
-                          : `Open Sandbox Checkout (${formatUsdCents(priceCents)})`
-                        : 'Checkout Disabled (Provider Pending)'}
+                          ? `Subscribe On-Site (${formatUsdCents(priceCents)})`
+                          : `Open Sandbox Whop Checkout (${formatUsdCents(priceCents)})`
+                        : 'Checkout Disabled (Whop Keys Pending)'}
                     </button>
                     {!canTriggerCheckout && (
                       <p className="text-center text-[11px] text-slate-500">
-                        Awaiting finalized payment provider &amp; catalog key ({isAnnual ? plan.billingCatalogEnvKeys.annualPriceIdEnv : plan.billingCatalogEnvKeys.monthlyPriceIdEnv}).
+                        Awaiting Whop plan ID key ({isAnnual ? plan.billingCatalogEnvKeys.annualPriceIdEnv : plan.billingCatalogEnvKeys.monthlyPriceIdEnv}).
                       </p>
                     )}
                   </>
@@ -524,7 +524,7 @@ export default function PricingPage({ onNavigate }: Props) {
               </p>
               <h2 className="text-lg font-bold text-slate-900">
                 {devSandboxAllowed
-                  ? 'Provider-Agnostic Signed Webhook Simulator'
+                  ? 'Whop-Compatible Signed Webhook Simulator'
                   : 'Renewal, Cancellation & Buyer Support'}
               </h2>
             </div>
@@ -535,9 +535,9 @@ export default function PricingPage({ onNavigate }: Props) {
             <>
               <p className="text-xs leading-relaxed text-slate-600">
                 Test full subscription provisioning, cancellation, payment failure, refund, and
-                chargeback reversals through our HMAC-SHA256 webhook verifier (
-                <code>/api/billing/webhook</code>) and SQLite persistence — completely independent of
-                which payment provider is finalized. Disabled automatically in production builds.
+                chargeback reversals through our signed webhook verifier (
+                <code>/api/billing/webhook/whop</code>) and SQLite persistence. Disabled
+                automatically in production builds.
               </p>
               <div className="flex flex-wrap gap-2" data-testid="sandbox-controls">
                 <button

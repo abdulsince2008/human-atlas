@@ -19,15 +19,13 @@ test('commercial pricing defaults stay safely in draft/disabled mode without unc
   const snap = getDefaultCommercialRuntimeSnapshot();
   assert.equal(snap.liveCheckoutAllowed, false);
   assert.equal(snap.sandboxReady, false);
-  assert.equal(snap.seller.billingProvider, 'unselected');
+  assert.equal(snap.seller.tradingName, 'Alphatomy');
+  assert.equal(snap.seller.billingProvider, 'whop');
   assert.equal(snap.seller.legalSellerName, null);
   assert.equal(snap.seller.supportEmail, null);
   assert.equal(snap.seller.supportPhone, null);
   assert.equal(snap.seller.pricingConfirmed, false);
-  assert.equal(
-    snap.providerReadinessState.providerSelection,
-    'BLOCKED_OWNER_PROVIDER_CHOICE',
-  );
+  assert.equal(snap.providerReadinessState.providerSelection, 'READY');
   assert.equal(
     snap.providerReadinessState.productCategory,
     'BLOCKED_PROVIDER_CONFIRMATION',
@@ -50,7 +48,7 @@ test('commercial pricing defaults stay safely in draft/disabled mode without unc
   assert.equal(getCommercialPlanById('educator_plus')?.monthlyPriceUsdCents, 999);
   assert.equal(getCommercialPlanById('educator_plus')?.annualPriceUsdCents, 7999);
   assert.ok(COMMERCIAL_COMPARISON_ROWS.length >= 8);
-  assert.ok(BILLING_PROVIDER_DISCLOSURE.includes('authorized payment provider'));
+  assert.ok(BILLING_PROVIDER_DISCLOSURE.includes('Whop'));
   assert.ok(AI_CREDIT_DISCLOSURES.separationNotice.includes('AI credit packs'));
 });
 

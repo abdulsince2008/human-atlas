@@ -171,8 +171,8 @@ export default function HomePage({
 
   const heroVoiceSummary =
     state.audienceRole === 'teaching'
-      ? 'Welcome to Anatomy 360 Educator Mode. Choose any subject, match your syllabus, sequence topics, present in 3D, or export PowerPoint, PDF, and Markdown handouts.'
-      : 'Welcome to Anatomy 360. Explore the human body in 3D, follow plain-language or university-level lessons, match your syllabus, and test yourself with quizzes and practical spotter exams.';
+      ? 'Welcome to Alphatomy Educator Mode. Choose any subject, match your syllabus, sequence topics, present in 3D, or export PowerPoint, PDF, and Markdown handouts.'
+      : 'Welcome to Alphatomy. Explore the human body in 3D, follow plain-language or university-level lessons, match your syllabus, and test yourself with quizzes and practical spotter exams.';
 
   return (
     <div className="a360-page">
@@ -508,7 +508,7 @@ export default function HomePage({
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 Paste syllabus lines, upload a <code>.txt</code>/<code>.md</code>/<code>.csv</code>{' '}
-                file, or type topics manually. Anatomy 360 matches each item privately in your
+                file, or type topics manually. Alphatomy matches each item privately in your
                 browser and tells you honestly what is available, partial, or not yet covered.
               </p>
               <p className="mt-3 font-mono text-xs tabular-nums text-slate-500">
@@ -891,7 +891,7 @@ export default function HomePage({
         <div className="a360-section-head">
           <div>
             <p className="a360-kicker">Inside the Running Platform</p>
-            <h2 id="section-live-previews">Real Views from Anatomy 360</h2>
+            <h2 id="section-live-previews">Real Views from Alphatomy</h2>
             <p>
               Unretouched captures of the 3D Explorer, Guided Study Workspace, and Educator Planning
               Workspace — explore free without login, or inspect Student Plus and Educator Plus

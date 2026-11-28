@@ -79,7 +79,7 @@ export interface CommercialRuntimeSnapshot {
   sandboxReady: boolean;
   liveCheckoutAllowed: boolean;
   providerReadinessState: {
-    providerSelection: 'BLOCKED_OWNER_PROVIDER_CHOICE' | 'READY';
+    providerSelection: 'READY' | 'BLOCKED_OWNER_PROVIDER_CHOICE';
     sellerAccount: 'BLOCKED_HUMAN_INPUT' | 'READY';
     productCategory: 'BLOCKED_PROVIDER_CONFIRMATION' | 'READY';
     educatorAffiliateProgramme: 'DISABLED_PENDING_PROVIDER_WRITTEN_APPROVAL';
@@ -87,10 +87,10 @@ export interface CommercialRuntimeSnapshot {
 }
 
 export const BILLING_PROVIDER_DISCLOSURE =
-  'Online checkout, tax/VAT collection, billing receipts, and buyer refunds are handled by the authorized payment provider / Merchant of Record selected by the seller (e.g., Whop, Creem, Paddle, or another approved processor) once live sales are enabled.';
+  'Online checkout, global taxes/VAT, billing receipts, and buyer refunds are handled securely inside your browser via Whop (Alphatomy’s selected Merchant of Record) once live sales are enabled.';
 
 export const DEFAULT_SELLER_IDENTITY: SellerIdentityConfig = {
-  tradingName: 'Anatomy 360',
+  tradingName: 'Alphatomy',
   legalSellerName: null,
   sellerType: null,
   sellerCountry: null,
@@ -101,7 +101,7 @@ export const DEFAULT_SELLER_IDENTITY: SellerIdentityConfig = {
   sellerApprovedByProvider: false,
   domainApprovedByProvider: false,
   policiesPublished: true,
-  billingProvider: 'unselected',
+  billingProvider: 'whop',
   billingEnvironment: 'sandbox',
   billingClientConfigured: false,
   portalUrl: null,
@@ -424,16 +424,17 @@ export function getDefaultCommercialRuntimeSnapshot(): CommercialRuntimeSnapshot
       exam_prep_pack: { productId: null, priceId: null, checkoutUrl: null },
     },
     missingRequirements: [
-      'Payment provider / Merchant of Record (e.g., Whop, Creem, Paddle, or another processor) has not yet been selected by the owner.',
       'Seller legal name, seller type, and country are not yet confirmed by the owner.',
       'Public support email and support phone number have not yet been supplied.',
       'Recommended draft prices ($4.99/$39.99 Student Plus, $9.99/$79.99 Educator Plus) require explicit owner confirmation.',
-      'Provider product IDs, price IDs, checkout links, and webhook credentials are not yet configured in environment variables.',
+      'Whop seller onboarding & KYC verification are not yet marked approved.',
+      'Live domain approval and BILLING_APPROVED_DOMAIN (e.g., alphatomy.elysiumforge.solutions) are not yet configured.',
+      'Whop Plan IDs (plan_...) and Webhook Secret (ws_...) are not yet configured in environment variables.',
     ],
     sandboxReady: false,
     liveCheckoutAllowed: false,
     providerReadinessState: {
-      providerSelection: 'BLOCKED_OWNER_PROVIDER_CHOICE',
+      providerSelection: 'READY',
       sellerAccount: 'BLOCKED_HUMAN_INPUT',
       productCategory: 'BLOCKED_PROVIDER_CONFIRMATION',
       educatorAffiliateProgramme: 'DISABLED_PENDING_PROVIDER_WRITTEN_APPROVAL',

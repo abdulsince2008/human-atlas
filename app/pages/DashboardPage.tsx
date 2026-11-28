@@ -220,7 +220,7 @@ export default function DashboardPage({
         <section className="a360-onboarding-banner" aria-label="Quick start guide">
           <div>
             <p className="a360-kicker">Quick-Start Guide</p>
-            <h2>How to get the most from Anatomy 360</h2>
+            <h2>How to get the most from Alphatomy</h2>
             <p className="a360-muted">
               1. Inspect organs in the 3D Explorer or Study Workspace. 2. Follow structured 12-system or 16-subject lessons. 3. Test yourself in Practice Quizzes or Practical Lab—any missed organ automatically enters your Revision Queue.
             </p>

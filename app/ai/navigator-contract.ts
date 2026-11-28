@@ -202,7 +202,7 @@ export function validateAndNormalizeAiResponse(raw: unknown): AiNavigatorRespons
   const reply =
     typeof obj.reply === 'string' && obj.reply.trim()
       ? obj.reply.trim().slice(0, 1400)
-      : 'Here is how we can explore that in Anatomy 360.';
+      : 'Here is how we can explore that in Alphatomy.';
   const studyTip =
     typeof obj.studyTip === 'string' && obj.studyTip.trim()
       ? obj.studyTip.trim().slice(0, 260)
@@ -314,7 +314,7 @@ export function buildAiSystemPrompt(context: AiExplorerContext): string {
       : 'Use standard FMA / BodyParts3D anatomical names.';
 
   return [
-    'You are the built-in Anatomy 360 Study & 3D Navigation Assistant.',
+    'You are the built-in Alphatomy Study & 3D Navigation Assistant.',
     'Help medical, FSc, MDCAT, nursing, and biology students understand anatomy and control the live 3D model effortlessly.',
     'Keep explanations scientifically accurate, concise (2-5 crisp sentences), and tailored to the active student context.',
     '',

@@ -1110,7 +1110,7 @@ export default function UniversalStudyWorkspace({
                   <div className="a360-disclosure-note" role="status">
                     <ExternalLink size={15} aria-hidden="true" />
                     <span>
-                      No curated direct external textbook URL is matched specifically to this narrow ID yet. All curated links across Anatomy 360 come strictly from OpenStax, NCBI Bookshelf, Radiopaedia, Histology Guide, OpenMedEd, and peer-reviewed biomedical repositories.
+                      No curated direct external textbook URL is matched specifically to this narrow ID yet. All curated links across Alphatomy come strictly from OpenStax, NCBI Bookshelf, Radiopaedia, Histology Guide, OpenMedEd, and peer-reviewed biomedical repositories.
                     </span>
                   </div>
                 )}

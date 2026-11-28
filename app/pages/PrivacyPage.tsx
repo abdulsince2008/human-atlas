@@ -17,16 +17,16 @@ export default function PrivacyPage({ onNavigate }: Props) {
         <p className="a360-kicker">Code-Audited Data &amp; Privacy Disclosure</p>
         <h1>Privacy Policy</h1>
         <p className="a360-lead">
-          Accurate explanation of what Anatomy 360 stores locally in your browser, what is
+          Accurate explanation of what Alphatomy stores locally in your browser, what is
           transmitted when optional cloud, AI, YouTube, or billing features are used, and our
           children&apos;s privacy limitations.
         </p>
       </header>
 
       <PageOrientationBar
-        whatThisIs="An honest audit of every storage mechanism, cloud sync route, AI API request, and third-party integration used in Anatomy 360."
+        whatThisIs="An honest audit of every storage mechanism, cloud sync route, AI API request, and third-party integration used in Alphatomy."
         primaryHint="You can explore 3D anatomy, quizzes, and local backups without signing in."
-        spokenSummary="Anatomy 360 Privacy Policy. Core 3D exploration and study progress live locally in browser storage, while optional Google Sign-In, classrooms, AI Tutor, YouTube videos, and payment processors transmit specific data to external services."
+        spokenSummary="Alphatomy Privacy Policy. Core 3D exploration and study progress live locally in browser storage, while optional Google Sign-In, classrooms, AI Tutor, YouTube videos, and payment processors transmit specific data to external services."
       />
 
       <section
@@ -38,7 +38,7 @@ export default function PrivacyPage({ onNavigate }: Props) {
           Important Children&apos;s Privacy &amp; Under-13 (COPPA) Notice:
         </strong>
         <p className="mt-1">
-          Anatomy 360 includes school-level curriculum tracks (starting at Grade 6), meaning some
+          Alphatomy includes school-level curriculum tracks (starting at Grade 6), meaning some
           prospective learners may be under 13 years of age. While local-only 3D browsing does not
           require registration or transmit personal details, optional account features (Google
           Sign-In, Cloud Classroom rosters, email storage in Firebase, and AI Navigator prompts) do{' '}
@@ -52,7 +52,7 @@ export default function PrivacyPage({ onNavigate }: Props) {
       <section className="a360-prose-block space-y-3">
         <h2>1. Information Stored Locally on Your Device</h2>
         <p>
-          When you use Anatomy 360 without signing in, your study data stays inside your browser:
+          When you use Alphatomy without signing in, your study data stays inside your browser:
         </p>
         <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
           <li>
@@ -63,7 +63,7 @@ export default function PrivacyPage({ onNavigate }: Props) {
             activity timestamps.
           </li>
           <li>
-            <strong>No Silent Tracking Analytics:</strong> Anatomy 360 does not embed third-party
+            <strong>No Silent Tracking Analytics:</strong> Alphatomy does not embed third-party
             behavioral ad trackers or third-party session-replay scripts.
           </li>
         </ul>
@@ -72,7 +72,7 @@ export default function PrivacyPage({ onNavigate }: Props) {
       <section className="a360-prose-block space-y-3">
         <h2>2. Cookies, Session Tokens &amp; Billing Storage</h2>
         <p>
-          For optional server-verified billing and AI Navigator metering, the Anatomy 360 backend
+          For optional server-verified billing and AI Navigator metering, the Alphatomy backend
           uses an HTTP-only signed session cookie (<code>a360_ai_sid</code>, <code>SameSite=None</code>,{' '}
           <code>Secure</code>, <code>Partitioned</code>) plus an in-memory bearer token linking to
           a pseudonymous account ID (<code>acct_...</code>).
@@ -110,11 +110,11 @@ export default function PrivacyPage({ onNavigate }: Props) {
             <code>/api/youtube/search</code> against the YouTube Data API v3 when configured.
           </li>
           <li>
-            <strong>Authorized Payment Provider (When Live Checkout Is Enabled):</strong> When live
-            sales are launched through an owner-selected payment processor or Merchant of Record
-            (such as Whop, Creem, Paddle, or another processor), checkout payment details, billing
-            address, tax data, and receipts are collected directly by that provider under its privacy
-            policy. Anatomy 360 never receives or stores your raw card number.
+            <strong>Authorized Payment Provider — Whop (When Live Checkout Is Enabled):</strong> When
+            live sales are launched through Whop (Alphatomy&apos;s selected Merchant of Record),
+            checkout payment details, billing address, tax data, and receipts are collected inside
+            Whop&apos;s isolated checkout frames under Whop&apos;s privacy policy. Alphatomy never
+            receives or stores your raw card number.
           </li>
           <li>
             <strong>3D Model Asset Delivery:</strong> Static anatomical mesh chunks (

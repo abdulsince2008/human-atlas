@@ -31,6 +31,7 @@
     "@shadcn/react": "0.3.0",
     "@types/express": "^5.0.6",
     "@types/three": "^0.159.0",
+    "@whop/checkout": "^0.7.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.1.1",

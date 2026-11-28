@@ -23,6 +23,7 @@ import { getBillingStore } from './server/billing-store';
 import { verifyFirebaseIdToken } from './server/firebase-token';
 import {
   createHostedPortalSession,
+  createWhopCheckoutConfiguration,
   getCommercialRuntimeSnapshot,
   signBillingWebhook,
   verifyAndProcessBillingWebhook,
@@ -657,15 +658,45 @@ async function startServer() {
 
     const store = getBillingStore();
     const acct = store.getAccount(resolved.accountId);
+    const reqOrigin =
+      typeof req.headers.origin === 'string' && /^https?:\/\//i.test(req.headers.origin)
+        ? req.headers.origin
+        : snapshot.seller.approvedDomain
+          ? `https://${snapshot.seller.approvedDomain.replace(/^https?:\/\//i, '')}`
+          : null;
+    const returnUrl = reqOrigin ? `${reqOrigin}/#/pricing?checkout=complete` : null;
+
+    let sessionId: string | null = null;
+    let resolvedCheckoutUrl = checkoutUrl;
+    if (snapshot.seller.billingProvider === 'whop' && priceId) {
+      const whopCfg = await createWhopCheckoutConfiguration({
+        whopPlanId: priceId,
+        accountId: resolved.accountId,
+        firebaseUid: acct?.firebaseUid ?? null,
+        returnUrl,
+      });
+      sessionId = whopCfg.sessionId;
+      if (whopCfg.purchaseUrl && !resolvedCheckoutUrl) {
+        resolvedCheckoutUrl = whopCfg.purchaseUrl;
+      }
+    }
+
+    const mode =
+      snapshot.seller.billingProvider === 'whop' && (sessionId || priceId)
+        ? 'whop_embedded'
+        : 'hosted_redirect';
 
     res.json({
       ok: true,
+      mode,
       bearerToken: resolved.bearerToken,
       provider: snapshot.seller.billingProvider,
       environment: snapshot.seller.billingEnvironment,
       productId,
       priceId,
-      checkoutUrl,
+      sessionId,
+      checkoutUrl: resolvedCheckoutUrl,
+      returnUrl,
       planId,
       interval,
       customData: {
@@ -678,22 +709,24 @@ async function startServer() {
   const handleBillingWebhook = async (req: RawBodyRequest, res: Response, providerParam?: string) => {
     const rawBody = req.rawBody ?? JSON.stringify(req.body ?? {});
     const signatureHeader =
+      (req.headers['webhook-signature'] as string | undefined) ||
       (req.headers['x-billing-signature'] as string | undefined) ||
       (req.headers['x-whop-signature'] as string | undefined) ||
       (req.headers['creem-signature'] as string | undefined) ||
-      (req.headers['webhook-signature'] as string | undefined) ||
       (req.headers['paddle-signature'] as string | undefined);
     const timestampHeader =
-      (req.headers['x-billing-timestamp'] as string | undefined) ||
-      (req.headers['webhook-timestamp'] as string | undefined);
+      (req.headers['webhook-timestamp'] as string | undefined) ||
+      (req.headers['x-billing-timestamp'] as string | undefined);
+    const webhookIdHeader = req.headers['webhook-id'] as string | undefined;
     const webhookSecret = process.env.BILLING_WEBHOOK_SECRET?.trim() || null;
 
     const result = await verifyAndProcessBillingWebhook({
       rawBody,
       signatureHeader,
       timestampHeader,
+      webhookIdHeader,
       webhookSecret,
-      provider: providerParam || process.env.BILLING_PROVIDER?.trim() || 'billing_provider',
+      provider: providerParam || process.env.BILLING_PROVIDER?.trim() || 'whop',
       store: getBillingStore(),
     });
 
@@ -971,7 +1004,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Anatomy 360 server listening on http://0.0.0.0:${PORT}`);
+    console.log(`Alphatomy server listening on http://0.0.0.0:${PORT}`);
   });
 }
 

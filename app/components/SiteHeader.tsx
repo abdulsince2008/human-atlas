@@ -110,7 +110,7 @@ export default function SiteHeader({ route, onNavigate, onOpenSearch }: Props) {
             go('home');
           }}
         >
-          Anatomy 360
+          Alphatomy
         </a>
 
         <nav className="a360-nav" aria-label="Main navigation">

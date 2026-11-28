@@ -8,11 +8,13 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  getCommercialPlanById,
   getDefaultCommercialRuntimeSnapshot,
   type CommercialRuntimeSnapshot,
 } from '../commercial/commercial-config';
 import type { PublicBillingEntitlementSummary } from '../../server/billing-store';
 import { useFirebase } from './FirebaseContext';
+import WhopCheckoutModal, { type ActiveWhopCheckout } from './WhopCheckoutModal';
 
 export type SandboxScenario =
   | 'purchase_student_monthly'
@@ -57,6 +59,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [activeCheckout, setActiveCheckout] = useState<ActiveWhopCheckout | null>(null);
 
   const buildHeaders = useCallback(
     async (withJson = false): Promise<Record<string, string>> => {
@@ -134,16 +137,39 @@ export function BillingProvider({ children }: { children: ReactNode }) {
         });
         const data = (await res.json()) as {
           ok?: boolean;
+          mode?: 'whop_embedded' | 'hosted_redirect';
+          provider?: string;
+          environment?: 'sandbox' | 'production';
           bearerToken?: string;
           error?: string;
+          priceId?: string | null;
+          sessionId?: string | null;
           checkoutUrl?: string | null;
+          returnUrl?: string | null;
         };
         if (data.bearerToken) setBearerToken(data.bearerToken);
         if (!res.ok || !data.ok) {
           setStatusMessage(
             data.error ??
-              'Checkout is disabled until a payment provider (e.g., Whop, Creem, or another processor) and catalog are finalized.',
+              'Checkout is disabled until Whop plan credentials and owner details are configured.',
           );
+          return;
+        }
+        if (data.mode === 'whop_embedded' && (data.sessionId || data.priceId)) {
+          const planTitle =
+            getCommercialPlanById(planId)?.name ??
+            (planId === 'exam_prep_pack' ? 'Exam Prep Burst Pack' : 'Student Monthly AI Pass');
+          setActiveCheckout({
+            planId,
+            planTitle,
+            interval,
+            whopPlanId: data.priceId ?? null,
+            sessionId: data.sessionId ?? null,
+            checkoutUrl: data.checkoutUrl ?? null,
+            returnUrl: data.returnUrl ?? null,
+            environment: data.environment ?? config.seller.billingEnvironment,
+            buyerEmail: user?.email ?? null,
+          });
           return;
         }
         if (data.checkoutUrl) {
@@ -151,7 +177,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
           return;
         }
         setStatusMessage(
-          'Checkout session prepared on server. Configure hosted checkout URL or provider client checkout handler to redirect.',
+          'Checkout session prepared on server. Configure Whop Plan IDs (plan_...) to open on-site checkout.',
         );
       } catch {
         setStatusMessage('Unable to start checkout right now. Please try again.');
@@ -159,7 +185,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
         setBusy(false);
       }
     },
-    [buildHeaders],
+    [buildHeaders, config.seller.billingEnvironment, user?.email],
   );
 
   const openPortal = useCallback(async () => {
@@ -259,7 +285,29 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <BillingContext.Provider value={value}>{children}</BillingContext.Provider>;
+  const handleWhopCheckoutComplete = useCallback(() => {
+    setActiveCheckout(null);
+    setStatusMessage(
+      'Payment submitted cleanly. Verifying signed Whop webhook confirmation with server...',
+    );
+    void refreshEntitlements();
+    setTimeout(() => {
+      void refreshEntitlements();
+    }, 2500);
+  }, [refreshEntitlements]);
+
+  return (
+    <BillingContext.Provider value={value}>
+      {children}
+      {activeCheckout && (
+        <WhopCheckoutModal
+          checkout={activeCheckout}
+          onClose={() => setActiveCheckout(null)}
+          onCheckoutComplete={handleWhopCheckoutComplete}
+        />
+      )}
+    </BillingContext.Provider>
+  );
 }
 
 export function useBilling(): BillingContextValue {

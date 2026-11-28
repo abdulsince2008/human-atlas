@@ -280,7 +280,7 @@ export default function SearchPage({
       <PageOrientationBar
         whatThisIs="Type any organ, topic, or exam keyword below to search the whole platform at once."
         primaryHint="Use the category buttons below the search bar to focus on 3D Body Parts, Study Topics, Practice Quizzes, or Syllabi."
-        spokenSummary="Search everything in Anatomy 360. Type a body part like Heart, Lung, or Kidney, or a subject like Pharmacology, then choose whether to open it in the Study Workspace, inspect it in 3D, or practice questions."
+        spokenSummary="Search everything in Alphatomy. Type a body part like Heart, Lung, or Kidney, or a subject like Pharmacology, then choose whether to open it in the Study Workspace, inspect it in 3D, or practice questions."
         howToSteps={[
           'Type any everyday word (like Heart or breathing) or scientific term (like FMA7088 or ADME).',
           'Pick a category tab such as 3D Body Parts, Study Topics, or Practice Quizzes to narrow down results.',

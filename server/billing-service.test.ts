@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DurableBillingStore } from './billing-store';
 import {
   signBillingWebhook,
+  signWhopStandardWebhook,
   verifyAndProcessBillingWebhook,
   type PriceCatalogTarget,
 } from './billing-service';
@@ -294,3 +295,122 @@ test('verifyAndProcessBillingWebhook handles full lifecycle across provider even
     store.close();
   }
 });
+
+test('verifyAndProcessBillingWebhook supports Whop Standard Webhooks (ws_ secret, webhook-id/timestamp/v1 base64) and Whop v1/v2 event shapes', async () => {
+  const store = new DurableBillingStore(':memory:');
+  const WHOP_SECRET = 'ws_test_whop_secret_abcdef0123456789';
+  const WHOP_PRICES: Record<string, PriceCatalogTarget> = {
+    plan_test_student_mo: {
+      kind: 'subscription',
+      planId: 'student_plus',
+      interval: 'monthly',
+      productId: 'prod_test_student',
+      creditsBonus: 250_000,
+      validityDays: 30,
+    },
+  };
+
+  try {
+    store.getOrCreateAccount('acct_whoptest01', { requireSubscriptionByDefault: true });
+    const nowSec = Math.floor(Date.now() / 1000);
+    const webhookId = 'msg_whop_test_1';
+
+    const whopPaymentBody = JSON.stringify({
+      id: 'evt_whop_pay_1',
+      type: 'payment.succeeded',
+      timestamp: new Date(nowSec * 1000).toISOString(),
+      data: {
+        id: 'pay_whop_1',
+        status: 'paid',
+        final_amount: 4.99,
+        currency: 'USD',
+        user: { id: 'user_whop_1' },
+        plan: { id: 'plan_test_student_mo' },
+        product: { id: 'prod_test_student' },
+        membership: {
+          id: 'mem_whop_1',
+          renewal_period_start: new Date(nowSec * 1000).toISOString(),
+          renewal_period_end: new Date((nowSec + 30 * 86_400) * 1000).toISOString(),
+        },
+        metadata: { accountId: 'acct_whoptest01' },
+      },
+    });
+
+    // Wrong signature rejected
+    const badWhop = await verifyAndProcessBillingWebhook({
+      rawBody: whopPaymentBody,
+      signatureHeader: 'v1,aW52YWxpZHNpZ25hdHVyZQ==',
+      timestampHeader: String(nowSec),
+      webhookIdHeader: webhookId,
+      webhookSecret: WHOP_SECRET,
+      provider: 'whop',
+      store,
+      priceMapOverrides: WHOP_PRICES,
+    });
+    assert.equal(badWhop.ok, false);
+    assert.equal(badWhop.httpStatus, 401);
+
+    // Valid Whop Standard Webhook signature provisions Student Plus
+    const validSig = signWhopStandardWebhook({
+      webhookId,
+      timestampSec: nowSec,
+      rawBody: whopPaymentBody,
+      secret: WHOP_SECRET,
+    });
+    const okWhop = await verifyAndProcessBillingWebhook({
+      rawBody: whopPaymentBody,
+      signatureHeader: validSig,
+      timestampHeader: String(nowSec),
+      webhookIdHeader: webhookId,
+      webhookSecret: WHOP_SECRET,
+      provider: 'whop',
+      store,
+      priceMapOverrides: WHOP_PRICES,
+    });
+    assert.equal(okWhop.ok, true);
+    assert.equal(okWhop.code, 'PROVISIONED');
+
+    const acct = store.getAccount('acct_whoptest01')!;
+    assert.equal(acct.activePlanId, 'student_plus');
+    assert.equal(acct.providerCustomerId, 'user_whop_1');
+    assert.equal(acct.providerSubscriptionId, 'mem_whop_1');
+    assert.equal(acct.creditsPurchased, 250_000);
+
+    // Refund reverses Whop entitlement
+    const whopRefundId = 'msg_whop_refund_2';
+    const whopRefundBody = JSON.stringify({
+      id: 'evt_whop_refund_2',
+      type: 'payment.refunded',
+      timestamp: new Date(nowSec * 1000).toISOString(),
+      data: {
+        id: 'pay_whop_refund_2',
+        payment_id: 'pay_whop_1',
+        user: { id: 'user_whop_1' },
+        membership: { id: 'mem_whop_1' },
+        metadata: { accountId: 'acct_whoptest01' },
+      },
+    });
+    const refundRes = await verifyAndProcessBillingWebhook({
+      rawBody: whopRefundBody,
+      signatureHeader: signWhopStandardWebhook({
+        webhookId: whopRefundId,
+        timestampSec: nowSec,
+        rawBody: whopRefundBody,
+        secret: WHOP_SECRET,
+      }),
+      timestampHeader: String(nowSec),
+      webhookIdHeader: whopRefundId,
+      webhookSecret: WHOP_SECRET,
+      provider: 'whop',
+      store,
+      priceMapOverrides: WHOP_PRICES,
+    });
+    assert.equal(refundRes.ok, true);
+    assert.equal(refundRes.code, 'REVERSAL_APPLIED');
+    assert.equal(store.getAccount('acct_whoptest01')!.activePlanId, 'free_explorer');
+    assert.equal(store.getAccount('acct_whoptest01')!.creditsPurchased, 0);
+  } finally {
+    store.close();
+  }
+});
+

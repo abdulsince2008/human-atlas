@@ -1,13 +1,13 @@
-# Anatomy 360 — Payment Provider Product-Category Pre-Approval Brief
+# Alphatomy — Whop Product-Category Pre-Approval Brief
 
 **Approval Status:** `BLOCKED_PROVIDER_CONFIRMATION`  
-**Important:** The owner has not finalized a payment provider yet (evaluating options such as **Whop**, **Creem**, **Paddle**, or another Merchant of Record). This brief can be submitted as-is to whichever provider the owner chooses. Anatomy 360 does **not** claim approval from any provider prior to written confirmation.
+**Selected Provider:** **Whop** (`https://whop.com/elysiumforge/alphatomy/`). Alphatomy does **not** claim production payout/category approval from Whop prior to completing KYC and review.
 
 ---
 
 ## 1. Accurate Product Description
 
-**Anatomy 360** is an interactive, browser-based **human anatomy and biomedical educational software platform** built with React, TypeScript, Three.js/WebGL, and server-side metered educational tooling.
+**Alphatomy** is an interactive, browser-based **human anatomy and biomedical educational software platform** built with React, TypeScript, Three.js/WebGL, and server-side metered educational tooling.
 
 ### Live Implemented Educational Features (Verified in Codebase)
 1. **Interactive 3D Human Anatomy Viewer**:
@@ -34,18 +34,18 @@
 
 ## 2. Explicit Pre-Approval Questions for Any Selected Payment Provider
 
-Before launching live checkout with your chosen Merchant of Record / payment provider (Whop, Creem, Paddle, or another processor), request written confirmation on whether all six items below are permitted under their current Acceptable Use Policy and Terms:
+Before launching live checkout with Whop (`BILLING_PROVIDER=whop`), confirm all six items below are permitted under Whop's current Acceptable Use Policy and Terms:
 
 1. **Anatomy and biomedical educational software:** Is interactive browser-based 3D human anatomy and biomedical study software permitted for subscription sales?
 2. **School and pre-medical curriculum-aligned learning:** Are structured lessons supporting school biology and pre-medical syllabi (Grades 6–12, FSc Pre-Medical, A-Level, CBSE, Nursing, MBBS) permitted?
 3. **Self-study quizzes and practical anatomy identification:** Are built-in practice MCQs, SM-2 flashcards, and 3D anatomical spotter identification exercises permitted?
 4. **MDCAT-oriented or other exam-related learning features:** Are study modules and practice questions tagged for medical/pre-medical entrance and university exams (including MDCAT and MBBS study tracks) permitted (without guaranteeing exam scores or representing test-cheating services)?
 5. **AI educational explanations:** Is our optional, separately metered AI Anatomy Navigator assistant (providing anatomical explanations and 3D viewer navigation commands) permitted?
-6. **Educator / professor affiliate commissions:** Does the provider permit Anatomy 360 (either via the provider's native creator/affiliate system or via manual business-paid referral commissions outside checkout) to compensate verified anatomy teachers/professors for qualifying referrals (no sub-affiliates, no recruitment bonuses, no MLM/pyramid structure)?
+6. **Educator / professor affiliate commissions:** Does Whop permit Alphatomy (either via Whop's native affiliate features or via manual business-paid referral commissions outside checkout) to compensate verified anatomy teachers/professors for qualifying referrals (no sub-affiliates, no recruitment bonuses, no MLM/pyramid structure)?
 
 ---
 
 ## 3. Compliance Notes
 
 - Exam-related study tracks (`MDCAT`, `FSc Pre-Medical`, `MBBS`) are disclosed verbatim — never hidden or renamed.
-- No live checkout is enabled (`liveCheckoutAllowed: false`) while provider selection (`billingProvider: 'unselected'`) and category approval remain pending.
+- No live checkout is enabled (`liveCheckoutAllowed: false`) while Whop plan IDs (`plan_...`), webhook secrets (`ws_...`), seller details, and Whop KYC/category approval remain pending.

@@ -65,7 +65,7 @@ export function buildEducatorWorksheetMarkdown({
   const questions = selectTierQuestionsForSystem(system.id, tier);
 
   const lines: string[] = [];
-  lines.push(`# Anatomy 360 — Educator Lesson & Lab Worksheet`);
+  lines.push(`# Alphatomy — Educator Lesson & Lab Worksheet`);
   lines.push(`**System:** ${system.name.en}  `);
   lines.push(`**Academic Tier:** ${tierMeta.full}  `);
   lines.push(`**Coverage Scope:** ${system.coverageLabel}`);
@@ -129,7 +129,7 @@ export function buildEducatorWorksheetMarkdown({
   }
 
   lines.push(
-    '_Generated from Anatomy 360 educational reference modules. Verify alignment with local institutional syllabi and laboratory SOPs prior to examination use._',
+    '_Generated from Alphatomy educational reference modules. Verify alignment with local institutional syllabi and laboratory SOPs prior to examination use._',
   );
 
   return lines.join('\n');
@@ -216,7 +216,7 @@ export function resolveEducatorTopicSelection(
   knownGaps: string[];
 } {
   let baseTopics: RegistryTopicNode[] = [];
-  let title = 'Anatomy 360 Teaching Package';
+  let title = 'Alphatomy Teaching Package';
   let subtitle = '';
   const knownGaps: string[] = [];
 
@@ -285,8 +285,8 @@ export function buildUniversalEducatorMarkdown(options: UniversalEducatorExportO
   const lines: string[] = [];
   lines.push(
     isOutline
-      ? `# Anatomy 360 — Instructor Lecture & Seminar Outline`
-      : `# Anatomy 360 — Student Activity & Assessment Worksheet`,
+      ? `# Alphatomy — Instructor Lecture & Seminar Outline`
+      : `# Alphatomy — Student Activity & Assessment Worksheet`,
   );
   lines.push(`**Scope:** ${title}  `);
   if (subtitle) lines.push(`**Context:** ${subtitle}  `);
@@ -409,7 +409,7 @@ export function buildUniversalEducatorMarkdown(options: UniversalEducatorExportO
     );
   }
   lines.push(
-    '_Generated from Anatomy 360 educational reference modules. Structured reference only — not institutional certification or medical advice._',
+    '_Generated from Alphatomy educational reference modules. Structured reference only — not institutional certification or medical advice._',
   );
 
   return lines.join('\n');

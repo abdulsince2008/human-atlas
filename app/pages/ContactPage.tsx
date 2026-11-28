@@ -18,7 +18,7 @@ export default function ContactPage({ onNavigate }: Props) {
         <p className="a360-kicker">Help, Support &amp; Inquiries</p>
         <h1>Contact &amp; Support</h1>
         <p className="a360-lead">
-          Reach Anatomy 360 for 3D viewer assistance, curriculum feedback, privacy deletion requests,
+          Reach Alphatomy for 3D viewer assistance, curriculum feedback, privacy deletion requests,
           institutional inquiries, or billing support.
         </p>
       </header>
@@ -26,7 +26,7 @@ export default function ContactPage({ onNavigate }: Props) {
       <PageOrientationBar
         whatThisIs="Public support channels for product troubleshooting, billing/order guidance, institutional questions, and data privacy requests."
         primaryHint="For billing receipts, invoice downloads, or refunds on live orders, have your transaction ID and account ID ready."
-        spokenSummary="Anatomy 360 Contact and Support page."
+        spokenSummary="Alphatomy Contact and Support page."
       />
 
       {(!seller.supportEmail || !seller.supportPhone) && (

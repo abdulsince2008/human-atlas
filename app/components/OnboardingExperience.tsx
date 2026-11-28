@@ -105,16 +105,16 @@ export default function OnboardingExperience({ onNavigate, onStartGuidedStudy }:
   const spokenWelcome =
     selectedRole === 'learning'
       ? `Choose the level that matches you best, from Grades 6 to 8 up to MBBS, Nursing, or Research. You can change your level or switch between simple and full view anytime.`
-      : `Welcome to Anatomy 360. Explore the human body, learn how it works, and practice what you discover. Choose I am learning, I am teaching, or I just want to explore, or skip to browse right away.`;
+      : `Welcome to Alphatomy. Explore the human body, learn how it works, and practice what you discover. Choose I am learning, I am teaching, or I just want to explore, or skip to browse right away.`;
 
   return (
     <section className="a360-onboarding-gateway" aria-label="Welcome and pathway setup">
       <div className="a360-onboarding-head">
         <div>
-          <p className="a360-kicker">Welcome to Anatomy 360 · Free &amp; Open · Change Anytime</p>
+          <p className="a360-kicker">Welcome to Alphatomy · Free &amp; Open · Change Anytime</p>
           <h2>Explore the human body, learn how it works, and practice what you discover.</h2>
           <p className="a360-muted">
-            No account needed. Pick how you want to use Anatomy 360 today—or skip and browse freely.
+            No account needed. Pick how you want to use Alphatomy today—or skip and browse freely.
           </p>
         </div>
         <div className="a360-onboarding-head-actions">
@@ -129,7 +129,7 @@ export default function OnboardingExperience({ onNavigate, onStartGuidedStudy }:
         </div>
       </div>
 
-      <div className="a360-role-grid" role="group" aria-label="Choose how you want to use Anatomy 360">
+      <div className="a360-role-grid" role="group" aria-label="Choose how you want to use Alphatomy">
         {ROLE_OPTIONS.map((opt) => {
           const isSelected = selectedRole === opt.id;
           return (

@@ -12,7 +12,7 @@ export default function AboutPage({ onExplore, onNavigate }: Props) {
   return (
     <div className="a360-page a360-narrow">
       <header className="a360-page-header">
-        <p className="a360-kicker">About Anatomy 360</p>
+        <p className="a360-kicker">About Alphatomy</p>
         <h1>A transparent, accurate 3D anatomy platform for students.</h1>
         <p className="a360-lead">
           Designed for FSc pre-medical, MDCAT, MBBS, nursing, and biology learners in Pakistan and
@@ -21,9 +21,9 @@ export default function AboutPage({ onExplore, onNavigate }: Props) {
       </header>
 
       <PageOrientationBar
-        whatThisIs="Learn what datasets power Anatomy 360, how open licenses work, and what parts are still planned."
+        whatThisIs="Learn what datasets power Alphatomy, how open licenses work, and what parts are still planned."
         primaryHint="Looking to explore the human body right away? Click Explore 3D Body in the top menu or open Home."
-        spokenSummary="About Anatomy 360. This platform combines BodyParts3D and HuBMAP Human Reference Atlas datasets under CC BY 4.0 open attribution, along with honest coverage disclosures and study tools that work without creating an account."
+        spokenSummary="About Alphatomy. This platform combines BodyParts3D and HuBMAP Human Reference Atlas datasets under CC BY 4.0 open attribution, along with honest coverage disclosures and study tools that work without creating an account."
       />
 
       <section className="a360-prose-block">
@@ -45,7 +45,7 @@ export default function AboutPage({ onExplore, onNavigate }: Props) {
           default; <strong>2,401 distinct bundled meshes</strong> overall).
         </p>
         <p>
-          Anatomy 360 never fabricates clinical data or hides remaining limitations: Female 3D mode
+          Alphatomy never fabricates clinical data or hides remaining limitations: Female 3D mode
           still reuses <strong>2,189</strong> adult male BP3D donor meshes (<strong>94.0%</strong>)
           outside the pelvis and breasts, and the 8 vulvar/urethral/endometrial reconstructions are
           explicitly marked as co-registered approximations. Across both sexes, the thyroid gland,
@@ -67,7 +67,7 @@ export default function AboutPage({ onExplore, onNavigate }: Props) {
           <code>.pdf</code>, and <code>.md</code> files client-side.
         </p>
         <p>
-          <strong>Educational Disclaimer:</strong> Anatomy 360 is an educational learning reference
+          <strong>Educational Disclaimer:</strong> Alphatomy is an educational learning reference
           and is not intended for clinical diagnosis, medical advice, or surgical planning.
         </p>
       </section>

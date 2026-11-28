@@ -342,14 +342,14 @@ export default function SyllabusNavigatorPage({
         <p className="a360-kicker">Worldwide Syllabus Navigator</p>
         <h1>Find Your Curriculum or Match a Custom Syllabus</h1>
         <p className="a360-lead">
-          Browse {CURRICULUM_FRAMEWORKS.length} public national, regulatory, and university curriculum alignment references worldwide or paste/upload your own school, university, MBBS, nursing, or graduate syllabus to inspect real Anatomy 360 topic coverage locally.
+          Browse {CURRICULUM_FRAMEWORKS.length} public national, regulatory, and university curriculum alignment references worldwide or paste/upload your own school, university, MBBS, nursing, or graduate syllabus to inspect real Alphatomy topic coverage locally.
         </p>
       </header>
 
       <PageOrientationBar
         whatThisIs="Find lessons that match your exact school, board, or university syllabus—or paste your own course list."
         primaryHint="Browse the 13 built-in curricula below, or switch to the Match Custom Syllabus tab to paste your own chapters."
-        spokenSummary="Worldwide Syllabus Navigator. Pick a school or medical curriculum on the first tab, or switch to Custom Syllabus to paste your own course outline and see which Anatomy 360 lessons match."
+        spokenSummary="Worldwide Syllabus Navigator. Pick a school or medical curriculum on the first tab, or switch to Custom Syllabus to paste your own course outline and see which Alphatomy lessons match."
         howToSteps={[
           'Use tab 1 to pick an existing school, national board, or university curriculum.',
           'Use tab 2 to paste your own syllabus lines or upload a .txt, .md, or .csv file.',
@@ -413,7 +413,7 @@ export default function SyllabusNavigatorPage({
               <div className="max-w-2xl">
                 <h2 className="text-lg font-bold text-slate-900">Alignment Mapping vs. Endorsement</h2>
                 <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  These {CURRICULUM_FRAMEWORKS.length} alignment references document verified public syllabi and topic mappings created by Anatomy 360 to help learners locate aligned lessons. Listing a curriculum indicates topic mapping only and does not imply institutional accreditation, endorsement, or examination equivalence.
+                  These {CURRICULUM_FRAMEWORKS.length} alignment references document verified public syllabi and topic mappings created by Alphatomy to help learners locate aligned lessons. Listing a curriculum indicates topic mapping only and does not imply institutional accreditation, endorsement, or examination equivalence.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -588,7 +588,7 @@ export default function SyllabusNavigatorPage({
                 <p className="mt-1 text-xs leading-relaxed text-slate-600">
                   Stored privately in your browser (IndexedDB / localStorage) with zero server
                   uploads. Paste text, upload a <code>.txt</code> / <code>.md</code> /{' '}
-                  <code>.csv</code> outline, or enter topics manually to inspect honest Anatomy 360
+                  <code>.csv</code> outline, or enter topics manually to inspect honest Alphatomy
                   coverage.
                 </p>
               </div>
@@ -928,7 +928,7 @@ export default function SyllabusNavigatorPage({
                                 }}
                                 className="max-w-md rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-800"
                               >
-                                <option value="">Select Anatomy 360 topic to link…</option>
+                                <option value="">Select Alphatomy topic to link…</option>
                                 {REGISTRY_TOPICS.map((rt) => (
                                   <option key={rt.id} value={rt.id}>
                                     [{getRegistrySubjectByDomain(rt.domainId)?.shortTitle ?? rt.domainId}] {rt.title}

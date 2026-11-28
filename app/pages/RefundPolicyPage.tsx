@@ -15,14 +15,14 @@ export default function RefundPolicyPage({ onNavigate }: Props) {
         <h1>Refund Policy</h1>
         <p className="a360-lead">
           Clear explanation of how refunds, cancellations, technical troubleshooting, and statutory
-          consumer rights work for paid Anatomy 360 orders once live billing is enabled.
+          consumer rights work for paid Alphatomy orders once live billing is enabled.
         </p>
       </header>
 
       <PageOrientationBar
         whatThisIs="Details on the payment provider refund process, how to cancel subscriptions, and what happens to access and AI credits after a refund."
         primaryHint="Need help accessing an existing purchase? Visit Contact & Support before requesting a cancellation or refund."
-        spokenSummary="Anatomy 360 Refund Policy. When live sales are enabled through our finalized payment provider, refund requests and returns are handled in line with applicable consumer law and the provider's buyer terms."
+        spokenSummary="Alphatomy Refund Policy. When live sales are enabled through our finalized payment provider, refund requests and returns are handled in line with applicable consumer law and the provider's buyer terms."
       />
 
       <section className="a360-prose-block space-y-3">
@@ -44,7 +44,7 @@ export default function RefundPolicyPage({ onNavigate }: Props) {
             use the included order-lookup or buyer-support link to request a refund or cancellation.
           </li>
           <li>
-            Alternatively, contact Anatomy 360{' '}
+            Alternatively, contact Alphatomy{' '}
             <button
               type="button"
               onClick={() => onNavigate('contact')}

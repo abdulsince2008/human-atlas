@@ -321,7 +321,7 @@ export default function StudyVideoSection({
             )}
             <Film size={15} aria-hidden="true" />
             <span>
-              Anatomy 360 Original Narration Storyboard Script ({fallbackStoryboard.scenes?.length ?? 0} scenes · not a YouTube video)
+              Alphatomy Original Narration Storyboard Script ({fallbackStoryboard.scenes?.length ?? 0} scenes · not a YouTube video)
             </span>
           </button>
 

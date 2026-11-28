@@ -275,7 +275,7 @@ export default function AiNavigatorPanel({
         {
           id: `e_${Date.now()}`,
           role: 'error',
-          text: 'Network error reaching Anatomy 360 AI server. Please check connection and try again.',
+          text: 'Network error reaching Alphatomy AI server. Please check connection and try again.',
         },
       ]);
     } finally {

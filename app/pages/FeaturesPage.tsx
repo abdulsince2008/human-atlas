@@ -87,7 +87,7 @@ export default function FeaturesPage({ onNavigate }: Props) {
     <div className="a360-page" data-testid="features-page">
       <header className="a360-page-header">
         <p className="a360-kicker">Platform Capabilities Overview</p>
-        <h1>Anatomy 360 Features &amp; Learning Workspaces</h1>
+        <h1>Alphatomy Features &amp; Learning Workspaces</h1>
         <p className="a360-lead">
           Every module on this page connects directly to the live educational software running in
           your browser — combining BodyParts3D 4.0 and HuBMAP Human Reference Atlas meshes with
@@ -112,18 +112,18 @@ export default function FeaturesPage({ onNavigate }: Props) {
       </header>
 
       <PageOrientationBar
-        whatThisIs="A complete functional overview of Anatomy 360 organized by how students, learners, and teachers use the software."
+        whatThisIs="A complete functional overview of Alphatomy organized by how students, learners, and teachers use the software."
         primaryHint="Click any feature card below to open that exact tool directly — no login required for core exploration."
-        spokenSummary="Anatomy 360 Features page. Features are grouped into Explore the Body, Learn Anatomy, Study and Revise, Practice and Assess, Teach and Present, and Advanced Educational Tools."
+        spokenSummary="Alphatomy Features page. Features are grouped into Explore the Body, Learn Anatomy, Study and Revise, Practice and Assess, Teach and Present, and Advanced Educational Tools."
       />
 
       <section className="a360-section" aria-labelledby="features-screenshots-heading">
         <div className="a360-section-head">
           <div>
             <p className="a360-kicker">Live Application Previews</p>
-            <h2 id="features-screenshots-heading">Genuine Views Inside Anatomy 360</h2>
+            <h2 id="features-screenshots-heading">Genuine Views Inside Alphatomy</h2>
             <p>
-              Unretouched captures taken directly from the running Anatomy 360 web application.
+              Unretouched captures taken directly from the running Alphatomy web application.
             </p>
           </div>
           <button
@@ -224,7 +224,7 @@ export default function FeaturesPage({ onNavigate }: Props) {
               Truthful Coverage &amp; Separate AI Metered Allowance
             </h2>
             <p className="max-w-3xl text-sm text-slate-600">
-              Anatomy 360 openly documents unmodeled structures (such as thyroid/parathyroid meshes,
+              Alphatomy openly documents unmodeled structures (such as thyroid/parathyroid meshes,
               ear ossicles, and systemic lymph node chains) on our About &amp; Licenses page. Optional
               AI Navigator usage is token-metered separately from core 3D exploration. Educational
               software only — not intended for medical diagnosis or treatment.

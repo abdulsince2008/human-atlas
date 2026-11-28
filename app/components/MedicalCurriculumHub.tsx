@@ -468,7 +468,7 @@ export default function MedicalCurriculumHub({
         </div>
 
         <p className="mt-3 text-xs text-slate-600">
-          <strong>Educational Scope Notice:</strong> Anatomy 360 provides structured biomedical
+          <strong>Educational Scope Notice:</strong> Alphatomy provides structured biomedical
           study material for education only—not medical diagnosis, prescribing, or supervised clinical
           training. All chapters are currently <code className="rounded bg-slate-100 px-1 py-0.5 text-[11px]">awaiting_academic_review</code> (faculty review count: <span className="font-mono tabular-nums">{platformSummary.facultyReviewedCount}</span>).
         </p>

@@ -45,16 +45,16 @@ export default function AllToolsPage({ onNavigate }: Props) {
     <div className="a360-page" data-testid="all-tools-page">
       <header className="a360-page-header">
         <p className="a360-kicker">Complete Platform Directory</p>
-        <h1>All Anatomy 360 Tools &amp; Workspaces</h1>
+        <h1>All Alphatomy Tools &amp; Workspaces</h1>
         <p className="a360-lead">
           Every learning workspace, 3D explorer, practice quiz, teacher planner, reference guide, and dataset tool in one plain-language directory.
         </p>
       </header>
 
       <PageOrientationBar
-        whatThisIs={`This page lists all ${PLATFORM_TOOLS.length} tools in Anatomy 360 so you never have to guess where a feature is.`}
+        whatThisIs={`This page lists all ${PLATFORM_TOOLS.length} tools in Alphatomy so you never have to guess where a feature is.`}
         primaryHint="Pick a category below or search what you want to do, then click any card to open it."
-        spokenSummary="This is the All Tools directory for Anatomy 360. You can browse learning workspaces, practice quizzes and 3D practical exams, teacher planning tools, body reference guides, and dataset disclosures in one place."
+        spokenSummary="This is the All Tools directory for Alphatomy. You can browse learning workspaces, practice quizzes and 3D practical exams, teacher planning tools, body reference guides, and dataset disclosures in one place."
         howToSteps={[
           'Use the category buttons to focus on Learn, Practice, Teach, Reference, or Dataset tools.',
           'Or type a word like quiz, microscope, 3D, syllabus, or handout in the box below.',

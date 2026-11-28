@@ -1,4 +1,4 @@
-# Anatomy 360 — Commercial & Payment Provider Readiness Matrix
+# Alphatomy — Commercial & Whop Readiness Matrix
 
 Status taxonomy: `READY` | `PARTIAL` | `BLOCKED_HUMAN_INPUT` | `BLOCKED_PROVIDER_CONFIRMATION` | `NOT_IMPLEMENTED` | `UNVERIFIED`
 
@@ -47,7 +47,7 @@ Status taxonomy: `READY` | `PARTIAL` | `BLOCKED_HUMAN_INPUT` | `BLOCKED_PROVIDER
 
 | Check Item | Status | Notes / Evidence |
 |---|---|---|
-| Payment provider choice | `BLOCKED_HUMAN_INPUT` | Owner deciding between Whop, Creem, Paddle, or another processor (`BILLING_PROVIDER=unselected`) |
+| Payment provider choice | `READY` | Whop finalized (`BILLING_PROVIDER=whop`, `BILLING_CHECKOUT_MODE=whop_embedded`) |
 | Legal identity | `BLOCKED_HUMAN_INPUT` | Missing verified legal name / sole-proprietor / entity details |
 | Identity verification | `BLOCKED_HUMAN_INPUT` | KYC ID & address check not yet submitted |
 | Account-holder eligibility | `BLOCKED_HUMAN_INPUT` | Possible minor (<18) owner blocker; requires lawful eligible adult structure + provider confirmation |
@@ -62,16 +62,16 @@ Status taxonomy: `READY` | `PARTIAL` | `BLOCKED_HUMAN_INPUT` | `BLOCKED_PROVIDER
 
 | Check Item | Status | Notes / Evidence |
 |---|---|---|
-| Provider catalog & checkout links | `BLOCKED_HUMAN_INPUT` | `BILLING_PRODUCT_*`, `BILLING_PRICE_*`, and `BILLING_CHECKOUT_URL_*` await finalized provider |
-| Sandbox checkout | `PARTIAL` | Provider-agnostic `checkout-intent` + hosted `checkoutUrl` redirect ready once `BILLING_PROVIDER` + catalog keys exist; full signed webhook simulator verified end-to-end |
-| Live checkout | `BLOCKED_PROVIDER_CONFIRMATION` | Intentionally hard-disabled until `BILLING_PROVIDER !== 'unselected'`, `COMMERCIAL_LIVE_CHECKOUT_ENABLED=true`, and all approvals pass |
-| Webhook signature verification | `READY` | Provider-agnostic HMAC-SHA256 + timestamp replay window verifier (`POST /api/billing/webhook` & `/:provider`) |
+| Provider catalog & checkout links | `BLOCKED_HUMAN_INPUT` | Whop Plan IDs (`plan_...`), `BILLING_API_KEY`, and `BILLING_WEBHOOK_SECRET` (`ws_...`) await live Dashboard values |
+| On-site embedded checkout | `READY` | `@whop/checkout/react` `<WhopCheckoutEmbed />` inside `<WhopCheckoutModal />` + Whop `/checkout_configurations` session API |
+| Live checkout | `BLOCKED_PROVIDER_CONFIRMATION` | Intentionally hard-disabled until Whop plans, `ws_...` secret, seller identity, KYC, and `COMMERCIAL_LIVE_CHECKOUT_ENABLED=true` pass |
+| Webhook signature verification | `READY` | Native Whop Standard Webhooks (`webhook-id` / `webhook-timestamp` / `webhook-signature` `v1,<base64>` + `ws_...`) + HMAC fallback (`POST /api/billing/webhook/whop`) |
 | Durable entitlements | `READY` | `node:sqlite` DB (`server/billing-store.ts`) persists across server restarts & optional verified Firebase UID link |
 | Idempotency | `READY` | `processed_webhook_events` PRIMARY KEY (`event_id`) + `provider_event_id` UNIQUE constraint |
-| Subscription lifecycle | `READY` | Handles `transaction.completed`/`checkout.completed`/`payment.succeeded`, `subscription.*`/`membership.*` active/canceled/past_due/paused |
-| Refund handling | `READY` | `refund.created`/`chargeback.created`/`adjustment.created` revokes tier access + transaction-granted AI credits |
+| Subscription lifecycle | `READY` | Handles `payment.succeeded`, `membership.activated`, `membership.deactivated`, `subscription.*` active/canceled/past_due/paused |
+| Refund handling | `READY` | `payment.refunded`/`refund.created`/`chargeback.created` revokes tier access + transaction-granted AI credits |
 | Cancellation | `READY` | Preserves access until period end where scheduled, stops future billing, reverts to Free Explorer |
-| Customer portal | `PARTIAL` | `POST /api/billing/portal` routes to `BILLING_PORTAL_URL` (or chosen provider API adapter once provider is picked) |
+| Customer portal | `READY` | `POST /api/billing/portal` routes to `BILLING_PORTAL_URL` (`https://whop.com/orders` default) |
 
 ---
 

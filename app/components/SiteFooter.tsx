@@ -23,7 +23,7 @@ export default function SiteFooter({ onNavigate }: Props) {
           surgical planning.{' '}
           {seller.legalSellerName
             ? `Seller: ${seller.legalSellerName}${seller.sellerCountry ? ` (${seller.sellerCountry})` : ''}.`
-            : 'Seller legal identity & payment provider selection (e.g., Whop, Creem, or another Merchant of Record) pending owner confirmation.'}{' '}
+            : 'Seller legal identity & Whop account onboarding pending owner confirmation.'}{' '}
           {config.liveCheckoutAllowed ? BILLING_PROVIDER_DISCLOSURE : ''}
         </p>
       </div>

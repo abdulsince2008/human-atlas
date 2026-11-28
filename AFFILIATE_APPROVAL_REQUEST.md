@@ -1,4 +1,4 @@
-# Anatomy 360 — Provider Affiliate / Educator Commission Clarification Request
+# Alphatomy — Whop Affiliate / Educator Commission Clarification Request
 
 **Current Programme Status:** `DISABLED_PENDING_PROVIDER_WRITTEN_APPROVAL`  
 **Public Affiliate Recruitment Status:** **DISABLED** (No public referral page, no public commission promises, no referral checkout attribution).
@@ -17,9 +17,9 @@ An educator affiliate programme **must not** be assumed permitted or launched pu
 
 ## Exact Approval Request to Submit to Your Chosen Provider
 
-Please use the following clarification inquiry with your chosen provider's Compliance / Support team (Whop, Creem, Paddle, or another processor):
+Please use the following clarification inquiry with Whop Compliance / Support:
 
-> "Does [Chosen Provider] permit Anatomy 360, as an educational software seller, to operate a conventional educator partnership in which approved anatomy teachers/professors receive a commission (either via [Chosen Provider]'s native affiliate tools or paid separately by our business) for qualifying software subscriptions? The proposed programme does not sell marketing services, recruit sub-affiliates, pay recruitment bonuses, or operate as a pyramid or multi-level marketing scheme."
+> "Does Whop permit Alphatomy (`https://whop.com/elysiumforge/alphatomy/`), as an educational software seller, to operate a conventional educator partnership in which approved anatomy teachers/professors receive a commission (either via Whop's native affiliate features or paid separately by our business) for qualifying software subscriptions? The proposed programme does not sell marketing services, recruit sub-affiliates, pay recruitment bonuses, or operate as a pyramid or multi-level marketing scheme."
 
 ---
 

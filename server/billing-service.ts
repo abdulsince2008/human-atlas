@@ -20,10 +20,16 @@ function envStr(key: string): string | null {
 
 function resolveProviderChoice(raw: string | null): BillingProviderChoice {
   const lower = raw?.toLowerCase();
-  if (lower === 'whop' || lower === 'creem' || lower === 'paddle' || lower === 'custom') {
+  if (
+    lower === 'whop' ||
+    lower === 'creem' ||
+    lower === 'paddle' ||
+    lower === 'custom' ||
+    lower === 'unselected'
+  ) {
     return lower;
   }
-  return 'unselected';
+  return 'whop';
 }
 
 export function getCommercialRuntimeSnapshot(): CommercialRuntimeSnapshot {
@@ -37,7 +43,7 @@ export function getCommercialRuntimeSnapshot(): CommercialRuntimeSnapshot {
   const portalUrl = envStr('BILLING_PORTAL_URL');
 
   const seller = {
-    tradingName: envStr('COMMERCIAL_TRADING_NAME') ?? 'Anatomy 360',
+    tradingName: envStr('COMMERCIAL_TRADING_NAME') ?? 'Alphatomy',
     legalSellerName: envStr('COMMERCIAL_SELLER_NAME'),
     sellerType: envStr('COMMERCIAL_SELLER_TYPE'),
     sellerCountry: envStr('COMMERCIAL_SELLER_COUNTRY'),
@@ -272,10 +278,26 @@ export function signBillingWebhook(
   return `ts=${timestampSec};v1=${digest}`;
 }
 
+export function signWhopStandardWebhook(params: {
+  webhookId: string;
+  timestampSec?: number;
+  rawBody: string;
+  secret: string;
+}): string {
+  const ts = params.timestampSec ?? Math.floor(Date.now() / 1000);
+  const keyBytes = params.secret.startsWith('whsec_')
+    ? Buffer.from(params.secret.slice(6), 'base64')
+    : Buffer.from(params.secret, 'utf8');
+  const signedContent = `${params.webhookId}.${ts}.${params.rawBody}`;
+  const sigBase64 = crypto.createHmac('sha256', keyBytes).update(signedContent).digest('base64');
+  return `v1,${sigBase64}`;
+}
+
 export function verifySignedWebhookHeader(params: {
   rawBody: string;
   signatureHeader: string | undefined;
   timestampHeader?: string | undefined;
+  webhookIdHeader?: string | undefined;
   secret: string;
   maxReplayAgeSeconds?: number;
 }): { ok: true } | { ok: false; code: string; error: string } {
@@ -289,6 +311,59 @@ export function verifySignedWebhookHeader(params: {
 
   const maxAge = params.maxReplayAgeSeconds ?? 300;
   const header = params.signatureHeader.trim();
+
+  // Support Whop / Standard Webhooks (`webhook-id` + `webhook-timestamp` + `webhook-signature: v1,<base64>`)
+  if (params.webhookIdHeader && header.includes(',')) {
+    const msgId = params.webhookIdHeader.trim();
+    const rawTs = params.timestampHeader?.trim() ?? '';
+    if (!/^\d+$/.test(rawTs)) {
+      return {
+        ok: false,
+        code: 'WEBHOOK_TIMESTAMP_OUT_OF_RANGE',
+        error: 'Whop Standard Webhook timestamp header is missing or invalid.',
+      };
+    }
+    const tsNum = Number(rawTs);
+    if (Math.abs(Math.floor(Date.now() / 1000) - tsNum) > maxAge) {
+      return {
+        ok: false,
+        code: 'WEBHOOK_TIMESTAMP_OUT_OF_RANGE',
+        error: 'Webhook signature timestamp is outside allowed replay window.',
+      };
+    }
+    const signedContent = `${msgId}.${rawTs}.${params.rawBody}`;
+    const keyBytes = params.secret.startsWith('whsec_')
+      ? Buffer.from(params.secret.slice(6), 'base64')
+      : Buffer.from(params.secret, 'utf8');
+    const expectedDigest = crypto.createHmac('sha256', keyBytes).update(signedContent).digest();
+
+    const entries = header.split(/\s+/).filter(Boolean);
+    let verified = false;
+    for (const entry of entries) {
+      const commaIdx = entry.indexOf(',');
+      if (commaIdx === -1) continue;
+      const version = entry.slice(0, commaIdx).trim();
+      const b64Sig = entry.slice(commaIdx + 1).trim();
+      if (version === 'v1' && b64Sig) {
+        const providedDigest = Buffer.from(b64Sig, 'base64');
+        if (
+          providedDigest.length === expectedDigest.length &&
+          crypto.timingSafeEqual(providedDigest, expectedDigest)
+        ) {
+          verified = true;
+          break;
+        }
+      }
+    }
+    if (!verified) {
+      return {
+        ok: false,
+        code: 'INVALID_BILLING_SIGNATURE',
+        error: 'Whop Standard Webhook signature verification failed.',
+      };
+    }
+    return { ok: true };
+  }
 
   // Support `ts=<unix>;v1=<hex>` / `ts=<unix>;h1=<hex>` / `t=<unix>,v1=<hex>` formats
   let tsSec: number | null = null;
@@ -375,13 +450,14 @@ function parseIsoMs(value: unknown, fallback = Date.now()): number {
 
 /**
  * Canonical normalized billing webhook handler.
- * Accepts canonical Anatomy 360 events AND common provider event names (Whop / Creem / Paddle / custom)
- * cleanly without tying the application to one vendor.
+ * Supports Whop Standard Webhooks (`webhook-id` / `webhook-timestamp` / `webhook-signature`)
+ * and provider-agnostic HMAC payloads cleanly.
  */
 export async function verifyAndProcessBillingWebhook(params: {
   rawBody: string;
   signatureHeader: string | undefined;
   timestampHeader?: string | undefined;
+  webhookIdHeader?: string | undefined;
   webhookSecret: string | null;
   provider?: string;
   store: DurableBillingStore;
@@ -401,6 +477,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     rawBody: params.rawBody,
     signatureHeader: params.signatureHeader,
     timestampHeader: params.timestampHeader,
+    webhookIdHeader: params.webhookIdHeader,
     secret: params.webhookSecret,
     maxReplayAgeSeconds: params.maxReplayAgeSeconds,
   });
@@ -434,8 +511,10 @@ export async function verifyAndProcessBillingWebhook(params: {
         ? parsed.event_id
         : typeof parsed.id === 'string'
           ? parsed.id
-          : '';
-  const eventType = String(parsed.eventType ?? parsed.event_type ?? parsed.type ?? '');
+          : params.webhookIdHeader?.trim() || '';
+  const eventType = String(
+    parsed.eventType ?? parsed.event_type ?? parsed.type ?? parsed.action ?? '',
+  );
   if (!eventId || !eventType) {
     return {
       ok: false,
@@ -445,12 +524,14 @@ export async function verifyAndProcessBillingWebhook(params: {
     };
   }
 
-  const occurredAt = parseIsoMs(parsed.occurredAt ?? parsed.occurred_at ?? parsed.created_at);
+  const occurredAt = parseIsoMs(
+    parsed.occurredAt ?? parsed.occurred_at ?? parsed.created_at ?? parsed.timestamp,
+  );
   const providerName =
     params.provider ??
     (typeof parsed.provider === 'string' && parsed.provider.trim()
       ? parsed.provider.trim()
-      : 'billing_provider');
+      : 'whop');
 
   const prior = params.store.hasProcessedWebhookEvent(eventId);
   if (prior) {
@@ -471,12 +552,31 @@ export async function verifyAndProcessBillingWebhook(params: {
     data.metadata ??
     {}) as Record<string, unknown>;
 
+  const whopUserObj = (data.user && typeof data.user === 'object' ? data.user : {}) as Record<
+    string,
+    unknown
+  >;
+  const whopMembershipObj = (
+    data.membership && typeof data.membership === 'object' ? data.membership : {}
+  ) as Record<string, unknown>;
+  const whopPlanObj = (data.plan && typeof data.plan === 'object' ? data.plan : {}) as Record<
+    string,
+    unknown
+  >;
+  const whopProductObj = (
+    data.product && typeof data.product === 'object' ? data.product : {}
+  ) as Record<string, unknown>;
+
   const providerCustomerId =
     typeof data.customerId === 'string'
       ? data.customerId
       : typeof data.customer_id === 'string'
         ? data.customer_id
-        : null;
+        : typeof whopUserObj.id === 'string'
+          ? whopUserObj.id
+          : typeof data.user_id === 'string'
+            ? data.user_id
+            : null;
   const providerSubscriptionId =
     eventType.startsWith('subscription.') || eventType.startsWith('membership.')
       ? typeof data.id === 'string'
@@ -486,7 +586,11 @@ export async function verifyAndProcessBillingWebhook(params: {
         ? data.subscriptionId
         : typeof data.subscription_id === 'string'
           ? data.subscription_id
-          : null;
+          : typeof whopMembershipObj.id === 'string'
+            ? whopMembershipObj.id
+            : typeof data.membership_id === 'string'
+              ? data.membership_id
+              : null;
   const providerTransactionId =
     eventType.startsWith('transaction.') ||
     eventType.startsWith('payment.') ||
@@ -498,7 +602,9 @@ export async function verifyAndProcessBillingWebhook(params: {
         ? data.transactionId
         : typeof data.transaction_id === 'string'
           ? data.transaction_id
-          : null;
+          : typeof data.payment_id === 'string'
+            ? data.payment_id
+            : null;
 
   let account =
     typeof customData.accountId === 'string'
@@ -522,7 +628,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       occurredAt,
       accountId: null,
       outcome: 'missing_account_mapping',
-      summary: 'Rejected entitlement grant because event could not be mapped to an Anatomy 360 account.',
+      summary: 'Rejected entitlement grant because event could not be mapped to an Alphatomy account.',
     });
     return {
       ok: false,
@@ -530,7 +636,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       code: 'MISSING_ACCOUNT_MAPPING',
       eventId,
       eventType,
-      error: 'Webhook verified, but account mapping (customData.accountId / customerId / subscriptionId) was not found.',
+      error: 'Webhook verified, but account mapping (metadata.accountId / customerId / subscriptionId) was not found.',
     };
   }
 
@@ -545,15 +651,23 @@ export async function verifyAndProcessBillingWebhook(params: {
         ? firstItem.price_id
         : typeof firstPriceObj.id === 'string'
           ? firstPriceObj.id
-          : typeof data.priceId === 'string'
-            ? data.priceId
-            : typeof data.price_id === 'string'
-              ? data.price_id
-              : typeof data.productId === 'string'
-                ? data.productId
-                : typeof data.product_id === 'string'
-                  ? data.product_id
-                  : null;
+          : typeof whopPlanObj.id === 'string'
+            ? whopPlanObj.id
+            : typeof data.plan_id === 'string'
+              ? data.plan_id
+              : typeof data.planId === 'string'
+                ? data.planId
+                : typeof data.priceId === 'string'
+                  ? data.priceId
+                  : typeof data.price_id === 'string'
+                    ? data.price_id
+                    : typeof whopProductObj.id === 'string'
+                      ? whopProductObj.id
+                      : typeof data.productId === 'string'
+                        ? data.productId
+                        : typeof data.product_id === 'string'
+                          ? data.product_id
+                          : null;
 
   // 1. Paid completion events
   if (
@@ -572,7 +686,7 @@ export async function verifyAndProcessBillingWebhook(params: {
         occurredAt,
         accountId: account.accountId,
         outcome: 'unknown_price_id',
-        summary: `Rejected transaction because price/product ID "${priceOrProductId ?? 'none'}" is not mapped in catalog.`,
+        summary: `Rejected transaction because plan/price/product ID "${priceOrProductId ?? 'none'}" is not mapped in catalog.`,
       });
       return {
         ok: false,
@@ -581,14 +695,18 @@ export async function verifyAndProcessBillingWebhook(params: {
         eventId,
         eventType,
         accountId: account.accountId,
-        error: `Unknown provider price/product ID "${priceOrProductId ?? 'none'}".`,
+        error: `Unknown provider plan/price/product ID "${priceOrProductId ?? 'none'}".`,
       };
     }
 
     const details = (data.details ?? {}) as Record<string, unknown>;
     const totals = (details.totals ?? {}) as Record<string, unknown>;
-    const totalMinor =
-      Number(totals.total ?? totals.grandTotal ?? data.amountCents ?? data.amount ?? 0) || 0;
+    let totalMinor = Number(totals.total ?? totals.grandTotal ?? data.amountCents ?? 0) || 0;
+    if (!totalMinor) {
+      const whopRawAmt = Number(data.final_amount ?? data.subtotal ?? data.total ?? data.amount ?? 0) || 0;
+      // Whop API frequently reports amounts in decimal dollars (e.g., 4.99); convert non-integers to cents
+      totalMinor = Number.isInteger(whopRawAmt) && whopRawAmt >= 100 ? whopRawAmt : Math.round(whopRawAmt * 100);
+    }
     const currencyCode =
       typeof data.currencyCode === 'string'
         ? data.currencyCode
@@ -677,6 +795,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     eventType === 'subscription.active' ||
     eventType === 'subscription.updated' ||
     eventType === 'subscription.resumed' ||
+    eventType === 'membership.activated' ||
     eventType === 'membership.went_valid'
   ) {
     const target = resolveCatalogPriceTarget(priceOrProductId, snapshot, params.priceMapOverrides);
@@ -725,7 +844,7 @@ export async function verifyAndProcessBillingWebhook(params: {
       string,
       unknown
     > | null;
-    const cancelScheduled = schedChange?.action === 'cancel';
+    const cancelScheduled = schedChange?.action === 'cancel' || Boolean(data.cancel_at_period_end);
     const canceledAtVal = data.canceledAt ?? data.canceled_at;
 
     params.store.applySubscriptionUpdate({
@@ -747,7 +866,9 @@ export async function verifyAndProcessBillingWebhook(params: {
         : account.currentPeriodStart,
       currentPeriodEnd: curPeriod.endsAt ?? curPeriod.ends_at
         ? parseIsoMs(curPeriod.endsAt ?? curPeriod.ends_at)
-        : account.currentPeriodEnd,
+        : data.renewal_period_end
+          ? parseIsoMs(data.renewal_period_end)
+          : account.currentPeriodEnd,
       cancelAtPeriodEnd: cancelScheduled || Boolean(canceledAtVal),
       canceledAt: canceledAtVal ? parseIsoMs(canceledAtVal) : null,
       refundStatus: 'none',
@@ -781,6 +902,7 @@ export async function verifyAndProcessBillingWebhook(params: {
     eventType === 'subscription.cancelled' ||
     eventType === 'subscription.past_due' ||
     eventType === 'subscription.paused' ||
+    eventType === 'membership.deactivated' ||
     eventType === 'membership.went_invalid'
   ) {
     const nextStatus: SubscriptionLifecycleStatus =
@@ -796,7 +918,9 @@ export async function verifyAndProcessBillingWebhook(params: {
     >;
     const periodEnd = curPeriod.endsAt ?? curPeriod.ends_at
       ? parseIsoMs(curPeriod.endsAt ?? curPeriod.ends_at)
-      : account.currentPeriodEnd;
+      : data.renewal_period_end
+        ? parseIsoMs(data.renewal_period_end)
+        : account.currentPeriodEnd;
     const effectiveStillInPeriod =
       nextStatus === 'canceled' && periodEnd !== null && Date.now() < periodEnd;
 
@@ -881,6 +1005,7 @@ export async function verifyAndProcessBillingWebhook(params: {
 
   // 5. Refund / Chargeback reversals
   if (
+    eventType === 'payment.refunded' ||
     eventType === 'refund.created' ||
     eventType === 'chargeback.created' ||
     eventType === 'dispute.created' ||
@@ -902,7 +1027,11 @@ export async function verifyAndProcessBillingWebhook(params: {
           ? data.transactionId
           : typeof data.transaction_id === 'string'
             ? data.transaction_id
-            : null;
+            : typeof data.payment_id === 'string'
+              ? data.payment_id
+              : eventType === 'payment.refunded' && typeof data.id === 'string'
+                ? data.id
+                : null;
       params.store.applyRefundOrChargeback({
         accountId: account.accountId,
         providerEventId: eventId,
@@ -952,16 +1081,73 @@ export async function verifyAndProcessBillingWebhook(params: {
   };
 }
 
+/**
+ * Creates a server-side Whop Checkout Configuration (`ch_...`) attaching accountId & firebaseUid
+ * in `metadata` when BILLING_API_KEY is configured, so embedded checkout propagates user identity
+ * into Whop's `payment.succeeded` and `membership.*` webhooks.
+ */
+export async function createWhopCheckoutConfiguration(params: {
+  whopPlanId: string;
+  accountId: string;
+  firebaseUid?: string | null;
+  returnUrl?: string | null;
+}): Promise<{ sessionId: string | null; purchaseUrl: string | null }> {
+  const apiKey = envStr('BILLING_API_KEY');
+  if (!apiKey || !params.whopPlanId) {
+    return { sessionId: null, purchaseUrl: null };
+  }
+
+  const metadata: Record<string, string> = {
+    accountId: params.accountId,
+    source: 'alphatomy_embedded_checkout',
+  };
+  if (params.firebaseUid) {
+    metadata.firebaseUid = params.firebaseUid;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch('https://api.whop.com/api/v1/checkout_configurations', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        plan_id: params.whopPlanId,
+        metadata,
+        ...(params.returnUrl ? { redirect_url: params.returnUrl } : {}),
+      }),
+    });
+    clearTimeout(timer);
+    if (!res.ok) {
+      return { sessionId: null, purchaseUrl: null };
+    }
+    const json = (await res.json()) as { id?: unknown; purchase_url?: unknown };
+    return {
+      sessionId: typeof json.id === 'string' && json.id.trim() ? json.id.trim() : null,
+      purchaseUrl:
+        typeof json.purchase_url === 'string' && json.purchase_url.trim()
+          ? json.purchase_url.trim()
+          : null,
+    };
+  } catch {
+    return { sessionId: null, purchaseUrl: null };
+  }
+}
+
 export async function createHostedPortalSession(
   providerCustomerId: string,
 ): Promise<{ ok: boolean; overviewUrl?: string; error?: string }> {
-  const configuredPortalUrl = envStr('BILLING_PORTAL_URL');
+  const configuredPortalUrl = envStr('BILLING_PORTAL_URL') ?? 'https://whop.com/orders';
   const snapshot = getCommercialRuntimeSnapshot();
-  if (!configuredPortalUrl || snapshot.seller.billingProvider === 'unselected') {
+  if (snapshot.seller.billingProvider === 'unselected') {
     return {
       ok: false,
       error:
-        'Billing customer portal is not yet configured because a live payment provider (e.g., Whop, Creem, or Paddle) has not been finalized. Use your purchase receipt link or Contact & Support.',
+        'Billing customer portal is unavailable until a payment provider is selected. Use Contact & Support.',
     };
   }
   const url = new URL(configuredPortalUrl);

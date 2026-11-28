@@ -208,7 +208,7 @@ export async function buildUniversalEducatorPptx(
   const pptx = createPptxInstance();
   pptx.layout = 'LAYOUT_WIDE';
   pptx.title = title;
-  pptx.author = 'Anatomy 360 Teacher & Professor Workspace';
+  pptx.author = 'Alphatomy Teacher & Professor Workspace';
 
   // Slide 1: Cover
   const cover = pptx.addSlide();
@@ -576,8 +576,8 @@ export function buildUniversalEducatorPdf(options: UniversalEducatorExportOption
   const w = new PdfWriter();
   w.addTitle(
     isOutline
-      ? 'Anatomy 360 — Instructor Lecture & Seminar Outline'
-      : 'Anatomy 360 — Student Activity & Assessment Worksheet',
+      ? 'Alphatomy — Instructor Lecture & Seminar Outline'
+      : 'Alphatomy — Student Activity & Assessment Worksheet',
   );
   w.addParagraph(
     `Scope: ${title}${subtitle ? ` | ${subtitle}` : ''} | Tier: ${tierMeta.full} | Topics: ${topics.length}`,
@@ -641,7 +641,7 @@ export function buildUniversalEducatorPdf(options: UniversalEducatorExportOption
   }
 
   w.addParagraph(
-    'Generated from Anatomy 360 educational reference modules. Structured reference only — awaiting qualified faculty review.',
+    'Generated from Alphatomy educational reference modules. Structured reference only — awaiting qualified faculty review.',
     true,
   );
   return w.toBytes();

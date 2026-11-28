@@ -18,15 +18,15 @@ export default function TermsPage({ onNavigate }: Props) {
         <p className="a360-kicker">Legal &amp; Buyer Terms</p>
         <h1>Terms and Conditions</h1>
         <p className="a360-lead">
-          Transparent buyer terms governing access to Anatomy 360 educational software, datasets,
-          optional paid plans, and payment processing disclosures.
+          Transparent buyer terms governing access to Alphatomy educational software, datasets,
+          optional paid plans, and Whop payment processing disclosures.
         </p>
       </header>
 
       <PageOrientationBar
-        whatThisIs="The Terms and Conditions explaining who operates Anatomy 360, how software subscriptions and datasets are licensed, and how future checkout and renewals work."
+        whatThisIs="The Terms and Conditions explaining who operates Alphatomy, how software subscriptions and datasets are licensed, and how checkout and renewals work."
         primaryHint="Questions before purchasing? Visit Contact & Support or review the Refund Policy."
-        spokenSummary="Anatomy 360 Terms and Conditions page."
+        spokenSummary="Alphatomy Terms and Conditions page."
       />
 
       {(!seller.legalSellerName || !config.liveCheckoutAllowed) && (
@@ -34,10 +34,10 @@ export default function TermsPage({ onNavigate }: Props) {
           className="rounded-xl border border-amber-300 bg-amber-50/80 p-4 text-xs leading-relaxed text-amber-950"
           role="status"
         >
-          <strong>Pre-Submission Notice:</strong> Commercial Seller identity fields and final
-          payment provider selection (e.g., Whop, Creem, Paddle, or another processor) are still
-          pending owner confirmation and provider approval. Live paid checkout remains disabled
-          until legal seller details, confirmed pricing, and provider onboarding are completed.
+          <strong>Pre-Submission Notice:</strong> Commercial Seller identity fields, Whop KYC
+          verification, and live plan credentials are still pending owner confirmation. Live paid
+          checkout remains disabled until legal seller details, confirmed pricing, and Whop
+          onboarding are completed.
         </div>
       )}
 
@@ -57,7 +57,7 @@ export default function TermsPage({ onNavigate }: Props) {
             : '[Pending Confirmed Legal Entity / Sole Proprietor & Country]'}
         </p>
         <p>
-          <strong>Product Scope:</strong> Anatomy 360 is an interactive browser-based 3D human
+          <strong>Product Scope:</strong> Alphatomy is an interactive browser-based 3D human
           anatomy and biomedical educational software platform offering 3D exploration, structured
           subjects, curriculum matching, practice quizzes, flashcards, physiology sliders, histology
           and radiology guides, and educator preparation tools.
@@ -143,7 +143,7 @@ export default function TermsPage({ onNavigate }: Props) {
           exports as institutional accreditation.
         </p>
         <p>
-          Anatomy 360 software UI, curriculum integration logic, and documentation remain the
+          Alphatomy software UI, curriculum integration logic, and documentation remain the
           intellectual property of their respective authors, while underlying anatomical datasets retain
           their original open licenses: BodyParts3D 4.0 © DBCLS (CC BY 4.0), HuBMAP Human Reference
           Atlas meshes (CC BY 4.0), and Human Atlas WebGL architecture (MIT). Full attribution and
@@ -162,7 +162,7 @@ export default function TermsPage({ onNavigate }: Props) {
       <section className="a360-prose-block space-y-3">
         <h2>7. Educational Medical Disclaimer &amp; Product Limitations</h2>
         <p>
-          <strong>Not Medical Advice:</strong> Anatomy 360 is educational software only. It does not
+          <strong>Not Medical Advice:</strong> Alphatomy is educational software only. It does not
           provide clinical diagnosis, medical advice, treatment recommendations, or surgical
           planning. Additionally, as documented on About &amp; Licenses, certain microanatomical or
           specialized 3D structures remain outside current mesh coverage and curriculum materials

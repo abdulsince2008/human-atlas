@@ -559,7 +559,7 @@ export default function PracticalLabWorkspace({
     <div className="a360-page a360-plab-page">
       <header className="a360-page-header">
         <p className="a360-kicker">Interactive 3D Spotter & Assessment</p>
-        <h1>Anatomy 360 Practical Lab</h1>
+        <h1>Alphatomy Practical Lab</h1>
         <p className="a360-lead">
           Test genuine anatomical recognition, direct 3D spatial location, and functional knowledge
           on the interactive human model.
