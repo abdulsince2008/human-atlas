@@ -14,8 +14,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "types": [
-      "node",
-      "vinext/types"
+      "node"
     ],
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,

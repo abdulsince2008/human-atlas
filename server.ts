@@ -1099,7 +1099,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+    const publicDir = path.join(ROOT_DIR, 'public');
     const distDir = path.join(ROOT_DIR, 'dist');
+    app.use(express.static(publicDir, { maxAge: '7d' }));
     app.use(express.static(distDir));
     app.get('/{*splat}', (_req, res) => {
       const indexFile = path.join(distDir, 'index.html');
